@@ -1,0 +1,17 @@
+# Cada servicio tiene un dueno que revisa sus PR automaticamente.
+# Formato: <ruta> @usuario-github
+# Para que funcione, el usuario debe tener acceso de escritura al repo.
+#
+# Por ahora todo pasa por el propietario del repo. Al crear un servicio,
+# agrega su linea y quita el comodin para ese servicio, por ejemplo:
+#
+#   /services/tickets-service/   @usuario-1
+#   /services/users-service/     @usuario-2
+#   /services/comments-service/  @usuario-3
+
+*                @ANDERSOUNDZ
+
+# Infraestructura compartida: siempre la revisa el propietario.
+/.github/        @ANDERSOUNDZ
+/docs/           @ANDERSOUNDZ
+/pom.xml         @ANDERSOUNDZ

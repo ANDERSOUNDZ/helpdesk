@@ -1,0 +1,16 @@
+# Fin de linea unificado: Windows, macOS y Linux deben producir los mismos bytes.
+# Sin esto, un script .sh editado en Windows llega con CRLF y falla en Linux/Mac
+# ("bad interpreter: /bin/bash^M").
+* text=auto eol=lf
+
+# Estos formatos de Windows si necesitan CRLF.
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+
+# Binarios: git no debe tocarlos.
+*.jar binary
+*.png binary
+*.jpg binary
+*.ico binary
+*.db binary
