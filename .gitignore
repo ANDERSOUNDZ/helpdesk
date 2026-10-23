@@ -1,0 +1,26 @@
+# Java / Maven
+target/
+*.class
+*.log
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+
+# Base de datos local (H2 en archivo)
+data/
+*.mv.db
+*.trace.db
+
+# Secretos y configuracion local: solo se versiona .env.example
+.env
+.env.*
+!.env.example
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Claude Code (worktrees y estado local)
+.claude/

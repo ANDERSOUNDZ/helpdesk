@@ -1,0 +1,116 @@
+# Cherry-pick automatizado e independiente del resto del CI.
+#
+# Se lanza a mano: GitHub > Actions > "Cherry-pick a otra rama" > Run workflow.
+# Copia uno o varios commits a una rama destino y abre un Pull Request.
+# Nunca empuja directo a la rama destino: el cambio entra por PR y revision.
+#
+# Guia de uso: CONTRIBUTING.md, seccion "Cherry-pick".
+#
+# Requisito unico (una vez, por el propietario del repo):
+#   Settings > Actions > General > Workflow permissions >
+#   marcar "Allow GitHub Actions to create and approve pull requests".
+
+name: Cherry-pick a otra rama
+
+on:
+  workflow_dispatch:
+    inputs:
+      commits:
+        description: "SHA(s) a copiar, separados por espacio y en orden cronologico (el mas antiguo primero)"
+        required: true
+        type: string
+      target_branch:
+        description: "Rama destino que ya exista (ej. release/1.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+# Dos cherry-pick hacia la misma rama no deben correr a la vez.
+concurrency:
+  group: cherry-pick-${{ inputs.target_branch }}
+  cancel-in-progress: false
+
+jobs:
+  cherry-pick:
+    runs-on: ubuntu-latest
+    env:
+      # Las entradas pasan por variables de entorno, nunca interpoladas en el script:
+      # asi no se puede inyectar comandos a traves de ellas.
+      COMMITS: ${{ inputs.commits }}
+      TARGET: ${{ inputs.target_branch }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # historial completo: hace falta para encontrar cualquier SHA
+
+      - name: Validar entradas
+        run: |
+          set -euo pipefail
+
+          git check-ref-format --branch "$TARGET" >/dev/null \
+            || { echo "::error::'$TARGET' no es un nombre de rama valido"; exit 1; }
+
+          git ls-remote --exit-code --heads origin "$TARGET" >/dev/null \
+            || { echo "::error::La rama destino '$TARGET' no existe en origin"; exit 1; }
+
+          for sha in $COMMITS; do
+            [[ "$sha" =~ ^[0-9a-fA-F]{7,40}$ ]] \
+              || { echo "::error::'$sha' no parece un SHA (7 a 40 caracteres hexadecimales)"; exit 1; }
+            git cat-file -e "${sha}^{commit}" 2>/dev/null \
+              || { echo "::error::El commit '$sha' no existe en este repositorio"; exit 1; }
+          done
+
+      - name: Cherry-pick
+        id: pick
+        run: |
+          set -euo pipefail
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          first_sha=$(echo $COMMITS | awk '{print $1}')
+          branch="cherry-pick/${TARGET//\//-}/$(git rev-parse --short "$first_sha")"
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+
+          git checkout -B "$branch" "origin/$TARGET"
+
+          for sha in $COMMITS; do
+            # -x deja "(cherry picked from commit ...)" en el mensaje: trazabilidad.
+            if ! git cherry-pick -x "$sha"; then
+              git cherry-pick --abort || true
+              {
+                echo "::error::El cherry-pick de $sha tiene conflictos o ya esta aplicado en $TARGET."
+                echo "Hazlo a mano (ver CONTRIBUTING.md, 'Cherry-pick'):"
+                echo "  git fetch origin"
+                echo "  git switch -c $branch origin/$TARGET"
+                echo "  git cherry-pick -x $COMMITS"
+                echo "  # resuelve conflictos, git add ., git cherry-pick --continue"
+                echo "  git push -u origin $branch"
+              } >&2
+              exit 1
+            fi
+          done
+
+          git push --set-upstream origin "$branch"
+
+      - name: Abrir Pull Request
+        env:
+          BRANCH: ${{ steps.pick.outputs.branch }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          set -euo pipefail
+          body=$(printf 'Cherry-pick automatizado hacia `%s`.\n\nCommits copiados:\n' "$TARGET")
+          for sha in $COMMITS; do
+            body+=$'\n'"- $(git log -1 --format='`%h` %s' "$sha")"
+          done
+          body+=$'\n\n'"Lanzado por @${ACTOR} desde el workflow \`cherry-pick.yml\`."
+
+          gh pr create \
+            --base "$TARGET" \
+            --head "$BRANCH" \
+            --title "cherry-pick: $(git log -1 --format=%s "$(echo $COMMITS | awk '{print $1}')") -> $TARGET" \
+            --body "$body"
