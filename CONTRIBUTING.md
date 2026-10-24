@@ -5,7 +5,14 @@ para que nadie pise el trabajo de otra persona y para que `main` siempre funcion
 
 ## 1. Ramas
 
-`main` esta protegida: **nadie empuja directo**, todo entra por Pull Request.
+Hay dos ramas permanentes. **Nadie empuja directo a ninguna de las dos**: todo entra por Pull Request.
+
+| Rama | Para que sirve |
+|---|---|
+| `main` | Lo estable. Solo recibe PR desde `dev`, cuando el equipo decide publicar. |
+| `dev` | Integracion diaria. Aqui se juntan las ramas de cada persona y se prueba que convivan. |
+
+Asi un error de una persona rompe `dev` y no `main`.
 
 | Tipo | Formato | Ejemplo |
 |---|---|---|
@@ -25,20 +32,22 @@ Reglas:
 ## 2. Flujo diario
 
 ```bash
-git switch main && git pull --ff-only        # parte de main actualizado
-git switch -c feat/tickets/crear-ticket      # tu rama
+git fetch origin
+git switch -c feat/tickets/crear-ticket origin/dev   # tu rama sale de dev
 
 # ...trabajas y haces commits...
 
 git fetch origin
-git rebase origin/main                       # ponte al dia ANTES de abrir el PR
+git rebase origin/dev                        # ponte al dia ANTES de abrir el PR
 git push -u origin feat/tickets/crear-ticket
-gh pr create --fill                          # o desde la web de GitHub
+gh pr create --base dev --fill               # el PR va hacia dev, no hacia main
 ```
 
 - El PR requiere **1 aprobacion** (la del dueno del servicio via `CODEOWNERS`) y el CI en verde.
-- Se integra con **Squash and merge**: queda un commit limpio por funcionalidad en `main`.
+- Se integra con **Squash and merge**: queda un commit limpio por funcionalidad en `dev`.
 - Tras el merge, borra tu rama.
+- Para publicar: PR de `dev` hacia `main`, con **Create a merge commit** (no squash), para que
+  `dev` y `main` no se desalineen.
 
 ## 3. Commits
 
@@ -55,7 +64,7 @@ Tipos: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `ci`.
 
 ## 4. Cherry-pick
 
-El flujo normal es **PR hacia `main`**. El cherry-pick es para casos puntuales:
+El flujo normal es **PR hacia `dev`**. El cherry-pick es para casos puntuales:
 
 - Llevar un **hotfix** de `main` a una rama `release/*`.
 - Rescatar **un commit suelto** de otra rama.
