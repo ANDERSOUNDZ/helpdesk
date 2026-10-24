@@ -1,6 +1,6 @@
 # ADR 0001: Monorepo, microservicios y arquitectura Clean
 
-- **Estado:** aceptada
+- **Estado:** aceptada; el punto 3 (Clean dentro de cada servicio) fue reemplazado por el [ADR 0002](0002-servicios-simples.md)
 - **Fecha:** 2026-10-23
 
 ## Contexto

@@ -127,5 +127,12 @@ Los tres: **Git 2.40 o superior** y **GitHub CLI (`gh`)** opcional pero recomend
 
 ## 6. Dentro de cada servicio
 
-Cada servicio sigue la arquitectura Clean descrita en el [README](README.md#arquitectura-de-cada-servicio).
-Regla corta: `domain` no importa nada de Spring ni JPA; las dependencias solo apuntan hacia adentro.
+Cada servicio es simple: `model/` (entidades) y `controller/` (endpoints), como se explica en el
+[README](README.md#arquitectura-de-cada-servicio). No agregues carpetas ni capas nuevas sin acordarlo con
+el equipo ([ADR 0002](docs/adr/0002-servicios-simples.md)).
+
+Reglas minimas:
+
+- **Referencias a otros servicios solo por id**, sin copiar sus datos.
+- **No llames a otro servicio para crear algo propio**: si ese servicio cae, el tuyo debe seguir funcionando.
+- **Pruebas:** cada controller lleva un test simple en `src/test/java`, sin levantar Spring.
