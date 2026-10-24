@@ -32,7 +32,7 @@ public class InMemoryTicketRepository implements TicketRepositoryPort {
         // Si el ticket ya tiene id es una actualizacion; si no, se le asigna uno.
         Long id = ticket.getId() != null ? ticket.getId() : siguienteId.getAndIncrement();
         Ticket guardado = Ticket.reconstruir(id, ticket.getTitulo(), ticket.getDescripcion(),
-                ticket.getPrioridad(), ticket.getEstado());
+                ticket.getPrioridad(), ticket.getEstado(), ticket.getSolicitanteId(), ticket.getTecnicoId());
         tickets.put(id, guardado);
         return guardado;
     }

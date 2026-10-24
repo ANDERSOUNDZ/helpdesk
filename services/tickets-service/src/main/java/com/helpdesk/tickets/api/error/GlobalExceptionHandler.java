@@ -27,4 +27,11 @@ public class GlobalExceptionHandler {
     public ProblemDetail datosInvalidos(IllegalArgumentException e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.getMessage());
     }
+
+    // Los datos son validos pero chocan con el estado actual del ticket (por ejemplo,
+    // asignar uno ya resuelto): eso es un 409 Conflict, no un error del cliente ni del servidor.
+    @ExceptionHandler(IllegalStateException.class)
+    public ProblemDetail conflicto(IllegalStateException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
+    }
 }

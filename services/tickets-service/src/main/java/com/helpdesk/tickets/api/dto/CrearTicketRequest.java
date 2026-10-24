@@ -6,7 +6,10 @@ import com.helpdesk.tickets.domain.model.Prioridad;
 // contenedor de datos inmutable.
 //
 // Por que existe aparte de Ticket: el contrato publico de la API no debe cambiar cada
-// vez que cambie el dominio, y el cliente no debe poder mandar campos como id o estado.
+// vez que cambie el dominio, y el cliente no debe poder mandar campos como id, estado
+// o tecnicoId (el tecnico se asigna despues, no al crear).
 // Las validaciones (titulo vacio, etc.) NO estan aqui: viven en el dominio.
-public record CrearTicketRequest(String titulo, String descripcion, Prioridad prioridad) {
+//
+// solicitanteId llega en el cuerpo por ahora; cuando exista autenticacion saldra del token.
+public record CrearTicketRequest(String titulo, String descripcion, Prioridad prioridad, Long solicitanteId) {
 }

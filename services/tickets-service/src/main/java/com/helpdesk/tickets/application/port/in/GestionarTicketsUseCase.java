@@ -13,11 +13,11 @@ import java.util.List;
 // uso por clase (CrearTicketUseCase, CerrarTicketUseCase...) sin romper a nadie.
 public interface GestionarTicketsUseCase {
 
-    Ticket crear(String titulo, String descripcion, Prioridad prioridad);
+    Ticket crear(String titulo, String descripcion, Prioridad prioridad, Long solicitanteId);
 
     List<Ticket> listar();
 
     Ticket obtenerPorId(Long id);
 
-    Ticket cerrar(Long id);
+    Ticket resolver(Long id);
 }

@@ -43,17 +43,18 @@ public class TicketController {
 
     @PostMapping
     public ResponseEntity<TicketResponse> crear(@RequestBody CrearTicketRequest request) {
-        Ticket creado = tickets.crear(request.titulo(), request.descripcion(), request.prioridad());
+        Ticket creado = tickets.crear(request.titulo(), request.descripcion(),
+                request.prioridad(), request.solicitanteId());
         // 201 + cabecera Location con la URL del recurso nuevo: es la convencion REST
         // y permite al cliente saber donde consultarlo sin armar la URL el mismo.
         return ResponseEntity.created(URI.create("/tickets/" + creado.getId()))
                 .body(TicketResponse.desde(creado));
     }
 
-    // PUT y no POST: cerrar dos veces deja el mismo resultado (es idempotente),
+    // PUT y no POST: resolver dos veces deja el mismo resultado (es idempotente),
     // y PUT es el verbo que expresa eso.
-    @PutMapping("/{id}/cerrar")
-    public TicketResponse cerrar(@PathVariable Long id) {
-        return TicketResponse.desde(tickets.cerrar(id));
+    @PutMapping("/{id}/resolver")
+    public TicketResponse resolver(@PathVariable Long id) {
+        return TicketResponse.desde(tickets.resolver(id));
     }
 }

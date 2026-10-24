@@ -21,19 +21,19 @@ class TicketServiceTest {
 
     @Test
     void crearAsignaIdYListaElTicket() {
-        Ticket creado = service.crear("Impresora no imprime", "Sala 2", Prioridad.MEDIA);
+        Ticket creado = service.crear("Impresora no imprime", "Sala 2", Prioridad.MEDIA, 3L);
 
         assertNotNull(creado.getId());
         assertEquals(1, service.listar().size());
     }
 
     @Test
-    void cerrarPersisteElNuevoEstado() {
-        Ticket creado = service.crear("VPN caida", null, Prioridad.ALTA);
+    void resolverPersisteElNuevoEstado() {
+        Ticket creado = service.crear("VPN caida", null, Prioridad.ALTA, 3L);
 
-        service.cerrar(creado.getId());
+        service.resolver(creado.getId());
 
-        assertEquals(EstadoTicket.CERRADO, service.obtenerPorId(creado.getId()).getEstado());
+        assertEquals(EstadoTicket.RESUELTO, service.obtenerPorId(creado.getId()).getEstado());
     }
 
     @Test

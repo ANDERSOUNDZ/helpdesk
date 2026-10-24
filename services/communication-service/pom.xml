@@ -22,11 +22,17 @@
 	</properties>
 
 	<dependencies>
-		<!-- Solo web por ahora. Base de datos y tests se agregan cuando
-		     el responsable del servicio los necesite. -->
+		<!-- Web y tests. La base de datos se agrega cuando el responsable
+		     del servicio la necesite. -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webmvc-test</artifactId>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 

@@ -70,6 +70,41 @@ Quien es dueno de que dato (para no pisarse):
 - **analytics** no lee la base de datos de otro servicio: consulta la API de tickets o, mas adelante, recibe eventos.
 - **identity** es el unico que conoce credenciales y roles.
 
+### Entidades y contrato entre servicios
+
+Entidades minimas, una clase de dominio por concepto (en `domain/model` de cada servicio):
+
+| Servicio | Entidad | Campos |
+|---|---|---|
+| identity | `Usuario` | `id`, `nombre`, `rol` (`ESTUDIANTE`, `TECNICO`, `ADMINISTRADOR`) |
+| tickets | `Ticket` | `id`, `titulo`, `descripcion`, `prioridad`, `estado`, `solicitanteId`, `tecnicoId` |
+| communication | `Comentario` | `id`, `ticketId`, `autorId`, `texto` |
+| communication | `Notificacion` | `id`, `usuarioId`, `mensaje`, `leida` |
+| analytics | `ResumenTickets` | `abiertos`, `enProgreso`, `resueltos` (se calcula, no se guarda) |
+
+Estados del ticket: `ABIERTO` -> `EN_PROGRESO` (al asignarlo) -> `RESUELTO`.
+
+**Reglas para que se entiendan sin depender unos de otros:**
+
+1. **Referencias solo por id.** Se guarda `ticketId`, `usuarioId`, `tecnicoId`; nunca una copia del dato ajeno.
+2. **Cada servicio tiene su propia clase** para lo que lee de otro. Nada de librerias de dominio compartidas.
+3. **Los estados viajan como texto** (`"RESUELTO"`). Quien lee ignora lo que no conoce, asi agregar un
+   estado no rompe a los demas.
+4. **El camino principal no llama a otros servicios.** Crear un ticket o un comentario solo usa la base
+   de datos propia: si otro servicio cae, este sigue trabajando.
+5. **Errores en formato `ProblemDetail`** (404, 400, 409) en todos los servicios.
+
+**Evento oficial:** cuando un ticket cambia de estado, tickets-service lo anuncia con este formato.
+
+```json
+{ "ticketId": 7, "estadoAnterior": "ABIERTO", "estadoNuevo": "RESUELTO",
+  "solicitanteId": 3, "fecha": "2026-10-24T10:15:00Z" }
+```
+
+`communication-service` lo usa para avisar al solicitante y `analytics-service` para sus contadores;
+cada uno lo lee con su propia clase `TicketEstadoCambiado`. **Hoy el evento solo esta definido**: aun no
+se publica ni se recibe (falta decidir broker o llamada HTTP con tiempo limite).
+
 Principios:
 
 1. **Un servicio por contexto de negocio** (tickets, identidad, analiticas, comunicacion).
@@ -207,10 +242,12 @@ docker run --rm -p 8080:8080 tickets-service                                    
 
 | Metodo | Ruta | Que hace |
 |---|---|---|
-| `POST` | `/tickets` | Crea un ticket `{"titulo","descripcion","prioridad"}` (`BAJA`/`MEDIA`/`ALTA`) |
+| `POST` | `/tickets` | Crea un ticket `{"titulo","descripcion","prioridad","solicitanteId"}` (`BAJA`/`MEDIA`/`ALTA`) |
 | `GET` | `/tickets` | Lista los tickets |
 | `GET` | `/tickets/{id}` | Obtiene un ticket |
-| `PUT` | `/tickets/{id}/cerrar` | Cierra el ticket |
+| `PUT` | `/tickets/{id}/resolver` | Pasa el ticket a `RESUELTO` |
+
+La asignacion a un tecnico ya existe en el dominio (`Ticket.asignarA`) pero aun no tiene endpoint.
 
 Hoy los datos se guardan **en memoria** (se pierden al reiniciar) para fijar primero la
 estructura; la base de datos se agrega despues sin tocar dominio ni aplicacion.

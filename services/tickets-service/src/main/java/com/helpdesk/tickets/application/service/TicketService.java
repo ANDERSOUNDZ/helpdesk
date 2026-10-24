@@ -23,8 +23,11 @@ public class TicketService implements GestionarTicketsUseCase {
     }
 
     @Override
-    public Ticket crear(String titulo, String descripcion, Prioridad prioridad) {
-        return repositorio.guardar(Ticket.nuevo(titulo, descripcion, prioridad));
+    public Ticket crear(String titulo, String descripcion, Prioridad prioridad, Long solicitanteId) {
+        // No se consulta a identity-service para comprobar que el solicitante existe:
+        // crear un ticket solo debe depender de la base de datos propia. Si identity
+        // esta caido, tickets sigue recibiendo solicitudes.
+        return repositorio.guardar(Ticket.nuevo(titulo, descripcion, prioridad, solicitanteId));
     }
 
     @Override
@@ -40,9 +43,9 @@ public class TicketService implements GestionarTicketsUseCase {
     }
 
     @Override
-    public Ticket cerrar(Long id) {
+    public Ticket resolver(Long id) {
         Ticket ticket = obtenerPorId(id);
-        ticket.cerrar();
+        ticket.resolver();
         return repositorio.guardar(ticket);
     }
 }
