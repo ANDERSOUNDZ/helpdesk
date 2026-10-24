@@ -1,7 +1,5 @@
 package com.helpdesk.tickets.model;
 
-// Entidad simple, como Espacio en espacios-service: campos, constructor vacio y getters/setters.
-// El constructor vacio es lo que permite que Spring convierta el JSON de Postman en un Ticket.
 public class Ticket {
 
     private Long id;
@@ -9,8 +7,6 @@ public class Ticket {
     private String descripcion;
     private Prioridad prioridad;
     private EstadoTicket estado = EstadoTicket.ABIERTO;
-    // Solo el ID de las personas, no el usuario completo: ese dato es de identity-service.
-    // Asi tickets sigue funcionando aunque identity este caido.
     private Long solicitanteId;
     private Long tecnicoId;
 

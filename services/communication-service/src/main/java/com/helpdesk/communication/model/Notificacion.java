@@ -1,6 +1,5 @@
 package com.helpdesk.communication.model;
 
-// Un aviso para un usuario ("tu ticket fue resuelto"). Guarda solo el id del destinatario.
 public class Notificacion {
 
     private Long id;

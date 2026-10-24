@@ -3,12 +3,9 @@ package com.helpdesk.communication.controller;
 import com.helpdesk.communication.model.Comentario;
 import com.helpdesk.communication.model.Notificacion;
 import com.helpdesk.communication.model.TicketEstadoCambiado;
+import com.helpdesk.communication.service.ComunicacionService;
 
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,81 +16,39 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
-// Un solo controller con los datos en memoria (se pierden al reiniciar): la version mas
-// simple posible para probar con Postman. Cuando haya base de datos se separa en capas.
 @RestController
 public class ComunicacionController {
 
-    private final Map<Long, Comentario> comentarios = new ConcurrentHashMap<>();
-    private final Map<Long, Notificacion> notificaciones = new ConcurrentHashMap<>();
-    private final AtomicLong siguienteComentario = new AtomicLong(1);
-    private final AtomicLong siguienteNotificacion = new AtomicLong(1);
+    private final ComunicacionService comunicacionService;
 
-    // ---------- Comentarios ----------
+    public ComunicacionController(ComunicacionService comunicacionService) {
+        this.comunicacionService = comunicacionService;
+    }
 
-    // ?ticketId=7 filtra los comentarios de un ticket; sin parametro devuelve todos.
     @GetMapping("/comentarios")
-    public List<Comentario> listarComentarios(@RequestParam(required = false) Long ticketId) {
-        return comentarios.values().stream()
-                .filter(c -> ticketId == null || ticketId.equals(c.getTicketId()))
-                .sorted(Comparator.comparing(Comentario::getId))
-                .toList();
+    public List<Comentario> obtenerComentarios(@RequestParam(required = false) Long ticketId) {
+        return comunicacionService.obtenerComentarios(ticketId);
     }
 
     @PostMapping("/comentarios")
-    public ResponseEntity<Comentario> comentar(@RequestBody Comentario nuevo) {
-        // No se consulta a tickets ni a identity para comprobar que existen: comentar solo
-        // depende de este servicio.
-        if (nuevo.getTicketId() == null || nuevo.getAutorId() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ticketId y autorId son obligatorios");
-        }
-        if (nuevo.getTexto() == null || nuevo.getTexto().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El texto es obligatorio");
-        }
-        nuevo.setId(siguienteComentario.getAndIncrement());
-        comentarios.put(nuevo.getId(), nuevo);
-        return ResponseEntity.status(HttpStatus.CREATED).body(nuevo);
+    public ResponseEntity<Comentario> crearComentario(@RequestBody Comentario nuevoComentario) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(comunicacionService.crearComentario(nuevoComentario));
     }
 
-    // ---------- Notificaciones ----------
-
-    // ?usuarioId=3 devuelve las de un usuario; ?leida=false solo las pendientes.
     @GetMapping("/notificaciones")
-    public List<Notificacion> listarNotificaciones(@RequestParam(required = false) Long usuarioId,
-                                                   @RequestParam(required = false) Boolean leida) {
-        return notificaciones.values().stream()
-                .filter(n -> usuarioId == null || usuarioId.equals(n.getUsuarioId()))
-                .filter(n -> leida == null || leida == n.isLeida())
-                .sorted(Comparator.comparing(Notificacion::getId))
-                .toList();
+    public List<Notificacion> obtenerNotificaciones(@RequestParam(required = false) Long usuarioId,
+                                                    @RequestParam(required = false) Boolean leida) {
+        return comunicacionService.obtenerNotificaciones(usuarioId, leida);
     }
 
     @PutMapping("/notificaciones/{id}/leida")
-    public Notificacion marcarLeida(@PathVariable Long id) {
-        Notificacion notificacion = notificaciones.get(id);
-        if (notificacion == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No existe la notificacion con id " + id);
-        }
-        notificacion.setLeida(true);
-        return notificacion;
+    public Notificacion marcarNotificacionLeida(@PathVariable Long id) {
+        return comunicacionService.marcarLeida(id);
     }
 
-    // ---------- Evento de tickets ----------
-
-    // Aqui llegaria el aviso de tickets-service cuando un ticket cambia de estado. Hoy
-    // nadie lo llama solo: se simula desde Postman para probar el contrato.
     @PostMapping("/eventos/ticket-estado")
-    public ResponseEntity<Notificacion> alCambiarEstado(@RequestBody TicketEstadoCambiado evento) {
-        if (evento.solicitanteId() == null || evento.ticketId() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ticketId y solicitanteId son obligatorios");
-        }
-        Notificacion notificacion = new Notificacion();
-        notificacion.setId(siguienteNotificacion.getAndIncrement());
-        notificacion.setUsuarioId(evento.solicitanteId());
-        notificacion.setMensaje("Tu ticket #" + evento.ticketId() + " cambio a " + evento.estadoNuevo());
-        notificaciones.put(notificacion.getId(), notificacion);
-        return ResponseEntity.status(HttpStatus.CREATED).body(notificacion);
+    public ResponseEntity<Notificacion> recibirCambioDeEstado(@RequestBody TicketEstadoCambiado evento) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(comunicacionService.alCambiarEstado(evento));
     }
 }

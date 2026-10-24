@@ -1,8 +1,5 @@
 package com.helpdesk.communication.model;
 
-// Entidad simple, como Espacio en espacios-service. Guarda SOLO los ids del ticket y del
-// autor: este servicio no es dueno de los tickets ni de los usuarios, asi que no los
-// consulta. Si tickets o identity estan caidos, comentar sigue funcionando.
 public class Comentario {
 
     private Long id;

@@ -4,8 +4,9 @@ Plataforma de tickets de soporte construida como **microservicios** independient
 Primero el backend (Spring Boot); el frontend vendra despues.
 
 > **Estado: fase 1, servicios simples.** Cada servicio es lo mas sencillo posible, igual que
-> `espacios-service`: sus entidades (`model/`) y un controller con los datos **en memoria**, para
-> probarlo con Postman. No hay base de datos ni capas adicionales todavia; se agregan cuando
+> `espacios-service`: sus entidades (`model/`), un servicio con la logica (`service/`) y un controller
+> (`controller/`), con los datos **en memoria**, para probarlo con Postman. No hay base de datos ni
+> capas adicionales todavia; se agregan cuando
 > hagan falta (ver [Arquitectura de cada servicio](#arquitectura-de-cada-servicio)). Lo marcado como
 > *(planificado)* se ira construyendo por fases (ver [Hoja de ruta](#hoja-de-ruta)).
 
@@ -123,14 +124,16 @@ Cada servicio es lo mas simple posible, igual que `espacios-service`: sin capas 
 ```
 com.helpdesk.tickets
 ├─ TicketsServiceApplication.java    Arranque de Spring Boot
-├─ model/                            Entidades: Ticket, Prioridad, EstadoTicket, TicketEstadoCambiado
-└─ controller/                       TicketController: endpoints REST + datos en memoria
+├─ model/                            Entidades: Ticket, Prioridad, EstadoTicket
+├─ service/                          TicketService: la logica y los datos en memoria
+└─ controller/                       TicketController: recibe la peticion y llama al servicio
 ```
 
 - **`model/`:** las entidades. Son clases simples (campos, constructor vacio y getters/setters) para que
   Spring convierta el JSON de Postman en objetos sin configuracion.
-- **`controller/`:** los endpoints. Guarda los datos en memoria (se pierden al reiniciar) y valida lo basico,
+- **`service/`:** la logica. Valida lo basico y guarda los datos en memoria (se pierden al reiniciar),
   respondiendo 400 / 404 / 409 con el motivo del error.
+- **`controller/`:** los endpoints. No tiene logica, solo traduce HTTP al servicio.
 - **Entre servicios:** referencias solo por id y ninguna llamada a otro servicio al crear algo, para que si
   uno cae los demas sigan trabajando.
 
@@ -171,9 +174,10 @@ Dentro de cada servicio:
    ├─ main/java/com/helpdesk/<nombre>/
    │  ├─ <Nombre>ServiceApplication.java
    │  ├─ model/                   Entidades
+   │  ├─ service/                 Logica
    │  └─ controller/              Endpoints
    ├─ main/resources/application.properties    Nombre y puerto del servicio
-   └─ test/java/                  Tests del controller (sin levantar Spring)
+   └─ test/java/                  Tests del servicio (sin levantar Spring)
 ```
 
 Se agregara en las siguientes fases *(planificado)*: POM padre, `docker-compose.yml` con PostgreSQL,

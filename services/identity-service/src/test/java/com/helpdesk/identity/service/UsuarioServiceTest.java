@@ -1,4 +1,4 @@
-package com.helpdesk.identity.controller;
+package com.helpdesk.identity.service;
 
 import com.helpdesk.identity.model.Rol;
 import com.helpdesk.identity.model.Usuario;
@@ -9,9 +9,9 @@ import org.springframework.web.server.ResponseStatusException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-class UsuarioControllerTest {
+class UsuarioServiceTest {
 
-    private final UsuarioController controller = new UsuarioController();
+    private final UsuarioService service = new UsuarioService();
 
     private Usuario usuario(String nombre, Rol rol) {
         Usuario u = new Usuario();
@@ -22,21 +22,21 @@ class UsuarioControllerTest {
 
     @Test
     void crearAsignaIdYSePuedeConsultar() {
-        Usuario creado = controller.crear(usuario("Ana", Rol.ESTUDIANTE)).getBody();
+        Usuario creado = service.crear(usuario("Ana", Rol.ESTUDIANTE));
 
         assertEquals(1L, creado.getId());
-        assertEquals("Ana", controller.obtener(1L).getNombre());
-        assertEquals(1, controller.listar().size());
+        assertEquals("Ana", service.obtenerPorId(1L).getNombre());
+        assertEquals(1, service.obtenerTodos().size());
     }
 
     @Test
     void rechazaNombreVacioORolNulo() {
-        assertThrows(ResponseStatusException.class, () -> controller.crear(usuario(" ", Rol.TECNICO)));
-        assertThrows(ResponseStatusException.class, () -> controller.crear(usuario("Luis", null)));
+        assertThrows(ResponseStatusException.class, () -> service.crear(usuario(" ", Rol.TECNICO)));
+        assertThrows(ResponseStatusException.class, () -> service.crear(usuario("Luis", null)));
     }
 
     @Test
     void obtenerUnIdInexistenteDa404() {
-        assertThrows(ResponseStatusException.class, () -> controller.obtener(99L));
+        assertThrows(ResponseStatusException.class, () -> service.obtenerPorId(99L));
     }
 }

@@ -3,8 +3,6 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<!-- Misma version de Spring Boot que espacios-service, para que el equipo
-	     no tenga que aprender dos versiones distintas. -->
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
@@ -23,8 +21,6 @@
 	</properties>
 
 	<dependencies>
-		<!-- Solo lo imprescindible: web y tests. No hay base de datos todavia
-		     (ver InMemoryTicketRepository); se agrega cuando el equipo la defina. -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc</artifactId>

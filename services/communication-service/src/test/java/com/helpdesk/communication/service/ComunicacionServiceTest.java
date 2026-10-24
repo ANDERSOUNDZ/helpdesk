@@ -1,4 +1,4 @@
-package com.helpdesk.communication.controller;
+package com.helpdesk.communication.service;
 
 import com.helpdesk.communication.model.Comentario;
 import com.helpdesk.communication.model.Notificacion;
@@ -12,9 +12,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class ComunicacionControllerTest {
+class ComunicacionServiceTest {
 
-    private final ComunicacionController controller = new ComunicacionController();
+    private final ComunicacionService service = new ComunicacionService();
 
     private Comentario comentario(Long ticketId, Long autorId, String texto) {
         Comentario c = new Comentario();
@@ -26,22 +26,22 @@ class ComunicacionControllerTest {
 
     @Test
     void comentarYFiltrarPorTicket() {
-        controller.comentar(comentario(7L, 3L, "Ya lo revise"));
-        controller.comentar(comentario(8L, 3L, "Otro ticket"));
+        service.crearComentario(comentario(7L, 3L, "Ya lo revise"));
+        service.crearComentario(comentario(8L, 3L, "Otro ticket"));
 
-        assertEquals(1, controller.listarComentarios(7L).size());
-        assertEquals(2, controller.listarComentarios(null).size());
+        assertEquals(1, service.obtenerComentarios(7L).size());
+        assertEquals(2, service.obtenerComentarios(null).size());
     }
 
     @Test
     void rechazaComentarioSinTextoOSinIds() {
-        assertThrows(ResponseStatusException.class, () -> controller.comentar(comentario(7L, 3L, " ")));
-        assertThrows(ResponseStatusException.class, () -> controller.comentar(comentario(null, 3L, "hola")));
+        assertThrows(ResponseStatusException.class, () -> service.crearComentario(comentario(7L, 3L, " ")));
+        assertThrows(ResponseStatusException.class, () -> service.crearComentario(comentario(null, 3L, "hola")));
     }
 
     @Test
     void elEventoCreaUnaNotificacionSinLeerParaElSolicitante() {
-        Notificacion n = controller.alCambiarEstado(new TicketEstadoCambiado(7L, "RESUELTO", 3L)).getBody();
+        Notificacion n = service.alCambiarEstado(new TicketEstadoCambiado(7L, "RESUELTO", 3L));
 
         assertEquals(3L, n.getUsuarioId());
         assertEquals("Tu ticket #7 cambio a RESUELTO", n.getMensaje());
@@ -50,11 +50,11 @@ class ComunicacionControllerTest {
 
     @Test
     void marcarLeidaLaSacaDePendientes() {
-        Notificacion n = controller.alCambiarEstado(new TicketEstadoCambiado(7L, "RESUELTO", 3L)).getBody();
+        Notificacion n = service.alCambiarEstado(new TicketEstadoCambiado(7L, "RESUELTO", 3L));
 
-        controller.marcarLeida(n.getId());
+        service.marcarLeida(n.getId());
 
-        assertTrue(controller.listarNotificaciones(3L, false).isEmpty());
-        assertEquals(1, controller.listarNotificaciones(3L, true).size());
+        assertTrue(service.obtenerNotificaciones(3L, false).isEmpty());
+        assertEquals(1, service.obtenerNotificaciones(3L, true).size());
     }
 }
