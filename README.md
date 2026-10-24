@@ -11,8 +11,152 @@ Primero el backend (Spring Boot); el frontend vendra despues.
 > (ver [Arquitectura de cada servicio](#arquitectura-de-cada-servicio)). Lo marcado como
 > *(planificado)* se ira construyendo por fases (ver [Hoja de ruta](#hoja-de-ruta)).
 
+## Inicio rapido
+
+Esta seccion esta escrita para que una persona, **o un agente de IA que la lea**, pueda levantar un servicio
+sin conocer el proyecto, comprobar que funciona y explicarselo a quien lo va a usar. Todos los comandos se
+probaron con los cuatro servicios.
+
+### Reglas para el agente
+
+1. Si no te dijeron **que servicio** levantar, preguntalo (tabla del paso 0).
+2. Usa solo los comandos de esta seccion, desde la carpeta indicada. No modifiques codigo ni archivos de
+   otros servicios para lograr que arranque.
+3. **Nunca** ejecutes `docker compose down -v`, `docker volume rm` ni `docker system prune` sin preguntar:
+   borran los datos de la base.
+4. No hagas commit, push ni cambies de rama salvo que te lo pidan.
+5. Si algo falla, lee los registros (`docker compose logs`), consulta [Si algo falla](#si-algo-falla) e
+   informa el error **real**. No inventes resultados.
+6. Las claves de las bases son de desarrollo y estan a la vista; no las cambies.
+7. En Windows ejecuta los comandos en **Git Bash** o WSL. En PowerShell, `curl` es otro comando: usa `curl.exe`.
+
+### Paso 0: elegir el servicio
+
+| Servicio | Carpeta | App | PostgreSQL | Base de datos | Comprobacion | Tablas |
+|---|---|---|---|---|---|---|
+| `servicio-tickets` | `services/servicio-tickets` | 8080 | 5433 | `tickets_db` | `GET /tickets` | `tickets` |
+| `servicio-identidad` | `services/servicio-identidad` | 8083 | 5434 | `identidad_db` | `GET /usuarios` | `usuarios` |
+| `servicio-comunicacion` | `services/servicio-comunicacion` | 8084 | 5435 | `comunicacion_db` | `GET /comentarios` | `comentarios`, `notificaciones` |
+| `servicio-estadisticas` | `services/servicio-estadisticas` | 8082 | 5436 | `estadisticas_db` | `GET /resumen` | `contadores_estado` |
+
+El usuario y la clave de cada base son el nombre corto del servicio (`tickets`/`tickets`,
+`identidad`/`identidad`, `comunicacion`/`comunicacion`, `estadisticas`/`estadisticas`).
+
+### Paso 1: comprobar los requisitos
+
+```bash
+docker --version          # debe mostrar una version
+docker compose version    # debe mostrar una version
+docker info               # no debe fallar con "Cannot connect to the Docker daemon"
+```
+
+Si `docker info` falla, Docker no esta abierto: abre Docker Desktop (o `sudo systemctl start docker` en Linux)
+y espera a que diga que esta corriendo. No hace falta instalar Java, Maven ni PostgreSQL.
+
+### Paso 2: levantar el servicio y su base
+
+```bash
+cd services/servicio-tickets          # la carpeta del paso 0
+docker compose up -d --build
+```
+
+La primera vez tarda de 2 a 5 minutos (descarga imagenes y compila; necesita internet); las siguientes, menos de
+uno. Comprueba con `docker compose ps`: deben aparecer **dos contenedores** en estado *running*, `...-db-1`
+(PostgreSQL, *healthy*) y `...-app-1` (la aplicacion).
+
+### Paso 3: esperar a que responda
+
+Cambia el puerto y la ruta por los de tu servicio (paso 0):
+
+```bash
+until [ "$(curl -s -o /dev/null -w '%{http_code}' localhost:8080/tickets)" = "200" ]; do sleep 2; done; echo listo
+```
+
+Debe imprimir `listo` en menos de 1 minuto. Si pasan 2 minutos, ve a [Si algo falla](#si-algo-falla).
+
+### Paso 4: prueba de humo (todas deben dar la respuesta indicada)
+
+```bash
+# servicio-tickets (8080)
+curl -s localhost:8080/tickets                                            # []
+curl -s -X POST localhost:8080/tickets -H 'Content-Type: application/json' \
+  -d '{"titulo":"Wifi caido","prioridad":"ALTA","solicitanteId":3}'       # {"id":1,"estado":"ABIERTO",...}
+
+# servicio-identidad (8083)
+curl -s localhost:8083/usuarios                                           # []
+curl -s -X POST localhost:8083/usuarios -H 'Content-Type: application/json' \
+  -d '{"nombre":"Ana","rol":"ESTUDIANTE"}'                                # {"id":1,"nombre":"Ana","rol":"ESTUDIANTE"}
+
+# servicio-comunicacion (8084)
+curl -s localhost:8084/comentarios                                        # []
+curl -s -X POST localhost:8084/comentarios -H 'Content-Type: application/json' \
+  -d '{"ticketId":1,"autorId":9,"texto":"Ya lo revise"}'                  # {"id":1,"ticketId":1,"autorId":9,...}
+
+# servicio-estadisticas (8082)
+curl -s localhost:8082/resumen                                            # {"abiertos":0,"enProgreso":0,"resueltos":0}
+curl -s -X POST localhost:8082/eventos/ticket-estado -H 'Content-Type: application/json' \
+  -d '{"estadoAnterior":null,"estadoNuevo":"ABIERTO"}'                    # {"abiertos":1,"enProgreso":0,"resueltos":0}
+```
+
+### Paso 5: ver que los datos estan en la base
+
+Desde la carpeta del servicio (`-T` evita pedir una terminal interactiva):
+
+```bash
+docker compose exec -T db psql -U tickets -d tickets_db -c "select * from tickets"
+```
+
+Cambia usuario, base y tabla segun el paso 0 (por ejemplo `-U identidad -d identidad_db ... from usuarios`).
+Debe mostrar la fila creada en el paso 4. Reinicia con `docker compose restart` y vuelve a consultar: la fila
+**sigue ahi**, porque los datos viven en un volumen de Docker.
+
+### Paso 6: que explicarle a la persona
+
+El agente debe contar, con sus propias palabras y usando los datos reales del paso que acaba de ejecutar:
+
+1. **Que es el servicio:** su responsabilidad (columna *Responsabilidad* de la tabla de
+   [Servicios](#servicios)) y su entidad principal (tabla de [Entidades](#entidades-y-contrato-entre-servicios)).
+2. **Que quedo corriendo:** dos contenedores, la aplicacion (puerto del paso 0) y su PostgreSQL propio. Ningun
+   otro servicio hace falta para trabajar.
+3. **Que acaba de pasar:** la prueba de humo creo un registro y se vio en la tabla de la base.
+4. **Donde esta el codigo:** `src/main/java/com/helpdesk/<dominio>/` con `model/` (entidades = tablas),
+   `repository/` (acceso a la base), `service/` (la logica) y `controller/` (los endpoints).
+5. **Como probarlo con Postman:** endpoints y JSON de [Probar con Postman](#probar-con-postman).
+6. **Como cambiar codigo:** editar, luego `docker compose up -d --build app` y repetir la prueba.
+7. **Reglas del equipo:** trabajar en una rama `feat/<servicio>/<descripcion>` que sale de `dev`, no tocar otros
+   servicios, y respetar el contrato (puertos, rutas y el aviso de cambio de estado). Detalle en
+   [CONTRIBUTING.md](CONTRIBUTING.md).
+8. **Limites actuales, sin adornos:** los servicios todavia **no se llaman entre si** (el aviso de cambio de
+   estado se envia a mano), no hay inicio de sesion y las claves son de desarrollo.
+
+### Paso 7: apagar
+
+```bash
+docker compose down        # apaga y CONSERVA los datos
+```
+
+`docker compose down -v` apaga y **borra los datos**: solo si la persona lo pide expresamente.
+
+### Si algo falla
+
+| Sintoma | Causa probable | Que hacer |
+|---|---|---|
+| `Cannot connect to the Docker daemon` | Docker esta apagado | Abrir Docker Desktop, esperar a que este corriendo y repetir |
+| `no configuration file provided: not found` | No estas en la carpeta del servicio | `cd services/<carpeta>` (paso 0) |
+| `port is already allocated` o `address already in use` (8080, 8082, 8083, 8084 o 5433 a 5436) | Otro servicio, o el modo "todos juntos" (opcion 3), ya usa ese puerto | `docker ps` para ver quien; apagarlo con `docker compose down` en la carpeta donde se levanto (o en la raiz si fue la opcion 3). Si no es Docker, cerrar el programa que usa el puerto |
+| `curl` sin respuesta o `Connection refused` tras 2 minutos | La aplicacion no arranco | `docker compose logs app` y leer las ultimas lineas |
+| En los registros: `password authentication failed` | La base se creo antes con otra clave | Preguntar a la persona; solo con su permiso, `docker compose down -v` y volver a levantar (borra los datos locales) |
+| La app se reinicia o sale con `Exited (137)` | Docker se quedo sin memoria | Dar al menos 2 GB a Docker o apagar otros contenedores (`docker ps`) |
+| El build falla con `Could not transfer` o `timeout` | Sin internet o red bloqueada | Reintentar con conexion; el primer build la necesita |
+| Cambie el codigo y no se nota | La imagen no se reconstruyo | `docker compose up -d --build app` |
+| `400 Bad Request` en una prueba | JSON invalido o falta un campo obligatorio | Leer el campo `message` de la respuesta |
+| En PowerShell, `curl` pide parametros raros | Ahi `curl` es otro comando | Usar Git Bash o `curl.exe` |
+
+Para trabajar con **todos los servicios juntos** o con solo la base, mira [Levantar el proyecto](#levantar-el-proyecto).
+
 ## Tabla de contenido
 
+- [Inicio rapido](#inicio-rapido)
 - [Stack](#stack)
 - [Arquitectura general](#arquitectura-general)
 - [Arquitectura de cada servicio](#arquitectura-de-cada-servicio)
@@ -56,7 +200,7 @@ coordinacion del equipo ([ADR 0001](docs/adr/0001-monorepo-clean-microservicios.
   +-----+-----+ +-----+-----+ +------+-------+ +-------+-------+
         |             |              |                 |
         v             v              v                 v
-   tickets_db   identidad_db   (solo lectura)   comunicacion_db
+   tickets_db   identidad_db   estadisticas_db   comunicacion_db
 ```
 
 ### Servicios
@@ -72,12 +216,13 @@ Quien es dueno de que dato (para no pisarse):
 
 - **tickets** guarda el `id` del usuario, nunca una copia de sus datos.
 - **comunicacion** guarda cada comentario con el `ticketId`; no toca la tabla de tickets.
-- **estadisticas** no lee la base de datos de otro servicio: consulta la API de tickets o, mas adelante, recibe eventos.
+- **estadisticas** no lee la base de datos de otro servicio: recibe el aviso de cambio de estado (hoy enviado a
+  mano) y guarda sus propios contadores en su base.
 - **identidad** es el unico que conoce credenciales y roles.
 
 ### Entidades y contrato entre servicios
 
-Entidades minimas, una clase de dominio por concepto (en `domain/model` de cada servicio):
+Entidades minimas, una clase por concepto (en la carpeta `model/` de cada servicio):
 
 | Servicio | Entidad | Campos |
 |---|---|---|
@@ -114,7 +259,7 @@ con tiempo limite).
 
 Principios:
 
-1. **Un servicio por contexto de negocio** (tickets, identidad, analiticas, comunicacion).
+1. **Un servicio por contexto de negocio** (tickets, identidad, estadisticas, comunicacion).
 2. **Base de datos propia por servicio.** Nadie lee la tabla de otro servicio; se pide por API.
 3. **Sin codigo de dominio compartido.** Compartirlo acopla los servicios y obliga a desplegarlos juntos.
 4. **Sin gateway por ahora.** Se agregara cuando haya mas de un servicio expuesto; la estructura ya le deja sitio.
