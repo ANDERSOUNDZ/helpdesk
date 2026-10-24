@@ -1,44 +1,97 @@
 # Guia de contribucion
 
-Equipo de 5 personas, cada una con sus servicios y sus ramas. Estas reglas existen
+Equipo de 4 personas (Grupo 4): cada una con **un servicio** y **una sola rama**. Estas reglas existen
 para que nadie pise el trabajo de otra persona y para que `main` siempre funcione.
+
+Resumen en una linea: **tu rama (creada desde `dev`) -> `dev` -> `main`**, y el cherry-pick solo para copiar un
+commit suelto.
 
 ## 1. Ramas
 
-`main` esta protegida: **nadie empuja directo**, todo entra por Pull Request.
+Hay dos ramas permanentes. **Nadie empuja directo a ninguna de las dos**: todo entra por Pull Request.
 
-| Tipo | Formato | Ejemplo |
+| Rama | Para que sirve |
+|---|---|
+| `main` | Lo estable. Solo recibe PR desde `dev`, cuando el equipo decide publicar. |
+| `dev` | Integracion diaria. Aqui se juntan las ramas de cada persona y se prueba que convivan. |
+
+Asi un error de una persona rompe `dev` y no `main`.
+
+### Una rama por persona
+
+Cada persona crea **una sola rama, una sola vez, a partir de `dev`**, y desarrolla ahi todo lo de su servicio.
+No se crea una rama por cada tarea.
+
+| Quien lleva | Su rama | Su carpeta |
 |---|---|---|
-| Funcionalidad | `feat/<servicio>/<descripcion>` | `feat/tickets/crear-ticket` |
-| Correccion | `fix/<servicio>/<descripcion>` | `fix/tickets/validar-prioridad` |
-| Infra / docs | `chore/<tema>` o `docs/<tema>` | `chore/ci-por-rutas` |
-| Release (si hace falta) | `release/<version>` | `release/1.0` |
+| tickets | `feat/tickets` | `services/servicio-tickets` |
+| identidad | `feat/identidad` | `services/servicio-identidad` |
+| comunicacion | `feat/comunicacion` | `services/servicio-comunicacion` |
+| estadisticas | `feat/estadisticas` | `services/servicio-estadisticas` |
 
 Reglas:
 
-- Nombres en **minusculas con guiones** (`crear-ticket`, no `CrearTicket`). Linux es
-  sensible a mayusculas y macOS/Windows no; mezclarlas rompe el repo en una de las dos.
-- Ramas **cortas**: idealmente 1 a 3 dias. Una rama que vive semanas termina en conflictos.
-- Cada persona trabaja en **su** servicio. Si necesitas tocar el de otra persona, avisale
-  y explicalo en el PR.
+- Nombres en **minusculas con guiones y sin tildes**. Linux es sensible a mayusculas y macOS/Windows no;
+  mezclarlas rompe el repo en una de las dos.
+- Tu rama **no se borra** despues de entrar a `dev`: es tu rama de trabajo durante todo el proyecto.
+- Solo editas la carpeta de **tu** servicio. Si necesitas tocar otra, avisa a su responsable.
+- Lo compartido (ver "Como no chocar") se cambia con una rama corta aparte, `chore/<tema>`.
 
-## 2. Flujo diario
+## 2. Flujo: tu rama -> dev -> main
+
+### Paso 1. Crear tu rama (una sola vez)
 
 ```bash
-git switch main && git pull --ff-only        # parte de main actualizado
-git switch -c feat/tickets/crear-ticket      # tu rama
-
-# ...trabajas y haces commits...
-
 git fetch origin
-git rebase origin/main                       # ponte al dia ANTES de abrir el PR
-git push -u origin feat/tickets/crear-ticket
-gh pr create --fill                          # o desde la web de GitHub
+git switch -c feat/tickets origin/dev     # usa TU rama de la tabla
+git push -u origin feat/tickets
 ```
 
-- El PR requiere **1 aprobacion** (la del dueno del servicio via `CODEOWNERS`) y el CI en verde.
-- Se integra con **Squash and merge**: queda un commit limpio por funcionalidad en `main`.
-- Tras el merge, borra tu rama.
+### Paso 2. Trabajar cada dia
+
+```bash
+git fetch origin
+git merge origin/dev          # trae a tu rama lo que los demas ya integraron
+# ...programas, pruebas, y haces commits en tu rama...
+git push
+```
+
+- Haz `git merge origin/dev` **al empezar el dia** y antes de abrir un PR: asi los conflictos son pequenos.
+- Si hay conflicto, se resuelve **en tu rama** (nunca en `dev`): editas los archivos, `git add .` y
+  `git commit`.
+- **No uses `rebase` ni `git push --force`** en tu rama: es larga y otras personas pueden haberla descargado.
+
+### Paso 3. Tu rama entra a dev (cuando una parte esta lista)
+
+```bash
+git fetch origin && git merge origin/dev     # ponte al dia primero
+git push
+gh pr create --base dev --head feat/tickets --title "feat(tickets): crear ticket con prioridad"
+```
+
+- El PR va **hacia `dev`**, nunca hacia `main`. Lo revisa otra persona (1 aprobacion) y los tests deben estar
+  en verde.
+- Se fusiona con **Create a merge commit** (no *Squash*). Con una rama larga, *squash* deja en `dev` un commit
+  que tu rama no reconoce y el siguiente PR vuelve a chocar; el merge commit mantiene las historias unidas.
+- Despues de fusionar **sigues en la misma rama**: antes de seguir, `git merge origin/dev` otra vez.
+- Haz PRs **pequenos y frecuentes** (por ejemplo, uno por funcionalidad terminada), no uno enorme al final.
+
+### Paso 4. dev entra a main (el equipo decide cuando)
+
+PR de `dev` hacia `main`, tambien con **Create a merge commit**. Conviene hacerlo al final de cada semana, tras
+levantar todo junto y recorrer el guion de prueba (README, "Levantar el proyecto"). Nadie empuja directo a
+`main` ni a `dev`.
+
+### Como no chocar
+
+1. **Cada quien en su carpeta.** `CODEOWNERS` asigna la revision de cada servicio a su responsable.
+2. **Archivos compartidos** (`README.md`, `CONTRIBUTING.md`, `docker-compose.yml` de la raiz, `docker/`, `.github/`,
+   `docs/`): no los edites en tu rama de servicio. Cambialos en una rama corta `chore/<tema>` desde `dev`, con un
+   PR pequeno, y avisa al equipo.
+3. **`git merge origin/dev` a diario**, para no acumular diferencias.
+4. **Respeta el contrato** (puertos, rutas y el aviso de cambio de estado). Si lo vas a cambiar, avisa antes de
+   hacerlo.
+5. **Nunca resuelvas conflictos en `dev`**: siempre traes `dev` a tu rama y lo resuelves alli.
 
 ## 3. Commits
 
@@ -55,29 +108,47 @@ Tipos: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `ci`.
 
 ## 4. Cherry-pick
 
-El flujo normal es **PR hacia `main`**. El cherry-pick es para casos puntuales:
+El flujo normal es **tu rama -> `dev` -> `main`** (seccion 2). El **cherry-pick** copia **un commit concreto** a
+otra rama **sin traer todo lo demas** que tenga la rama de origen. Es una herramienta para casos puntuales:
 
-- Llevar un **hotfix** de `main` a una rama `release/*`.
-- Rescatar **un commit suelto** de otra rama.
+| Caso | Ejemplo con el equipo |
+|---|---|
+| **Llevar una correccion urgente a `main`** sin publicar todo `dev` | Arreglaste un error en `dev`, pero `dev` tiene trabajo a medias de otros que aun no debe llegar a `main`. Copias solo ese commit a `main`. |
+| **Tomar un commit de un companero** antes de que llegue a `dev` | Identidad cambio algo que tu necesitas ya. Copias ese commit a tu rama `feat/...`. |
+| **Rescatar un commit** hecho en la rama equivocada | Lo hiciste en `feat/tickets` pero era de `feat/estadisticas`. Lo copias a la rama correcta. |
 
-No lo uses para integrar trabajo normal: duplica commits y rompe la trazabilidad.
+**No lo uses para integrar trabajo normal** (eso es el PR de tu rama hacia `dev`): duplica commits y rompe la
+trazabilidad.
 
 ### Automatizado (recomendado)
 
-El workflow `.github/workflows/cherry-pick.yml` lo hace por ti y abre un PR:
+El workflow `.github/workflows/cherry-pick.yml` lo hace por ti: copia el commit a una rama nueva
+(`cherry-pick/<destino>/<sha>`) y **abre un Pull Request** hacia la rama destino. Nunca empuja directo.
 
-1. Copia el SHA del commit (en `main`, tras un squash merge es un solo commit).
+1. Averigua el **SHA** del commit: en GitHub (pestana *Commits*) o con `git log --oneline`.
 2. GitHub > **Actions** > **Cherry-pick a otra rama** > **Run workflow**.
-3. Rellena `commits` (uno o varios SHA, el mas antiguo primero) y `target_branch`.
+3. Rellena `commits` (uno o varios SHA, el mas antiguo primero) y `target_branch` (la rama destino).
 4. Revisa y aprueba el PR que se crea, como cualquier otro.
 
 Con la CLI:
 
 ```bash
-gh workflow run cherry-pick.yml -f commits="abc1234" -f target_branch="release/1.0"
+# correccion urgente: copiar un commit de dev a main
+gh workflow run cherry-pick.yml -f commits="abc1234" -f target_branch="main"
+
+# tomar un commit de un companero hacia tu rama
+gh workflow run cherry-pick.yml -f commits="abc1234" -f target_branch="feat/identidad"
 ```
 
 Si hay conflictos, el workflow falla y te imprime los comandos para hacerlo a mano.
+
+**Cuidados:**
+
+- Copia siempre el SHA del commit **original**; `-x` deja anotado de donde vino.
+- Si luego la rama de origen tambien llega a `dev` o `main`, Git normalmente reconoce que el cambio es identico y
+  no choca. Si aun asi hay conflicto, quedate con la version mas reciente.
+- El workflow esta escrito y revisado, pero **todavia no se ha ejecutado en GitHub**: la primera vez, pruebalo con
+  un commit sin importancia.
 
 > **Configuracion unica** (propietario del repo): Settings > Actions > General >
 > Workflow permissions > marcar *Allow GitHub Actions to create and approve pull requests*.
@@ -118,5 +189,12 @@ Los tres: **Git 2.40 o superior** y **GitHub CLI (`gh`)** opcional pero recomend
 
 ## 6. Dentro de cada servicio
 
-Cada servicio sigue la arquitectura Clean descrita en el [README](README.md#arquitectura-de-cada-servicio).
-Regla corta: `domain` no importa nada de Spring ni JPA; las dependencias solo apuntan hacia adentro.
+Cada servicio es simple: `model/` (entidades), `service/` (logica) y `controller/` (endpoints), como se explica en el
+[README](README.md#arquitectura-de-cada-servicio). No agregues carpetas ni capas nuevas sin acordarlo con
+el equipo ([ADR 0002](docs/adr/0002-servicios-simples.md)).
+
+Reglas minimas:
+
+- **Referencias a otros servicios solo por id**, sin copiar sus datos.
+- **No llames a otro servicio para crear algo propio**: si ese servicio cae, el tuyo debe seguir funcionando.
+- **Pruebas:** cada servicio lleva un test simple en `src/test/java`, sin levantar Spring.

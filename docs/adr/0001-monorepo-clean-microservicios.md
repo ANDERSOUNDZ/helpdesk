@@ -1,11 +1,11 @@
 # ADR 0001: Monorepo, microservicios y arquitectura Clean
 
-- **Estado:** aceptada
+- **Estado:** aceptada; el punto 3 (Clean dentro de cada servicio) fue reemplazado por el [ADR 0002](0002-servicios-simples.md)
 - **Fecha:** 2026-10-23
 
 ## Contexto
 
-Equipo de 5 personas construyendo un HelpDesk. La meta es una arquitectura de
+Equipo de 4 personas (Grupo 4) construyendo un HelpDesk. La meta es una arquitectura de
 microservicios escalable y mantenible, empezando solo por el backend. El proyecto de
 referencia (`espacios-service`) es un servicio unico en capas simples
 (controller / service / model), sin separar dominio de persistencia.

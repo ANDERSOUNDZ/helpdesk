@@ -4,13 +4,14 @@
 
 ## Servicio(s) afectado(s)
 
-- [ ] tickets-service
+- [ ] servicio-tickets
 - [ ] otro: <!-- nombre -->
 - [ ] infraestructura / docs
 
 ## Checklist
 
-- [ ] La rama sigue el formato `feat/<servicio>/<descripcion>`
+- [ ] El PR va de mi rama (`feat/<servicio>`) hacia `dev` y uso *Create a merge commit*
+- [ ] Hice `git merge origin/dev` antes de abrir el PR
 - [ ] Los commits siguen Conventional Commits (`feat(tickets): ...`)
 - [ ] Probado localmente (tests del servicio en verde)
 - [ ] No toca codigo de otro servicio (si lo hace, esta justificado abajo)
