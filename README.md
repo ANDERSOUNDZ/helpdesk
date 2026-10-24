@@ -123,9 +123,12 @@ El agente debe contar, con sus propias palabras y usando los datos reales del pa
    `repository/` (acceso a la base), `service/` (la logica) y `controller/` (los endpoints).
 5. **Como probarlo con Postman:** endpoints y JSON de [Probar con Postman](#probar-con-postman).
 6. **Como cambiar codigo:** editar, luego `docker compose up -d --build app` y repetir la prueba.
-7. **Reglas del equipo:** trabajar en una rama `feat/<servicio>/<descripcion>` que sale de `dev`, no tocar otros
-   servicios, y respetar el contrato (puertos, rutas y el aviso de cambio de estado). Detalle en
-   [CONTRIBUTING.md](CONTRIBUTING.md).
+7. **Reglas del equipo:** cada persona tiene **una sola rama creada desde `dev`** (`feat/<servicio>`, por ejemplo
+   `feat/tickets`) y desarrolla ahi; trae a diario lo de `dev` con `git merge origin/dev`; abre PR hacia `dev`
+   con *merge commit*, y `dev` pasa a `main` cuando el equipo lo decide. No se tocan otros servicios y se
+   respeta el contrato (puertos, rutas y el aviso de cambio de estado). El cherry-pick (workflow de GitHub
+   Actions) se usa solo para copiar un commit suelto. Detalle en [Flujo de trabajo del equipo](#flujo-de-trabajo-del-equipo)
+   y [CONTRIBUTING.md](CONTRIBUTING.md).
 8. **Limites actuales, sin adornos:** los servicios todavia **no se llaman entre si** (el aviso de cambio de
    estado se envia a mano), no hay inicio de sesion y las claves son de desarrollo.
 
@@ -503,14 +506,35 @@ Requisitos y detalles por sistema: [CONTRIBUTING.md, seccion 5](CONTRIBUTING.md#
 
 ## Flujo de trabajo del equipo
 
-- Dos ramas permanentes: `dev` (integracion diaria) y `main` (estable, solo recibe PR desde `dev`).
-- Todo entra por **Pull Request** con 1 aprobacion y CI en verde *(cuando se active la proteccion de ramas)*.
-- Una rama por tarea, que sale de `dev`: `feat/<servicio>/<descripcion>`. Cada persona es responsable de sus servicios (`CODEOWNERS`).
-- Integracion con **squash merge** y commits [Conventional Commits](https://www.conventionalcommits.org/es/).
-- **Cherry-pick** automatizado y manual solo para hotfixes y rescates puntuales:
-  GitHub > Actions > *Cherry-pick a otra rama*.
+Somos 4 personas (Grupo 4), cada una con **un servicio** y **una sola rama**:
 
-Todo el detalle esta en [CONTRIBUTING.md](CONTRIBUTING.md).
+```
+feat/tickets ───────┐
+feat/identidad ─────┤
+feat/comunicacion ──┼──► dev ──────────► main
+feat/estadisticas ──┘   (integracion)    (estable)
+
+  cada flecha es un Pull Request con "Create a merge commit"
+```
+
+1. **Crea tu rama una sola vez, desde `dev`** (`feat/tickets`, `feat/identidad`, `feat/comunicacion` o
+   `feat/estadisticas`) y desarrolla ahi todo lo de tu servicio. No hay una rama por tarea y no se borra.
+2. **Cada dia** trae lo de los demas a tu rama con `git merge origin/dev`. Los conflictos se resuelven **en tu
+   rama**, nunca en `dev`. No uses `rebase` ni `push --force`.
+3. **Cuando una parte este lista**, abre un PR de tu rama **hacia `dev`** y fusionalo con *Create a merge commit*
+   (no *Squash*: con una rama larga el squash provoca conflictos repetidos). Sigues en la misma rama.
+4. **`dev` pasa a `main`** con otro PR, cuando el equipo lo decide (por ejemplo, al final de cada semana, tras
+   levantar todo junto y probarlo). Nadie empuja directo a `dev` ni a `main`.
+5. **Para no chocar:** cada quien edita solo la carpeta de su servicio; los archivos compartidos (README,
+   `docker-compose.yml` de la raiz, `.github/`, `docs/`) se cambian en una rama corta `chore/<tema>` con un PR
+   pequeno; y se respeta el contrato (puertos, rutas y el aviso de cambio de estado).
+6. **Cherry-pick:** copia **un commit concreto** a otra rama sin traer el resto. Sirve para llevar una correccion
+   urgente a `main` sin publicar todo `dev`, para tomar un commit de un companero antes de que llegue a `dev`, o
+   para rescatar un commit hecho en la rama equivocada. Se hace con el workflow de GitHub Actions
+   *Cherry-pick a otra rama* (abre un PR; nunca empuja directo). No se usa para integrar trabajo normal.
+
+Los commits siguen [Conventional Commits](https://www.conventionalcommits.org/es/) (`feat(tickets): ...`).
+Todo el detalle, los comandos y las reglas estan en [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Hoja de ruta
 

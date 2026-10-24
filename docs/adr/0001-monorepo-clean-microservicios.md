@@ -5,7 +5,7 @@
 
 ## Contexto
 
-Equipo de 5 personas construyendo un HelpDesk. La meta es una arquitectura de
+Equipo de 4 personas (Grupo 4) construyendo un HelpDesk. La meta es una arquitectura de
 microservicios escalable y mantenible, empezando solo por el backend. El proyecto de
 referencia (`espacios-service`) es un servicio unico en capas simples
 (controller / service / model), sin separar dominio de persistencia.
