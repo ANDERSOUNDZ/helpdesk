@@ -48,30 +48,30 @@ coordinacion del equipo ([ADR 0001](docs/adr/0001-monorepo-clean-microservicios.
    +-----------------------------------------------+
         |            |            |            |
         v            v            v            v
-  +-----------+ +-----------+ +-----------+ +---------------+
-  |  tickets  | | identity  | | analytics | | communication |
-  |  service  | |  service  | |  service  | |    service    |
-  +-----+-----+ +-----+-----+ +-----+-----+ +-------+-------+
-        |             |             |                |
-        v             v             v                v
-   tickets_db    identity_db   (solo lectura)   communication_db
+  +-----------+ +-----------+ +--------------+ +---------------+
+  |  servicio | |  servicio | |   servicio   | |    servicio   |
+  |  tickets  | | identidad | | estadisticas | | comunicacion  |
+  +-----+-----+ +-----+-----+ +------+-------+ +-------+-------+
+        |             |              |                 |
+        v             v              v                 v
+   tickets_db   identidad_db   (solo lectura)   comunicacion_db
 ```
 
 ### Servicios
 
 | Servicio | Responsabilidad | Puerto local | Estado | Responsable |
 |---|---|---|---|---|
-| `tickets-service` | Nucleo: crear tickets, prioridad, asignacion, estados (falta: categoria e historial de cambios) | 8080 | Entidades + endpoints basicos (en memoria) | por asignar |
-| `analytics-service` | Estadisticas por estado (falta: categoria, prioridad, tiempo promedio, carga de tecnicos) | 8082 | Entidades + endpoints basicos (en memoria) | por asignar |
-| `identity-service` | Usuarios y roles (falta: inicio de sesion y permisos) | 8083 | Entidades + endpoints basicos (en memoria) | por asignar |
-| `communication-service` | Comentarios y notificaciones de cambio de estado, avisos pendientes o leidos | 8084 | Entidades + endpoints basicos (en memoria) | por asignar |
+| `servicio-tickets` | Nucleo: crear tickets, prioridad, asignacion, estados (falta: categoria e historial de cambios) | 8080 | Entidades + endpoints basicos (en memoria) | por asignar |
+| `servicio-estadisticas` | Estadisticas por estado (falta: categoria, prioridad, tiempo promedio, carga de tecnicos) | 8082 | Entidades + endpoints basicos (en memoria) | por asignar |
+| `servicio-identidad` | Usuarios y roles (falta: inicio de sesion y permisos) | 8083 | Entidades + endpoints basicos (en memoria) | por asignar |
+| `servicio-comunicacion` | Comentarios y notificaciones de cambio de estado, avisos pendientes o leidos | 8084 | Entidades + endpoints basicos (en memoria) | por asignar |
 
 Quien es dueno de que dato (para no pisarse):
 
 - **tickets** guarda el `id` del usuario, nunca una copia de sus datos.
-- **communication** guarda cada comentario con el `ticketId`; no toca la tabla de tickets.
-- **analytics** no lee la base de datos de otro servicio: consulta la API de tickets o, mas adelante, recibe eventos.
-- **identity** es el unico que conoce credenciales y roles.
+- **comunicacion** guarda cada comentario con el `ticketId`; no toca la tabla de tickets.
+- **estadisticas** no lee la base de datos de otro servicio: consulta la API de tickets o, mas adelante, recibe eventos.
+- **identidad** es el unico que conoce credenciales y roles.
 
 ### Entidades y contrato entre servicios
 
@@ -79,11 +79,11 @@ Entidades minimas, una clase de dominio por concepto (en `domain/model` de cada 
 
 | Servicio | Entidad | Campos |
 |---|---|---|
-| identity | `Usuario` | `id`, `nombre`, `rol` (`ESTUDIANTE`, `TECNICO`, `ADMINISTRADOR`) |
+| identidad | `Usuario` | `id`, `nombre`, `rol` (`ESTUDIANTE`, `TECNICO`, `ADMINISTRADOR`) |
 | tickets | `Ticket` | `id`, `titulo`, `descripcion`, `prioridad`, `estado`, `solicitanteId`, `tecnicoId` |
-| communication | `Comentario` | `id`, `ticketId`, `autorId`, `texto` |
-| communication | `Notificacion` | `id`, `usuarioId`, `mensaje`, `leida` |
-| analytics | `ResumenTickets` | `abiertos`, `enProgreso`, `resueltos` (se calcula, no se guarda) |
+| comunicacion | `Comentario` | `id`, `ticketId`, `autorId`, `texto` |
+| comunicacion | `Notificacion` | `id`, `usuarioId`, `mensaje`, `leida` |
+| estadisticas | `ResumenTickets` | `abiertos`, `enProgreso`, `resueltos` (se calcula, no se guarda) |
 
 Estados del ticket: `ABIERTO` -> `EN_PROGRESO` (al asignarlo) -> `RESUELTO`.
 
@@ -97,16 +97,16 @@ Estados del ticket: `ABIERTO` -> `EN_PROGRESO` (al asignarlo) -> `RESUELTO`.
    de datos propia: si otro servicio cae, este sigue trabajando.
 5. **Errores en formato `ProblemDetail`** (404, 400, 409) en todos los servicios.
 
-**Evento oficial:** cuando un ticket cambia de estado, tickets-service lo anuncia con este formato.
+**Evento oficial:** cuando un ticket cambia de estado, servicio-tickets lo anuncia con este formato.
 
 ```json
 { "ticketId": 7, "estadoAnterior": "ABIERTO", "estadoNuevo": "RESUELTO",
   "solicitanteId": 3, "fecha": "2026-10-24T10:15:00Z" }
 ```
 
-`communication-service` lo usa para avisar al solicitante y `analytics-service` para sus contadores;
+`servicio-comunicacion` lo usa para avisar al solicitante y `servicio-estadisticas` para sus contadores;
 cada uno lo lee con su propia clase `TicketEstadoCambiado` y lo recibe en `POST /eventos/ticket-estado`.
-**`tickets-service` todavia no lo envia solo**: por ahora lo simulas tu desde Postman (ver
+**`servicio-tickets` todavia no lo envia solo**: por ahora lo simulas tu desde Postman (ver
 [Probar con Postman](#probar-con-postman)). Falta decidir como se envia de verdad (broker o llamada HTTP
 con tiempo limite).
 
@@ -123,7 +123,7 @@ Cada servicio es lo mas simple posible, igual que `espacios-service`: sin capas 
 
 ```
 com.helpdesk.tickets
-├─ TicketsServiceApplication.java    Arranque de Spring Boot
+├─ ServicioTicketsApplication.java    Arranque de Spring Boot
 ├─ model/                            Entidades: Ticket, Prioridad, EstadoTicket
 ├─ service/                          TicketService: la logica y los datos en memoria
 └─ controller/                       TicketController: recibe la peticion y llama al servicio
@@ -159,10 +159,10 @@ helpdesk/
 ├─ docs/
 │  └─ adr/                        Decisiones de arquitectura (ADR)
 └─ services/                      Un subdirectorio por microservicio (cada uno independiente)
-   ├─ tickets-service/            Puerto 8080 (tiene ademas Dockerfile propio)
-   ├─ identity-service/           Puerto 8083
-   ├─ communication-service/      Puerto 8084
-   └─ analytics-service/          Puerto 8082
+   ├─ servicio-tickets/           Puerto 8080 (tiene ademas Dockerfile propio)
+   ├─ servicio-identidad/         Puerto 8083
+   ├─ servicio-comunicacion/      Puerto 8084
+   └─ servicio-estadisticas/      Puerto 8082
 ```
 
 Dentro de cada servicio:
@@ -172,7 +172,7 @@ Dentro de cada servicio:
 ├─ pom.xml                        Proyecto Maven propio
 └─ src/
    ├─ main/java/com/helpdesk/<nombre>/
-   │  ├─ <Nombre>ServiceApplication.java
+   │  ├─ Servicio<Nombre>Application.java
    │  ├─ model/                   Entidades
    │  ├─ service/                 Logica
    │  └─ controller/              Endpoints
@@ -183,12 +183,19 @@ Dentro de cada servicio:
 Se agregara en las siguientes fases *(planificado)*: POM padre, `docker-compose.yml` con PostgreSQL,
 `.env.example`, `scripts/` y los workflows de CI (`ci.yml`, `docker.yml`).
 
-Convenciones: carpetas y archivos en **minusculas con guiones**; servicios nombrados `<dominio>-service`.
+Convenciones de nombres:
+
+- Carpetas y archivos en **minusculas con guiones**, **sin tildes ni enie** (`estadisticas`, no `estadísticas`):
+  las tildes dan problemas de codificacion entre Windows, macOS y Linux.
+- Servicios en espanol, nombrados `servicio-<dominio>` (`servicio-tickets`, `servicio-identidad`...).
+- Paquete de Java: `com.helpdesk.<dominio>` (`com.helpdesk.identidad`); el nombre de la carpeta debe coincidir
+  con la linea `package` de cada clase.
+- Clase de arranque: `Servicio<Dominio>Application` (el sufijo `Application` es la convencion de Spring Boot).
 
 ## Probar con Postman
 
 Sin instalar Java ni Maven, solo con Docker. Desde la carpeta del servicio (por ejemplo
-`services/identity-service`), con el puerto que le corresponde:
+`services/servicio-identidad`), con el puerto que le corresponde:
 
 ```bash
 docker run --rm -v "$PWD:/src" -w /src -p 8083:8083 maven:3.9-eclipse-temurin-21-alpine mvn -q -B spring-boot:run
@@ -203,12 +210,12 @@ Los datos viven en memoria: al reiniciar el servicio empiezan de cero.
 | | | `GET /tickets`, `GET /tickets/{id}` | Lista / consulta |
 | | | `PUT /tickets/{id}/asignar/{tecnicoId}` | Asigna un tecnico y pasa a `EN_PROGRESO` |
 | | | `PUT /tickets/{id}/resolver` | Pasa a `RESUELTO` |
-| identity | 8083 | `POST /usuarios`, `GET /usuarios`, `GET /usuarios/{id}` | Crea y consulta usuarios |
-| communication | 8084 | `POST /comentarios`, `GET /comentarios?ticketId=1` | Comentarios de un ticket |
+| identidad | 8083 | `POST /usuarios`, `GET /usuarios`, `GET /usuarios/{id}` | Crea y consulta usuarios |
+| comunicacion | 8084 | `POST /comentarios`, `GET /comentarios?ticketId=1` | Comentarios de un ticket |
 | | | `GET /notificaciones?usuarioId=3&leida=false` | Avisos de un usuario |
 | | | `PUT /notificaciones/{id}/leida` | Marca un aviso como leido |
 | | | `POST /eventos/ticket-estado` | Recibe el evento y crea el aviso |
-| analytics | 8082 | `GET /resumen` | Abiertos / en progreso / resueltos |
+| estadisticas | 8082 | `GET /resumen` | Abiertos / en progreso / resueltos |
 | | | `POST /eventos/ticket-estado` | Recibe el evento y actualiza los contadores |
 
 Cuerpos JSON de ejemplo (en Postman: *Body > raw > JSON*):
@@ -228,7 +235,7 @@ Cuerpos JSON de ejemplo (en Postman: *Body > raw > JSON*):
 ```
 
 Para ver la comunicacion entre servicios: crea un ticket, asignalo y resuelvelo en tickets; luego envia el
-mismo evento a communication (aparece un aviso para el solicitante) y a analytics (cambia el resumen).
+mismo evento a comunicacion (aparece un aviso para el solicitante) y a estadisticas (cambia el resumen).
 
 ## Datos y comunicacion entre servicios
 

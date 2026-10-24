@@ -4,7 +4,7 @@
 
 ## Servicio(s) afectado(s)
 
-- [ ] tickets-service
+- [ ] servicio-tickets
 - [ ] otro: <!-- nombre -->
 - [ ] infraestructura / docs
 
