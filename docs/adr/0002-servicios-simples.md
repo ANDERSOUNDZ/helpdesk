@@ -11,8 +11,8 @@ una o dos entidades, y el equipo necesita primero algo que pueda levantar y prob
 
 ## Decision
 
-1. Cada servicio tiene solo `model/` (entidades), `service/` (logica) y `controller/` (endpoints), igual que `espacios-service`.
-2. Los datos viven en memoria dentro del servicio. No hay base de datos todavia.
+1. Cada servicio tiene solo `model/` (entidades), `repository/` (acceso a datos), `service/` (logica) y `controller/` (endpoints), igual que `espacios-service`.
+2. Cada servicio guarda sus datos en su propio PostgreSQL mediante Spring Data JPA (carpeta `repository/`).
 3. Se mantiene todo lo que hace independientes a los servicios: monorepo con un proyecto Maven por
    servicio, referencias solo por id, clases propias para lo que se lee de otro servicio y ninguna
    llamada a otro servicio al crear algo propio.
@@ -22,5 +22,5 @@ una o dos entidades, y el equipo necesita primero algo que pueda levantar y prob
 - (+) Un servicio se entiende en minutos y cualquiera puede levantarlo y probarlo.
 - (+) Menos codigo que mantener mientras el dominio es pequeno.
 - (-) Reglas de negocio y acceso a datos conviven en el servicio; no se pueden probar por separado.
-- (-) Al agregar base de datos habra que separar capas. Es un cambio interno: la API y los demas
+- (-) Si el servicio crece habra que separar capas. Es un cambio interno: la API y los demas
   servicios no se ven afectados. Se hara servicio por servicio, cuando su responsable lo necesite.

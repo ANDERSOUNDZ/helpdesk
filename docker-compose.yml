@@ -1,0 +1,73 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    command: ["postgres", "-c", "shared_buffers=48MB", "-c", "max_connections=40"]
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - datos:/var/lib/postgresql/data
+      - ./docker/postgres:/docker-entrypoint-initdb.d:ro
+    mem_limit: 256m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  servicio-tickets:
+    build: ./services/servicio-tickets
+    ports:
+      - "8080:8080"
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/tickets_db
+      DB_USUARIO: tickets
+      DB_CLAVE: tickets
+    depends_on:
+      db:
+        condition: service_healthy
+    mem_limit: 320m
+
+  servicio-identidad:
+    build: ./services/servicio-identidad
+    ports:
+      - "8083:8083"
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/identidad_db
+      DB_USUARIO: identidad
+      DB_CLAVE: identidad
+    depends_on:
+      db:
+        condition: service_healthy
+    mem_limit: 320m
+
+  servicio-comunicacion:
+    build: ./services/servicio-comunicacion
+    ports:
+      - "8084:8084"
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/comunicacion_db
+      DB_USUARIO: comunicacion
+      DB_CLAVE: comunicacion
+    depends_on:
+      db:
+        condition: service_healthy
+    mem_limit: 320m
+
+  servicio-estadisticas:
+    build: ./services/servicio-estadisticas
+    ports:
+      - "8082:8082"
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/estadisticas_db
+      DB_USUARIO: estadisticas
+      DB_CLAVE: estadisticas
+    depends_on:
+      db:
+        condition: service_healthy
+    mem_limit: 320m
+
+volumes:
+  datos:

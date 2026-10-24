@@ -3,11 +3,12 @@
 Plataforma de tickets de soporte construida como **microservicios** independientes.
 Primero el backend (Spring Boot); el frontend vendra despues.
 
-> **Estado: fase 1, servicios simples.** Cada servicio es lo mas sencillo posible, igual que
-> `espacios-service`: sus entidades (`model/`), un servicio con la logica (`service/`) y un controller
-> (`controller/`), con los datos **en memoria**, para probarlo con Postman. No hay base de datos ni
-> capas adicionales todavia; se agregan cuando
-> hagan falta (ver [Arquitectura de cada servicio](#arquitectura-de-cada-servicio)). Lo marcado como
+> **Estado: fase 1, servicios simples con su propia base de datos.** Cada servicio es lo mas sencillo
+> posible, igual que `espacios-service`: sus entidades (`model/`), su acceso a datos (`repository/`), un
+> servicio con la logica (`service/`) y un controller (`controller/`). **Cada servicio tiene su propio
+> PostgreSQL** y se puede levantar solo, con un comando, para trabajar de forma independiente
+> (ver [Levantar el proyecto](#levantar-el-proyecto)). Las capas de Clean se agregan cuando hagan falta
+> (ver [Arquitectura de cada servicio](#arquitectura-de-cada-servicio)). Lo marcado como
 > *(planificado)* se ira construyendo por fases (ver [Hoja de ruta](#hoja-de-ruta)).
 
 ## Tabla de contenido
@@ -16,6 +17,7 @@ Primero el backend (Spring Boot); el frontend vendra despues.
 - [Arquitectura general](#arquitectura-general)
 - [Arquitectura de cada servicio](#arquitectura-de-cada-servicio)
 - [Organizacion de carpetas](#organizacion-de-carpetas)
+- [Levantar el proyecto](#levantar-el-proyecto)
 - [Probar con Postman](#probar-con-postman)
 - [Datos y comunicacion entre servicios](#datos-y-comunicacion-entre-servicios)
 - [Entorno de desarrollo (Windows, macOS, Linux)](#entorno-de-desarrollo-windows-macos-linux)
@@ -29,8 +31,8 @@ Primero el backend (Spring Boot); el frontend vendra despues.
 | Lenguaje | Java 21 | Igual que `espacios-service` |
 | Framework | Spring Boot 4.x | Misma base que el proyecto de referencia |
 | Build | Maven (multi-modulo) | POM padre en la raiz *(planificado)* |
-| Base de datos | PostgreSQL + Flyway | Una base por servicio *(planificado)* |
-| Contenedores | Docker + Docker Compose | Entorno unico para el equipo |
+| Base de datos | PostgreSQL 17 + Spring Data JPA | Una base por servicio. Las tablas se crean solas (`ddl-auto=update`); migraciones con Flyway *(planificado)* |
+| Contenedores | Docker + Docker Compose | Entorno unico para el equipo; un `docker-compose.yml` por servicio y otro en la raiz |
 | CI | GitHub Actions | Ejecutable en local con `act` *(planificado)* |
 
 ## Arquitectura general
@@ -61,10 +63,10 @@ coordinacion del equipo ([ADR 0001](docs/adr/0001-monorepo-clean-microservicios.
 
 | Servicio | Responsabilidad | Puerto local | Estado | Responsable |
 |---|---|---|---|---|
-| `servicio-tickets` | Nucleo: crear tickets, prioridad, asignacion, estados (falta: categoria e historial de cambios) | 8080 | Entidades + endpoints basicos (en memoria) | por asignar |
-| `servicio-estadisticas` | Estadisticas por estado (falta: categoria, prioridad, tiempo promedio, carga de tecnicos) | 8082 | Entidades + endpoints basicos (en memoria) | por asignar |
-| `servicio-identidad` | Usuarios y roles (falta: inicio de sesion y permisos) | 8083 | Entidades + endpoints basicos (en memoria) | por asignar |
-| `servicio-comunicacion` | Comentarios y notificaciones de cambio de estado, avisos pendientes o leidos | 8084 | Entidades + endpoints basicos (en memoria) | por asignar |
+| `servicio-tickets` | Nucleo: crear tickets, prioridad, asignacion, estados (falta: categoria e historial de cambios) | 8080 | Entidades + endpoints basicos + su PostgreSQL | por asignar |
+| `servicio-estadisticas` | Estadisticas por estado (falta: categoria, prioridad, tiempo promedio, carga de tecnicos) | 8082 | Entidades + endpoints basicos + su PostgreSQL | por asignar |
+| `servicio-identidad` | Usuarios y roles (falta: inicio de sesion y permisos) | 8083 | Entidades + endpoints basicos + su PostgreSQL | por asignar |
+| `servicio-comunicacion` | Comentarios y notificaciones de cambio de estado, avisos pendientes o leidos | 8084 | Entidades + endpoints basicos + su PostgreSQL | por asignar |
 
 Quien es dueno de que dato (para no pisarse):
 
@@ -124,21 +126,22 @@ Cada servicio es lo mas simple posible, igual que `espacios-service`: sin capas 
 ```
 com.helpdesk.tickets
 ├─ ServicioTicketsApplication.java    Arranque de Spring Boot
-├─ model/                            Entidades: Ticket, Prioridad, EstadoTicket
-├─ service/                          TicketService: la logica y los datos en memoria
+├─ model/                            Entidades (tablas): Ticket, Prioridad, EstadoTicket
+├─ repository/                       TicketRepository: guarda y consulta en PostgreSQL
+├─ service/                          TicketService: la logica
 └─ controller/                       TicketController: recibe la peticion y llama al servicio
 ```
 
-- **`model/`:** las entidades. Son clases simples (campos, constructor vacio y getters/setters) para que
-  Spring convierta el JSON de Postman en objetos sin configuracion.
-- **`service/`:** la logica. Valida lo basico y guarda los datos en memoria (se pierden al reiniciar),
-  respondiendo 400 / 404 / 409 con el motivo del error.
+- **`model/`:** las entidades. Son clases simples (campos, constructor vacio y getters/setters) que a la vez
+  son la tabla en PostgreSQL y el JSON de Postman.
+- **`repository/`:** una interfaz vacia que extiende `JpaRepository`; Spring genera el acceso a la base.
+- **`service/`:** la logica. Valida lo basico y responde 400 / 404 / 409 con el motivo del error.
 - **`controller/`:** los endpoints. No tiene logica, solo traduce HTTP al servicio.
 - **Entre servicios:** referencias solo por id y ninguna llamada a otro servicio al crear algo, para que si
   uno cae los demas sigan trabajando.
 
 **Por que tan simple:** el objetivo ahora es que todo el equipo pueda levantar el servicio y probarlo con
-Postman. Cuando un servicio crezca (base de datos, reglas de negocio, muchos endpoints) se separa en capas,
+Postman. Cuando un servicio crezca (reglas de negocio, muchos endpoints) se separa en capas,
 por ejemplo `domain` / `application` / `infrastructure`, sin cambiar la API ni a los demas servicios
 ([ADR 0002](docs/adr/0002-servicios-simples.md)).
 
@@ -156,13 +159,15 @@ helpdesk/
 │  ├─ pull_request_template.md    Plantilla de PR
 │  └─ workflows/
 │     └─ cherry-pick.yml          Cherry-pick automatizado hacia otra rama
+├─ docker-compose.yml             Levanta TODOS los servicios juntos con un solo PostgreSQL (4 bases)
+├─ docker/postgres/               Script que crea las 4 bases y sus usuarios
 ├─ docs/
 │  └─ adr/                        Decisiones de arquitectura (ADR)
 └─ services/                      Un subdirectorio por microservicio (cada uno independiente)
-   ├─ servicio-tickets/           Puerto 8080 (tiene ademas Dockerfile propio)
-   ├─ servicio-identidad/         Puerto 8083
-   ├─ servicio-comunicacion/      Puerto 8084
-   └─ servicio-estadisticas/      Puerto 8082
+   ├─ servicio-tickets/           App en el puerto 8080
+   ├─ servicio-identidad/         App en el puerto 8083
+   ├─ servicio-comunicacion/      App en el puerto 8084
+   └─ servicio-estadisticas/      App en el puerto 8082
 ```
 
 Dentro de cada servicio:
@@ -170,18 +175,21 @@ Dentro de cada servicio:
 ```
 <servicio>/
 ├─ pom.xml                        Proyecto Maven propio
+├─ Dockerfile                     Imagen del servicio (JRE ligero, memoria acotada)
+├─ docker-compose.yml             Levanta SOLO este servicio con SU PostgreSQL
 └─ src/
    ├─ main/java/com/helpdesk/<nombre>/
    │  ├─ Servicio<Nombre>Application.java
-   │  ├─ model/                   Entidades
+   │  ├─ model/                   Entidades (tablas)
+   │  ├─ repository/              Acceso a la base de datos
    │  ├─ service/                 Logica
    │  └─ controller/              Endpoints
-   ├─ main/resources/application.properties    Nombre y puerto del servicio
-   └─ test/java/                  Tests del servicio (sin levantar Spring)
+   ├─ main/resources/application.properties    Nombre, puerto y conexion a la base
+   └─ test/java/                  Tests del servicio (sin base de datos)
 ```
 
-Se agregara en las siguientes fases *(planificado)*: POM padre, `docker-compose.yml` con PostgreSQL,
-`.env.example`, `scripts/` y los workflows de CI (`ci.yml`, `docker.yml`).
+Se agregara en las siguientes fases *(planificado)*: POM padre, `.env.example`, `scripts/` y los
+workflows de CI (`ci.yml`, `docker.yml`).
 
 Convenciones de nombres:
 
@@ -192,17 +200,102 @@ Convenciones de nombres:
   con la linea `package` de cada clase.
 - Clase de arranque: `Servicio<Dominio>Application` (el sufijo `Application` es la convencion de Spring Boot).
 
-## Probar con Postman
+## Levantar el proyecto
 
-Sin instalar Java ni Maven, solo con Docker. Desde la carpeta del servicio (por ejemplo
-`services/servicio-identidad`), con el puerto que le corresponde:
+**Requisitos:** solo Docker (Docker Desktop en Windows y macOS; Docker Engine con el plugin Compose en Linux).
+No hace falta instalar Java, Maven ni PostgreSQL. Dale a Docker al menos 2 GB de memoria.
+
+Cada servicio tiene **su propia base de datos PostgreSQL**. Hay tres formas de trabajar, de la mas liviana
+a la mas completa:
+
+### Opcion 1: solo tu servicio, con su base (la recomendada para trabajar)
+
+Cada quien levanta unicamente el suyo. Desde la carpeta de tu servicio:
 
 ```bash
-docker run --rm -v "$PWD:/src" -w /src -p 8083:8083 maven:3.9-eclipse-temurin-21-alpine mvn -q -B spring-boot:run
+cd services/servicio-tickets        # tu carpeta
+docker compose up -d --build        # levanta TU servicio y SU PostgreSQL
 ```
 
-Para correr los tests: `docker run --rm -v "$PWD:/src" -w /src maven:3.9-eclipse-temurin-21-alpine mvn -B test`.
-Los datos viven en memoria: al reiniciar el servicio empiezan de cero.
+| Servicio | App | PostgreSQL (desde tu equipo) | Base / usuario / clave |
+|---|---|---|---|
+| `servicio-tickets` | `localhost:8080` | `127.0.0.1:5433` | `tickets_db` / `tickets` / `tickets` |
+| `servicio-identidad` | `localhost:8083` | `127.0.0.1:5434` | `identidad_db` / `identidad` / `identidad` |
+| `servicio-comunicacion` | `localhost:8084` | `127.0.0.1:5435` | `comunicacion_db` / `comunicacion` / `comunicacion` |
+| `servicio-estadisticas` | `localhost:8082` | `127.0.0.1:5436` | `estadisticas_db` / `estadisticas` / `estadisticas` |
+
+Comandos utiles (siempre desde la carpeta del servicio):
+
+```bash
+docker compose logs -f app          # ver los mensajes de la aplicacion
+docker compose up -d --build app    # recompilar y reiniciar solo la app despues de cambiar codigo
+docker compose down                 # apagar (los datos se conservan)
+docker compose down -v              # apagar y BORRAR los datos
+```
+
+Los datos **se conservan** entre reinicios gracias al volumen de PostgreSQL. Las claves de arriba son solo
+para desarrollo local; la base solo escucha en `127.0.0.1`, nadie mas de la red puede entrar.
+
+### Opcion 2: solo la base en Docker y la app desde tu editor (la mas ligera)
+
+```bash
+cd services/servicio-tickets
+docker compose up -d db             # solo PostgreSQL (unos 30 MB)
+```
+
+Luego ejecutas la aplicacion desde tu IDE (requiere JDK 21) con `ServicioTicketsApplication`. Ya apunta por
+defecto a la base de la tabla de arriba, no hay que configurar nada.
+
+### Opcion 3: todos los servicios juntos (para integrar)
+
+Desde la raiz del repositorio. Usa **una sola instancia de PostgreSQL con 4 bases separadas** (cada servicio
+con su usuario, y ninguno puede entrar a la base de otro), lo que gasta menos que 4 instancias:
+
+```bash
+docker compose up -d --build                                  # los 4 servicios + PostgreSQL
+docker compose up -d servicio-tickets servicio-comunicacion   # solo algunos (y la base)
+docker compose down                                           # apagar (los datos se conservan)
+docker compose down -v                                        # apagar y BORRAR los datos
+```
+
+No uses la opcion 3 junto con la 1 al mismo tiempo: comparten los puertos de las aplicaciones. Si cambias
+`docker/postgres/crear-bases.sql`, recrea los datos con `down -v`.
+
+### Consumo de recursos
+
+Medido con `docker stats` justo despues de arrancar (con uso intenso sube algo):
+
+| Modo | Contenedores | Memoria aprox. |
+|---|---|---|
+| Opcion 2: solo la base | 1 | 30 MB (mas tu editor) |
+| Opcion 1: un servicio y su base | 2 | 200 MB |
+| Opcion 3: un solo servicio desde la raiz | 2 | 180 MB |
+| Opcion 3: los 4 servicios juntos | 5 | 740 MB |
+
+Lo que se hizo para que sea liviano:
+
+- Imagen final con JRE minimo (no Maven ni JDK) y usuario sin privilegios.
+- Cada app limitada: `-Xmx200m`, recolector `SerialGC` y tope de 320 MB por contenedor.
+- Cada servicio abre solo 3 conexiones a la base (`DB_CONEXIONES`), y PostgreSQL esta recortado
+  (`shared_buffers` bajo, pocas conexiones).
+- En modo conjunto, un solo PostgreSQL en lugar de cuatro.
+
+Consejos: trabaja con la opcion 1 o 2 y levanta la 3 solo para integrar; apaga con `docker compose down`
+cuando termines; en Windows/macOS limita la memoria de Docker Desktop (Ajustes > Resources).
+
+### Como se coordina el equipo
+
+- Cada persona trabaja y prueba **su servicio solo** (opcion 1 o 2), sin esperar a nadie.
+- Lo unico que comparten es el **contrato**: puertos, rutas y el aviso de cambio de estado, escritos en este
+  README. Mientras cada uno lo respete, las piezas encajan.
+- Para **integrar**: `git pull origin dev` y opcion 3 en una maquina, y se recorre el guion de la seccion
+  siguiente. Conviene hacerlo al final de cada semana.
+- **Estado actual:** los servicios todavia no se llaman entre si; el aviso de cambio de estado se envia a mano
+  con Postman *(llamadas reales entre servicios y entre maquinas: planificado)*.
+
+## Probar con Postman
+
+Con el servicio levantado (cualquiera de las opciones anteriores), estos son los endpoints:
 
 | Servicio | Puerto | Metodo y ruta | Que hace |
 |---|---|---|---|
@@ -239,11 +332,17 @@ mismo evento a comunicacion (aparece un aviso para el solicitante) y a estadisti
 
 ## Datos y comunicacion entre servicios
 
-- **Base de datos:** PostgreSQL, **una base por servicio**, con migraciones Flyway versionadas.
-  H2 queda solo para tests. (`ddl-auto=update`, usado hoy en `espacios-service`, no se usa mas alla del prototipo.)
+- **Base de datos:** PostgreSQL, **una base por servicio**. Las tablas se crean solas al arrancar
+  (`ddl-auto=update`), suficiente para el prototipo; el siguiente paso son migraciones versionadas con Flyway
+  *(planificado)*. Las claves de las bases son de desarrollo; la conexion se puede cambiar con las variables
+  `DB_URL`, `DB_USUARIO`, `DB_CLAVE` y `DB_CONEXIONES`. El servicio de tickets usa H2 en memoria solo en su
+  test de arranque.
+- **Referencias entre servicios:** solo por id (`solicitanteId`, `ticketId`...), sin llave foranea, porque la
+  tabla referenciada esta en la base de otro servicio.
 - **Comunicacion:** REST sincrono al principio. Cuando haga falta desacoplar (por ejemplo,
   notificar al crear un ticket), se agregara mensajeria por eventos.
-- **Salud:** cada servicio expone `/actuator/health`, usado por Docker Compose para saber si esta listo.
+- **Salud:** exponer `/actuator/health` en cada servicio, para que Docker Compose sepa cuando esta listo
+  *(planificado)*.
 
 ## Entorno de desarrollo (Windows, macOS, Linux)
 
@@ -271,8 +370,8 @@ Todo el detalle esta en [CONTRIBUTING.md](CONTRIBUTING.md).
 ## Hoja de ruta
 
 - [x] **Fase 0, fundacion:** repositorio, estructura, reglas de equipo, cherry-pick automatizado.
-- [x] **Fase 1, servicios simples:** los cuatro servicios con sus entidades y endpoints basicos en memoria, probables con Postman.
-- [ ] **Fase 1b, infraestructura comun:** POM padre, Compose con PostgreSQL.
+- [x] **Fase 1, servicios simples con su base:** los cuatro servicios con entidades, endpoints basicos y su propio PostgreSQL, levantables de a uno o todos juntos.
+- [ ] **Fase 1b, infraestructura comun:** POM padre, Flyway y comprobaciones de salud (`/actuator/health`).
 - [ ] **Fase 2, CI:** workflow de build y tests por ruta; ejecutarlo en local con [`act`](https://github.com/nektos/act).
 - [ ] **Fase 3, desarrollar los servicios:** cada responsable completa el suyo (campos que faltan, base de datos, y capas si el servicio crece).
 - [ ] **Fase 4, gateway y seguridad:** API Gateway, autenticacion JWT.

@@ -2,13 +2,11 @@ package com.helpdesk.tickets.service;
 
 import com.helpdesk.tickets.model.EstadoTicket;
 import com.helpdesk.tickets.model.Ticket;
+import com.helpdesk.tickets.repository.TicketRepository;
 
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -16,19 +14,19 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class TicketService {
 
-    private final Map<Long, Ticket> tickets = new ConcurrentHashMap<>();
-    private final AtomicLong siguienteId = new AtomicLong(1);
+    private final TicketRepository tickets;
+
+    public TicketService(TicketRepository tickets) {
+        this.tickets = tickets;
+    }
 
     public List<Ticket> obtenerTodos() {
-        return tickets.values().stream().sorted(Comparator.comparing(Ticket::getId)).toList();
+        return tickets.findAll(Sort.by("id"));
     }
 
     public Ticket obtenerPorId(Long id) {
-        Ticket ticket = tickets.get(id);
-        if (ticket == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No existe el ticket con id " + id);
-        }
-        return ticket;
+        return tickets.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No existe el ticket con id " + id));
     }
 
     public Ticket crear(Ticket nuevo) {
@@ -41,11 +39,10 @@ public class TicketService {
         if (nuevo.getSolicitanteId() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El solicitante es obligatorio");
         }
-        nuevo.setId(siguienteId.getAndIncrement());
+        nuevo.setId(null);
         nuevo.setEstado(EstadoTicket.ABIERTO);
         nuevo.setTecnicoId(null);
-        tickets.put(nuevo.getId(), nuevo);
-        return nuevo;
+        return tickets.save(nuevo);
     }
 
     public Ticket asignar(Long id, Long tecnicoId) {
@@ -55,12 +52,12 @@ public class TicketService {
         }
         ticket.setTecnicoId(tecnicoId);
         ticket.setEstado(EstadoTicket.EN_PROGRESO);
-        return ticket;
+        return tickets.save(ticket);
     }
 
     public Ticket resolver(Long id) {
         Ticket ticket = obtenerPorId(id);
         ticket.setEstado(EstadoTicket.RESUELTO);
-        return ticket;
+        return tickets.save(ticket);
     }
 }

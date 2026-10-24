@@ -1,19 +1,27 @@
 package com.helpdesk.estadisticas.service;
 
+import com.helpdesk.estadisticas.model.ContadorEstado;
 import com.helpdesk.estadisticas.model.ResumenTickets;
 import com.helpdesk.estadisticas.model.TicketEstadoCambiado;
+import com.helpdesk.estadisticas.repository.ContadorEstadoRepository;
+
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 
 @Service
 public class EstadisticasService {
 
-    private int abiertos;
-    private int enProgreso;
-    private int resueltos;
+    private static final Set<String> ESTADOS = Set.of("ABIERTO", "EN_PROGRESO", "RESUELTO");
+
+    private final ContadorEstadoRepository contadores;
+
+    public EstadisticasService(ContadorEstadoRepository contadores) {
+        this.contadores = contadores;
+    }
 
     public synchronized ResumenTickets obtenerResumen() {
-        return new ResumenTickets(abiertos, enProgreso, resueltos);
+        return new ResumenTickets(cantidad("ABIERTO"), cantidad("EN_PROGRESO"), cantidad("RESUELTO"));
     }
 
     public synchronized ResumenTickets alCambiarEstado(TicketEstadoCambiado evento) {
@@ -22,15 +30,16 @@ public class EstadisticasService {
         return obtenerResumen();
     }
 
-    private void sumar(String estado, int cantidad) {
-        if (estado == null) {
+    private int cantidad(String estado) {
+        return contadores.findById(estado).map(ContadorEstado::getCantidad).orElse(0);
+    }
+
+    private void sumar(String estado, int cambio) {
+        if (estado == null || !ESTADOS.contains(estado)) {
             return;
         }
-        switch (estado) {
-            case "ABIERTO" -> abiertos += cantidad;
-            case "EN_PROGRESO" -> enProgreso += cantidad;
-            case "RESUELTO" -> resueltos += cantidad;
-            default -> { }
-        }
+        ContadorEstado contador = contadores.findById(estado).orElse(new ContadorEstado(estado, 0));
+        contador.setCantidad(contador.getCantidad() + cambio);
+        contadores.save(contador);
     }
 }

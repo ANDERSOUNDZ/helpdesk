@@ -3,13 +3,12 @@ package com.helpdesk.comunicacion.service;
 import com.helpdesk.comunicacion.model.Comentario;
 import com.helpdesk.comunicacion.model.Notificacion;
 import com.helpdesk.comunicacion.model.TicketEstadoCambiado;
+import com.helpdesk.comunicacion.repository.ComentarioRepository;
+import com.helpdesk.comunicacion.repository.NotificacionRepository;
 
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -17,15 +16,17 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class ComunicacionService {
 
-    private final Map<Long, Comentario> comentarios = new ConcurrentHashMap<>();
-    private final Map<Long, Notificacion> notificaciones = new ConcurrentHashMap<>();
-    private final AtomicLong siguienteComentario = new AtomicLong(1);
-    private final AtomicLong siguienteNotificacion = new AtomicLong(1);
+    private final ComentarioRepository comentarios;
+    private final NotificacionRepository notificaciones;
+
+    public ComunicacionService(ComentarioRepository comentarios, NotificacionRepository notificaciones) {
+        this.comentarios = comentarios;
+        this.notificaciones = notificaciones;
+    }
 
     public List<Comentario> obtenerComentarios(Long ticketId) {
-        return comentarios.values().stream()
+        return comentarios.findAll(Sort.by("id")).stream()
                 .filter(c -> ticketId == null || ticketId.equals(c.getTicketId()))
-                .sorted(Comparator.comparing(Comentario::getId))
                 .toList();
     }
 
@@ -36,26 +37,22 @@ public class ComunicacionService {
         if (nuevo.getTexto() == null || nuevo.getTexto().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El texto es obligatorio");
         }
-        nuevo.setId(siguienteComentario.getAndIncrement());
-        comentarios.put(nuevo.getId(), nuevo);
-        return nuevo;
+        nuevo.setId(null);
+        return comentarios.save(nuevo);
     }
 
     public List<Notificacion> obtenerNotificaciones(Long usuarioId, Boolean leida) {
-        return notificaciones.values().stream()
+        return notificaciones.findAll(Sort.by("id")).stream()
                 .filter(n -> usuarioId == null || usuarioId.equals(n.getUsuarioId()))
                 .filter(n -> leida == null || leida == n.isLeida())
-                .sorted(Comparator.comparing(Notificacion::getId))
                 .toList();
     }
 
     public Notificacion marcarLeida(Long id) {
-        Notificacion notificacion = notificaciones.get(id);
-        if (notificacion == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No existe la notificacion con id " + id);
-        }
+        Notificacion notificacion = notificaciones.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No existe la notificacion con id " + id));
         notificacion.setLeida(true);
-        return notificacion;
+        return notificaciones.save(notificacion);
     }
 
     public Notificacion alCambiarEstado(TicketEstadoCambiado evento) {
@@ -63,10 +60,8 @@ public class ComunicacionService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ticketId y solicitanteId son obligatorios");
         }
         Notificacion notificacion = new Notificacion();
-        notificacion.setId(siguienteNotificacion.getAndIncrement());
         notificacion.setUsuarioId(evento.solicitanteId());
         notificacion.setMensaje("Tu ticket #" + evento.ticketId() + " cambio a " + evento.estadoNuevo());
-        notificaciones.put(notificacion.getId(), notificacion);
-        return notificacion;
+        return notificaciones.save(notificacion);
     }
 }

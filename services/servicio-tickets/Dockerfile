@@ -13,5 +13,6 @@ RUN addgroup -S app && adduser -S app -G app
 WORKDIR /app
 COPY --from=build /app.jar app.jar
 USER app
+ENV JAVA_OPTS="-XX:+UseSerialGC -Xmx200m -Xss512k -XX:TieredStopAtLevel=1"
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar app.jar"]
