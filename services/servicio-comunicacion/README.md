@@ -1,4 +1,4 @@
-# 💬 Servicio de Comunicación (HelpDesk)
+﻿#  Servicio de Comunicación (HelpDesk)
 
 > **Desarrollador Responsable:** **Gabriel Emilio Ponce Salazar**  
 > **Estado:** ⏸️ **STANDBY (Fase Base Completada — Listo para Fase 2)**  
@@ -8,7 +8,7 @@ Microservicio responsable del **canal de soporte técnico, registro de comentari
 
 ---
 
-## 👨‍💻 Para el Desarrollador (Gabriel Emilio Ponce Salazar)
+## ‍ Para el Desarrollador (Gabriel Emilio Ponce Salazar)
 ### ¿Qué está hecho hasta ahora?
 - Entidades [`Comentario.java`](src/main/java/com/helpdesk/comunicacion/model/Comentario.java) (`ticketId`, `autorId`, `texto`) y [`Notificacion.java`](src/main/java/com/helpdesk/comunicacion/model/Notificacion.java) (`usuarioId`, `mensaje`, `leida`).
 - Servicio [`ComunicacionService.java`](src/main/java/com/helpdesk/comunicacion/service/ComunicacionService.java) para crear/listar comentarios, listar/marcar leídas las notificaciones y procesar cambios de estado (`alCambiarEstado`).
@@ -22,7 +22,7 @@ Microservicio responsable del **canal de soporte técnico, registro de comentari
 
 ---
 
-## 🎯 ¿Qué hace este servicio? (Propósito de Negocio)
+##  ¿Qué hace este servicio? (Propósito de Negocio)
 Es la vía de contacto continuo durante la resolución de un incidente:
 - **Historial técnico de comentarios:** Permite a los técnicos y usuarios intercambiar notas, diagnósticos o comprobaciones asociadas al `ticketId`.
 - **Bandeja de notificaciones:** Genera avisos automáticos al usuario cuando el estado de su ticket cambia (ej. cuando pasa a `EN_PROGRESO` o `RESUELTO`).
@@ -30,7 +30,7 @@ Es la vía de contacto continuo durante la resolución de un incidente:
 
 ---
 
-## 🔌 Especificaciones de Red y Puertos
+##  Especificaciones de Red y Puertos
 - **Aplicación Spring Boot:** Puerto `8084`
 - **PostgreSQL Local:** Puerto `5435`
 - **pgAdmin 4 (GUI Web):** Puerto `5054`
@@ -40,7 +40,7 @@ Es la vía de contacto continuo durante la resolución de un incidente:
 
 ---
 
-## 🚀 Cómo levantarlo con Docker
+##  Cómo levantarlo con Docker
 
 Ejecuta desde esta carpeta:
 ```bash
@@ -54,36 +54,36 @@ docker compose ps
 
 ---
 
-## 🎯 ¿A DÓNDE DEBES IR Y QUÉ DEBES HACER AL LEVANTAR EL SERVICIO?
+##  ¿A DÓNDE DEBES IR Y QUÉ DEBES HACER AL LEVANTAR EL SERVICIO?
 
-> ⚠️ **¡OJO CON EL ERROR 404 / WHITELABEL ERROR PAGE!**  
+> ️ **¡OJO CON EL ERROR 404 / WHITELABEL ERROR PAGE!**  
 > Si abres `http://localhost:8084/` en el navegador verás un error 404 de Spring Boot. Es normal porque es una **API REST**.
 
 ### 1. Para probar tu API REST:
 Abre en tu navegador o en Postman el endpoint real:
-👉 **[http://localhost:8084/comentarios](http://localhost:8084/comentarios)** o **[http://localhost:8084/notificaciones](http://localhost:8084/notificaciones)**  
+ **[http://localhost:8084/comentarios](http://localhost:8084/comentarios)** o **[http://localhost:8084/notificaciones](http://localhost:8084/notificaciones)**  
 *Respuesta esperada (JSON):* `[]`.
 
 ---
 
 ### 2. Para ver tu Base de Datos en pgAdmin 4:
 Abre en tu navegador:
-👉 **[http://localhost:5054](http://localhost:5054)**
+ **[http://localhost:5054](http://localhost:5054)**
 1. Inicia sesión con: `admin@admin.com` / `admin`
-2. Registra el servidor (**Servers** ➔ **Register** ➔ **Server...**):
+2. Registra el servidor (**Servers**  **Register**  **Server...**):
    - **General:** Nombre: `Comunicacion DB`
    - **Connection:**
-     - ⚠️ **Host name/address:** `db` *(OJO: escribir exactamente la palabra `db`. Si pones `localhost` o `127.0.0.1` te dará error `Connection refused`)*
-     - ⚠️ **Port:** `5432` *(puerto interno, NO poner 5435)*
+     - ️ **Host name/address:** `db` *(OJO: escribir exactamente la palabra `db`. Si pones `localhost` o `127.0.0.1` te dará error `Connection refused`)*
+     - ️ **Port:** `5432` *(puerto interno, NO poner 5435)*
      - **Maintenance database:** `comunicacion_db`
      - **Username:** `comunicacion`
      - **Password:** `comunicacion`
      - Marca *Save password* y clic en **Save**.
-3. Ve a `Schemas ➔ public ➔ Tables` para ver las tablas **`comentarios`** y **`notificaciones`**.
+3. Ve a `Schemas  public  Tables` para ver las tablas **`comentarios`** y **`notificaciones`**.
 
 ---
 
-## 🛑 Detener el servicio
+##  Detener el servicio
 ```bash
 docker compose down
 ```

@@ -1,11 +1,11 @@
-# 📬 Guía de Postman y Gestión de PostgreSQL (HelpDesk)
+﻿#  Guía de Postman y Gestión de PostgreSQL (HelpDesk)
 
 ---
 
-## 1. 📬 Uso de Postman (Desktop App vs Extensión en IDE)
+## 1.  Uso de Postman (Desktop App vs Extensión en IDE)
 
 La colección oficial del proyecto se encuentra en:  
-👉 [`docs/postman/HelpDesk_API_Coleccion.json`](HelpDesk_API_Coleccion.json)
+ [`docs/postman/HelpDesk_API_Coleccion.json`](HelpDesk_API_Coleccion.json)
 
 Es **100% compatible y funciona exactamente igual** en ambas modalidades:
 
@@ -17,17 +17,17 @@ Es **100% compatible y funciona exactamente igual** en ambas modalidades:
 
 ### B. En el IDE (Extensión Postman / Thunder Client en VS Code o Antigravity):
 1. Abre la extensión en la barra lateral izquierda del IDE.
-2. Ve a **Collections** ➔ Clic en `...` o en el botón de **Import**.
+2. Ve a **Collections**  Clic en `...` o en el botón de **Import**.
 3. Selecciona `docs/postman/HelpDesk_API_Coleccion.json`.
 4. Puedes ejecutar peticiones haciendo clic en **Send** directamente desde tu editor sin cambiar de ventana.
 
 ---
 
-## 2. 🐘 Cómo Levantar PostgreSQL
+## 2.  Cómo Levantar PostgreSQL
 
 El proyecto ofrece dos opciones para levantar PostgreSQL: **modo individual (por servicio)** o **modo conjunto (todos los servicios)**.
 
-### 🟢 Opción A: Levantar SOLO PostgreSQL de tu servicio (`servicio-estadisticas`)
+###  Opción A: Levantar SOLO PostgreSQL de tu servicio (`servicio-estadisticas`)
 Si estás trabajando únicamente en tu microservicio:
 
 ```bash
@@ -36,14 +36,14 @@ docker compose up -d db pgadmin
 ```
 *(Si también quieres levantar tu app de Spring Boot, ejecuta simplemente `docker compose up -d --build`).*
 
-#### 🚨 IMPORTANTE: Cómo registrar el Servidor en pgAdmin sin errores de conexión
-> ⚠️ **ERROR COMÚN:** Si pones `localhost`, `127.0.0.1` o el puerto `5436` dentro de pgAdmin, obtendrás el error:  
+####  IMPORTANTE: Cómo registrar el Servidor en pgAdmin sin errores de conexión
+> ️ **ERROR COMÚN:** Si pones `localhost`, `127.0.0.1` o el puerto `5436` dentro de pgAdmin, obtendrás el error:  
 > `connection to server at "127.0.0.1", port 5436 failed: Connection refused`.  
 > Esto ocurre porque para pgAdmin (que corre en un contenedor), `localhost` es él mismo y no tu máquina host.
 
 **Configuración EXACTA que debes poner en pgAdmin (Pestaña Connection):**
-- **Host name/address:** `db` 👈 *(Pon la palabra literal `db`, NO pongas localhost ni 127.0.0.1)*
-- **Port:** `5432` 👈 *(Pon `5432` interno, NO pongas 5436)*
+- **Host name/address:** `db`  *(Pon la palabra literal `db`, NO pongas localhost ni 127.0.0.1)*
+- **Port:** `5432`  *(Pon `5432` interno, NO pongas 5436)*
 - **Maintenance database:** `estadisticas_db`
 - **Username:** `estadisticas`
 - **Password:** `estadisticas`
@@ -51,7 +51,7 @@ docker compose up -d db pgadmin
 
 ---
 
-### 🌐 Opción B: Levantar PostgreSQL General (Para TODO el proyecto)
+###  Opción B: Levantar PostgreSQL General (Para TODO el proyecto)
 Si quieres levantar la base de datos central que contiene las bases de los 4 microservicios:
 
 ```bash
@@ -68,7 +68,7 @@ docker compose up -d db pgadmin
 
 ---
 
-## 📋 Tabla Maestra de Conexión pgAdmin para cada Desarrollador
+##  Tabla Maestra de Conexión pgAdmin para cada Desarrollador
 
 | Desarrollador | Microservicio | URL de pgAdmin | Host en pgAdmin | Puerto en pgAdmin | Maintenance DB | Usuario / Clave |
 | :--- | :--- | :---: | :---: | :---: | :--- | :--- |
@@ -82,9 +82,9 @@ docker compose up -d db pgadmin
 
 ---
 
-## 🛑 Detener PostgreSQL sin perder datos
+##  Detener PostgreSQL sin perder datos
 En cualquiera de los dos casos, ejecuta:
 ```bash
 docker compose down
 ```
-> ⚠️ **Regla de Oro:** NUNCA uses el flag `-v` (`docker compose down -v`), ya que ese flag borra los volúmenes de disco y destruiría los datos guardados en PostgreSQL.
+> ️ **Regla de Oro:** NUNCA uses el flag `-v` (`docker compose down -v`), ya que ese flag borra los volúmenes de disco y destruiría los datos guardados en PostgreSQL.

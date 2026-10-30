@@ -1,4 +1,4 @@
-# Guia de contribucion
+﻿# Guia de contribucion
 
 Equipo de 4 personas (Grupo 4): cada una con **un servicio** y **una sola rama**. Estas reglas existen
 para que nadie pise el trabajo de otra persona y para que `main` siempre funcione.
@@ -21,10 +21,10 @@ Asi un error de una persona rompe `dev` y no `main`.
 
 Cada desarrollador tiene **asignación exclusiva y hermética** sobre su componente y su rama. **Nadie puede modificar el código de otra persona**.
 
-> 👑 **PROPIETARIO Y ADMINISTRADOR GENERAL:**  
+>  **PROPIETARIO Y ADMINISTRADOR GENERAL:**  
 > **Miguel Anderson Chanchay** (`@ANDERSOUNDZ` / `miguelchanchay`) es el **Dueño del Repositorio**. Como administrador general, tiene **acceso total e irrestricto** a todo el monorepo para resolver incidentes globales, coordinar arquitectura, aprobar PRs y auditar cualquier microservicio.
 
-#### 🛡️ Protocolo de Identificación para el Asistente / Agente:
+#### ️ Protocolo de Identificación para el Asistente / Agente:
 Cuando un usuario interactúe con el asistente, se debe verificar:
 1. **¿Cuál es tu nombre completo?**
 2. **¿Cuál es tu usuario de GitHub conectado al repositorio?**

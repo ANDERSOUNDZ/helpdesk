@@ -1,32 +1,32 @@
-# HelpDesk: Plataforma Distribuida de Mesa de Ayuda de TI
+﻿# HelpDesk: Plataforma Distribuida de Mesa de Ayuda de TI
 
 Plataforma de **gestión de incidentes y requerimientos tecnológicos** construida como **microservicios distribuidos e independientes** con Spring Boot 4 y PostgreSQL; preparada para integración con Bus de Eventos, API Gateway y Frontend SPA.
 
-> 🚨 **DOCUMENTO MAESTRO PARA DESARROLLADORES:**  
+>  **DOCUMENTO MAESTRO PARA DESARROLLADORES:**  
 > Consulta la [**Guía Maestra y Reglas Inmutables (ORQUESTADOR_MAESTRO.md)**](ORQUESTADOR_MAESTRO.md) antes de escribir código para conocer las reglas que evitan que los microservicios colapsen entre sí.
 
 ---
 
-## 🎯 Propósito y Enfoque del Proyecto
+##  Propósito y Enfoque del Proyecto
 
 El objetivo principal de este sistema es **centralizar, rastrear y resolver solicitudes o fallas técnicas corporativas** (incidentes de hardware, software, accesos y redes) reportadas por usuarios, asignándolas a un técnico especialista y midiendo los tiempos de atención mediante un ciclo de vida formal y desacoplado.
 
-### 🔄 Flujo Central del Negocio (Ciclo de Vida de TI)
+###  Flujo Central del Negocio (Ciclo de Vida de TI)
 
 ```mermaid
 flowchart TD
-    A["👤 1. Usuario Solicitante\nReporta un problema de TI\n(Crea un Ticket con título, descrip. y prioridad)"] -->|"Genera Ticket #ID\n(Estado: ABIERTO)"| B["📋 2. Mesa de Ayuda / Cola de Soporte\nEl caso entra a la cola general de TI"]
-    B -->|"Asignación\n(Se asocia a un tecnicoId)"| C["🛠️ 3. Técnico de TI\n(Estado: EN_PROGRESO)"]
-    C -->|"Diagnóstico y comentarios\n(Servicio Comunicación)"| D["💬 4. Comunicación con el Usuario\n(Notas, notificaciones y avisos)"]
-    D -->|"El técnico arregla la falla"| E["✅ 5. Resolución\n(Estado: RESUELTO / CERRADO)"]
-    E -->|"Métricas actualizadas"| F["📊 6. Métricas y KPIs de TI\n(Servicio Estadísticas)"]
+    A[" 1. Usuario Solicitante\nReporta un problema de TI\n(Crea un Ticket con título, descrip. y prioridad)"] -->|"Genera Ticket #ID\n(Estado: ABIERTO)"| B[" 2. Mesa de Ayuda / Cola de Soporte\nEl caso entra a la cola general de TI"]
+    B -->|"Asignación\n(Se asocia a un tecnicoId)"| C["️ 3. Técnico de TI\n(Estado: EN_PROGRESO)"]
+    C -->|"Diagnóstico y comentarios\n(Servicio Comunicación)"| D[" 4. Comunicación con el Usuario\n(Notas, notificaciones y avisos)"]
+    D -->|"El técnico arregla la falla"| E[" 5. Resolución\n(Estado: RESUELTO / CERRADO)"]
+    E -->|"Métricas actualizadas"| F[" 6. Métricas y KPIs de TI\n(Servicio Estadísticas)"]
 ```
 
-### 🧩 Responsabilidades y Asignación de Desarrolladores
+###  Responsabilidades y Asignación de Desarrolladores
 
 | Desarrollador | Microservicio / Módulo | Responsabilidad en la Mesa de Ayuda | Puertos |
 |---|---|---|:---:|
-| **Ariel Martín Guerrero Sandoval** | **`servicio-tickets`** | **Corazón del incidente:** Genera folios de tickets, máquina de estados (`ABIERTO` ➔ `EN_PROGRESO` ➔ `RESUELTO`) y asignación de técnicos. | App: `8080`<br>BD: `5433`<br>pgAdmin: `5050` |
+| **Ariel Martín Guerrero Sandoval** | **`servicio-tickets`** | **Corazón del incidente:** Genera folios de tickets, máquina de estados (`ABIERTO`  `EN_PROGRESO`  `RESUELTO`) y asignación de técnicos. | App: `8080`<br>BD: `5433`<br>pgAdmin: `5050` |
 | **Gabriel Emilio Ponce Salazar** | **`servicio-comunicacion`** | **Canal de soporte:** Registro de notas y comentarios sobre tickets, y notificaciones automáticas al usuario. | App: `8084`<br>BD: `5435`<br>pgAdmin: `5054` |
 | **Miguel Anderson Chanchay** | **`servicio-estadisticas`** | **Auditoría y KPIs:** Métricas en tiempo real de tickets abiertos, en progreso y resueltos para el tablero gerencial. | App: `8082`<br>BD: `5436`<br>pgAdmin: `5052` |
 | **Dylan Miguel Vargas Onofa** | **Frontend Web + API Gateway** | **Experiencia de Usuario y Enrutamiento:** Puerta de enlace unificada (`:8000`), CORS central y aplicación SPA (`:3000`). | Gateway: `8000`<br>SPA: `3000` |
@@ -34,7 +34,7 @@ flowchart TD
 
 ---
 
-## 🗺️ Roadmap del Proyecto & Estado Actual
+## ️ Roadmap del Proyecto & Estado Actual
 
 Este roadmap describe el orden cronológico de los procesos implementados, los que están operativos y los que están planificados:
 
@@ -59,8 +59,8 @@ flowchart LR
 
 | Fase | Proceso / Hito | Estado | Qué está levantado / Qué falta |
 | :---: | :--- | :---: | :--- |
-| **0** | **Fundación del Repositorio** | ✅ **Completado** | Estructura en un solo repo Git, convenciones, plantillas de PR, workflow de cherry-pick. |
-| **1** | **Microservicios Independientes** | ✅ **Completado & Levantable** | **4 microservicios funcionales** con Spring Boot y Spring Data JPA.<br>• `servicio-tickets` (8080)<br>• `servicio-identidad` (8083)<br>• `servicio-comunicacion` (8084)<br>• `servicio-estadisticas` (8082)<br>• **Persistencia:** Bases de datos PostgreSQL individuales (5433-5436) y base conjunta (5432).<br>• **Herramientas:** Wrappers de Maven (`mvnw`) y pruebas pasando al 100%. |
+| **0** | **Fundación del Repositorio** |  **Completado** | Estructura en un solo repo Git, convenciones, plantillas de PR, workflow de cherry-pick. |
+| **1** | **Microservicios Independientes** |  **Completado & Levantable** | **4 microservicios funcionales** con Spring Boot y Spring Data JPA.<br>• `servicio-tickets` (8080)<br>• `servicio-identidad` (8083)<br>• `servicio-comunicacion` (8084)<br>• `servicio-estadisticas` (8082)<br>• **Persistencia:** Bases de datos PostgreSQL individuales (5433-5436) y base conjunta (5432).<br>• **Herramientas:** Wrappers de Maven (`mvnw`) y pruebas pasando al 100%. |
 | **2** | **Orquestación & Sincronización Global** | ⏳ *Planificado* | Módulo de contratos comunes (`helpdesk-common`) y Bus de eventos global (RabbitMQ/Broker) que interconecta a **los 4 servicios** sin llamadas HTTP bloqueantes (detallado en [ORQUESTADOR_MAESTRO.md](ORQUESTADOR_MAESTRO.md)). |
 | **3** | **API Gateway** | ⏳ *Especificado* | Enrutamiento inverso unificado en puerto `8000`, CORS centralizado y seguridad (detallado en [ORQUESTADOR_MAESTRO.md](ORQUESTADOR_MAESTRO.md)). |
 | **4** | **Frontend SPA** | ⏳ *Especificado* | Cliente web para usuarios y técnicos. Contratos de TypeScript listos (detallado en [ORQUESTADOR_MAESTRO.md](ORQUESTADOR_MAESTRO.md)). |
@@ -596,7 +596,7 @@ feat/estadisticas ──┘   (integracion)    (estable)
 Los commits siguen [Conventional Commits](https://www.conventionalcommits.org/es/) (`feat(tickets): ...`).
 Todo el detalle, los comandos y las reglas estan en [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## 📋 Hoja de ruta detallada
+##  Hoja de ruta detallada
 
 - [x] **Fase 0: Fundación:** repositorio, monorepo, convenciones de Git, cherry-pick automatizado.
 - [x] **Fase 1: Microservicios base:** cuatro microservicios (`tickets`, `identidad`, `comunicacion`, `estadisticas`) con capas simples, PostgreSQL independiente por servicio y conjunto, y Maven Wrappers integrados.

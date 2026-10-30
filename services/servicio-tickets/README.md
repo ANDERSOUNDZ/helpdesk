@@ -1,4 +1,4 @@
-# 🎫 Servicio de Tickets (HelpDesk)
+﻿#  Servicio de Tickets (HelpDesk)
 
 > **Desarrollador Responsable:** **Ariel Martín Guerrero Sandoval**  
 > **Estado:** ⏸️ **STANDBY (Fase Base Completada — Listo para Fase 2)**  
@@ -8,7 +8,7 @@ Microservicio **núcleo del sistema** encargado del ciclo de vida y gestión de 
 
 ---
 
-## 👨‍💻 Para el Desarrollador (Ariel Martín Guerrero Sandoval)
+## ‍ Para el Desarrollador (Ariel Martín Guerrero Sandoval)
 ### ¿Qué está hecho hasta ahora?
 - Entidad [`Ticket.java`](src/main/java/com/helpdesk/tickets/model/Ticket.java) con `id`, `titulo`, `descripcion`, `prioridad` (`BAJA`, `MEDIA`, `ALTA`), `estado` (`ABIERTO`, `EN_PROGRESO`, `RESUELTO`), `solicitanteId`, `tecnicoId`.
 - Servicio [`TicketService.java`](src/main/java/com/helpdesk/tickets/service/TicketService.java) con métodos para crear ticket, asignar técnico y resolver.
@@ -22,16 +22,16 @@ Microservicio **núcleo del sistema** encargado del ciclo de vida y gestión de 
 
 ---
 
-## 🎯 ¿Qué hace este servicio? (Propósito de Negocio)
+##  ¿Qué hace este servicio? (Propósito de Negocio)
 Es el corazón operativo del HelpDesk. Sus responsabilidades son:
 - **Registrar y generar folios únicos** para incidentes de TI con niveles de prioridad (`BAJA`, `MEDIA`, `ALTA`).
-- **Gestionar la máquina de estados del incidente:** `ABIERTO` ➔ `EN_PROGRESO` ➔ `RESUELTO`.
+- **Gestionar la máquina de estados del incidente:** `ABIERTO`  `EN_PROGRESO`  `RESUELTO`.
 - **Asignar técnicos de soporte** a cada caso (`PUT /tickets/{id}/asignar/{tecnicoId}`).
 - **Garantizar la resolución formal** del problema antes del cierre.
 
 ---
 
-## 🔌 Especificaciones de Red y Puertos
+##  Especificaciones de Red y Puertos
 - **Aplicación Spring Boot:** Puerto `8080`
 - **PostgreSQL Local:** Puerto `5433`
 - **pgAdmin 4 (GUI Web):** Puerto `5050`
@@ -41,7 +41,7 @@ Es el corazón operativo del HelpDesk. Sus responsabilidades son:
 
 ---
 
-## 🚀 Cómo levantarlo con Docker
+##  Cómo levantarlo con Docker
 
 Ejecuta desde esta carpeta:
 ```bash
@@ -55,14 +55,14 @@ docker compose ps
 
 ---
 
-## 🎯 ¿A DÓNDE DEBES IR Y QUÉ DEBES HACER AL LEVANTAR EL SERVICIO?
+##  ¿A DÓNDE DEBES IR Y QUÉ DEBES HACER AL LEVANTAR EL SERVICIO?
 
-> ⚠️ **¡OJO CON EL ERROR 404 / WHITELABEL ERROR PAGE!**  
+> ️ **¡OJO CON EL ERROR 404 / WHITELABEL ERROR PAGE!**  
 > Si abres `http://localhost:8080/` en el navegador verás un error 404 de Spring Boot. Es normal porque es una **API REST**.
 
 ### 1. Para probar tu API REST:
 Abre en tu navegador o en Postman el endpoint real:
-👉 **[http://localhost:8080/tickets](http://localhost:8080/tickets)**  
+ **[http://localhost:8080/tickets](http://localhost:8080/tickets)**  
 *Respuesta esperada (JSON):* `[]` (o la lista de tickets).
 
 O por terminal:
@@ -74,22 +74,22 @@ curl.exe http://localhost:8080/tickets
 
 ### 2. Para ver tu Base de Datos en pgAdmin 4:
 Abre en tu navegador:
-👉 **[http://localhost:5050](http://localhost:5050)**
+ **[http://localhost:5050](http://localhost:5050)**
 1. Inicia sesión con: `admin@admin.com` / `admin`
-2. Registra el servidor (**Servers** ➔ **Register** ➔ **Server...**):
+2. Registra el servidor (**Servers**  **Register**  **Server...**):
    - **General:** Nombre: `Tickets DB`
    - **Connection:**
-     - ⚠️ **Host name/address:** `db` *(OJO: escribir exactamente la palabra `db`. Si pones `localhost` o `127.0.0.1` te dará error `Connection refused`)*
-     - ⚠️ **Port:** `5432` *(puerto interno, NO poner 5433)*
+     - ️ **Host name/address:** `db` *(OJO: escribir exactamente la palabra `db`. Si pones `localhost` o `127.0.0.1` te dará error `Connection refused`)*
+     - ️ **Port:** `5432` *(puerto interno, NO poner 5433)*
      - **Maintenance database:** `tickets_db`
      - **Username:** `tickets`
      - **Password:** `tickets`
      - Marca *Save password* y clic en **Save**.
-3. Ve a `Schemas ➔ public ➔ Tables` para ver las tablas **`tickets`** y **`categorias`**.
+3. Ve a `Schemas  public  Tables` para ver las tablas **`tickets`** y **`categorias`**.
 
 ---
 
-## 🛑 Detener el servicio
+##  Detener el servicio
 ```bash
 docker compose down
 ```

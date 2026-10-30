@@ -1,14 +1,14 @@
-# 📊 Servicio de Estadísticas (HelpDesk)
+﻿#  Servicio de Estadísticas (HelpDesk)
 
 > **Desarrollador Responsable:** **Miguel Anderson Chanchay**  
 > **Rama asignada:** `feat/estadisticas`  
-> **Estado:** 🟢 **OPERATIVO EN DOCKER CON CRUD ANALÍTICO COMPLETO**
+> **Estado:**  **OPERATIVO EN DOCKER CON CRUD ANALÍTICO COMPLETO**
 
 Microservicio de **analítica, auditoría y métricas de rendimiento en tiempo real** de la Mesa de Ayuda de TI.
 
 ---
 
-## 🎯 ¿Qué hace este servicio? (Propósito de Negocio)
+##  ¿Qué hace este servicio? (Propósito de Negocio)
 En un sistema de TI corporativo, las estadísticas no deben sobrecargar la base de datos principal de tickets. Este microservicio:
 - **Mantiene contadores precalculados** de tickets abiertos, en progreso y resueltos.
 - **Sirve métricas ultra-rápidas (en milisegundos)** para el panel de control (Dashboard gerencial).
@@ -17,7 +17,7 @@ En un sistema de TI corporativo, las estadísticas no deben sobrecargar la base 
 
 ---
 
-## 🔌 Especificaciones de Red y Puertos
+##  Especificaciones de Red y Puertos
 - **Aplicación Spring Boot:** Puerto `8082`
 - **PostgreSQL Local:** Puerto `5436`
 - **pgAdmin 4 (GUI Web):** Puerto `5052`
@@ -27,7 +27,7 @@ En un sistema de TI corporativo, las estadísticas no deben sobrecargar la base 
 
 ---
 
-## 📬 Endpoints Disponibles (Probados en Vivo)
+##  Endpoints Disponibles (Probados en Vivo)
 
 | Método | Endpoint | Descripción | Ejemplo / Parámetros |
 |:---:|---|---|---|
@@ -40,7 +40,7 @@ En un sistema de TI corporativo, las estadísticas no deben sobrecargar la base 
 
 ---
 
-## 🚀 Cómo levantarlo con Docker
+##  Cómo levantarlo con Docker
 
 Ejecuta desde esta carpeta:
 ```bash
@@ -54,16 +54,16 @@ docker compose ps
 
 ---
 
-## 🎯 ¿A DÓNDE DEBES IR Y QUÉ DEBES HACER AL LEVANTAR EL SERVICIO?
+##  ¿A DÓNDE DEBES IR Y QUÉ DEBES HACER AL LEVANTAR EL SERVICIO?
 
-> ⚠️ **¡OJO CON EL ERROR 404 / WHITELABEL ERROR PAGE!**  
+> ️ **¡OJO CON EL ERROR 404 / WHITELABEL ERROR PAGE!**  
 > Si abres en el navegador `http://localhost:8082/` directamente, verás:  
 > `Whitelabel Error Page - There was an unexpected error (type=Not Found, status=404)`.  
 > **Esto es completamente normal:** tu microservicio es una **API REST**, no sirve páginas web HTML en la raíz `/`.
 
 ### 1. Para probar tu API REST (Tus Endpoints):
 Abre en tu navegador o en Postman el endpoint real:
-👉 **[http://localhost:8082/resumen](http://localhost:8082/resumen)**  
+ **[http://localhost:8082/resumen](http://localhost:8082/resumen)**  
 *Respuesta esperada (JSON):* `{"abiertos":0,"enProgreso":0,"resueltos":0}`
 
 O compruébalo por terminal:
@@ -75,11 +75,11 @@ curl.exe http://localhost:8082/resumen
 
 ### 2. Para ver tu Base de Datos en pgAdmin 4:
 Abre en tu navegador:
-👉 **[http://localhost:5052](http://localhost:5052)**
+ **[http://localhost:5052](http://localhost:5052)**
 1. Inicia sesión con:
    - **Email:** `admin@admin.com`
    - **Password:** `admin`
-2. Registra el servidor (**Servers** ➔ **Register** ➔ **Server...**):
+2. Registra el servidor (**Servers**  **Register**  **Server...**):
    - **Pestaña General:** Nombre: `Estadisticas DB`
    - **Pestaña Connection:**
      - **Host:** `db` *(exactamente la palabra `db`)*
@@ -88,7 +88,7 @@ Abre en tu navegador:
      - **Username:** `estadisticas`
      - **Password:** `estadisticas`
      - Marca *Save password* y haz clic en **Save**.
-3. En el árbol de la izquierda ve a: `Servers ➔ Estadisticas DB ➔ Databases ➔ estadisticas_db ➔ Schemas ➔ public ➔ Tables`.  
+3. En el árbol de la izquierda ve a: `Servers  Estadisticas DB  Databases  estadisticas_db  Schemas  public  Tables`.  
    ¡Verás tu tabla **`contadores_estado`** creada automáticamente!
 
 ---
@@ -100,12 +100,12 @@ cd ../../frontend
 npm start
 ```
 Y abre en tu navegador:  
-👉 **[http://localhost:4200](http://localhost:4200)**  
+ **[http://localhost:4200](http://localhost:4200)**  
 *(Verás las tarjetas métricas consumiendo en vivo los datos de tu microservicio).*
 
 ---
 
-## 🛑 Detener el servicio
+##  Detener el servicio
 ```bash
 docker compose down
 ```

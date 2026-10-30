@@ -1,4 +1,4 @@
-# 👤 Servicio de Identidad (HelpDesk)
+﻿#  Servicio de Identidad (HelpDesk)
 
 > **Estado:** ⏸️ **STANDBY (Fase Base Operativa — Módulo Común del Equipo)**  
 > **Rama asignada:** `feat/identidad`
@@ -7,7 +7,7 @@ Microservicio de **gestión de usuarios, roles de TI y control de acceso** de la
 
 ---
 
-## 👥 Para el Equipo de Desarrollo
+##  Para el Equipo de Desarrollo
 ### ¿Qué está hecho hasta ahora?
 - Entidad [`Usuario.java`](src/main/java/com/helpdesk/identidad/model/Usuario.java) con `id`, `nombre`, `email`, enum [`Rol.java`](src/main/java/com/helpdesk/identidad/model/Rol.java) (`USUARIO`, `TECNICO`, `ADMINISTRADOR`) y `activo`.
 - Servicio [`UsuarioService.java`](src/main/java/com/helpdesk/identidad/service/UsuarioService.java) y Controlador REST [`UsuarioController.java`](src/main/java/com/helpdesk/identidad/controller/UsuarioController.java) con rutas completas para listar, crear y cambiar estado de activación.
@@ -19,7 +19,7 @@ Microservicio de **gestión de usuarios, roles de TI y control de acceso** de la
 
 ---
 
-## 🎯 ¿Qué hace este servicio? (Propósito de Negocio)
+##  ¿Qué hace este servicio? (Propósito de Negocio)
 Gestiona el catálogo de personas que interactúan en la mesa de ayuda corporativa:
 - **Diferencia los roles de TI:**
   - `USUARIO`: Empleado que reporta fallos o solicita requerimientos.
@@ -29,7 +29,7 @@ Gestiona el catálogo de personas que interactúan en la mesa de ayuda corporati
 
 ---
 
-## 🔌 Especificaciones de Red y Puertos
+##  Especificaciones de Red y Puertos
 - **Aplicación Spring Boot:** Puerto `8083`
 - **PostgreSQL Local:** Puerto `5434`
 - **pgAdmin 4 (GUI Web):** Puerto `5053`
@@ -39,7 +39,7 @@ Gestiona el catálogo de personas que interactúan en la mesa de ayuda corporati
 
 ---
 
-## 🚀 Cómo levantarlo con Docker
+##  Cómo levantarlo con Docker
 
 Ejecuta desde esta carpeta:
 ```bash
@@ -59,25 +59,25 @@ curl.exe http://localhost:8083/usuarios
 
 ---
 
-## 🐘 Conexión a pgAdmin 4
+##  Conexión a pgAdmin 4
 1. Abre en tu navegador: [http://localhost:5053](http://localhost:5053)
 2. Inicia sesión con:
    - **Email:** `admin@admin.com`
    - **Password:** `admin`
-3. Registra el servidor de base de datos (**Servers** ➔ **Register** ➔ **Server...**):
+3. Registra el servidor de base de datos (**Servers**  **Register**  **Server...**):
    - **Pestaña General:** Nombre: `Identidad DB`
    - **Pestaña Connection:**
-     - ⚠️ **Host name/address:** `db` *(OJO: escribir exactamente la palabra `db`. Si pones `localhost` o `127.0.0.1` te dará error `Connection refused`)*
-     - ⚠️ **Port:** `5432` *(puerto interno, NO poner 5434)*
+     - ️ **Host name/address:** `db` *(OJO: escribir exactamente la palabra `db`. Si pones `localhost` o `127.0.0.1` te dará error `Connection refused`)*
+     - ️ **Port:** `5432` *(puerto interno, NO poner 5434)*
      - **Maintenance database:** `identidad_db`
      - **Username:** `identidad`
      - **Password:** `identidad`
      - Marca *Save password* y haz clic en **Save**.
-4. Ve a `Schemas ➔ public ➔ Tables` para ver las tablas **`usuarios`** y **`departamentos`**.
+4. Ve a `Schemas  public  Tables` para ver las tablas **`usuarios`** y **`departamentos`**.
 
 ---
 
-## 🛑 Detener el servicio
+##  Detener el servicio
 ```bash
 docker compose down
 ```
