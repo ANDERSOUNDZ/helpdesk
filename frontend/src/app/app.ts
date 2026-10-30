@@ -7,6 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { Tickets } from './tickets/tickets';
+import { Comunicacion } from './comunicacion/comunicacion';
 import { Identidad } from './identidad/identidad';
 
 @Component({
@@ -20,6 +21,7 @@ import { Identidad } from './identidad/identidad';
     MatButtonModule,
     DashboardComponent,
     Tickets,
+    Comunicacion,
     Identidad
   ],
   templateUrl: './app.html',

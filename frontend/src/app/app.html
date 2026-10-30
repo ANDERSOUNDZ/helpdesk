@@ -1,7 +1,7 @@
 <!-- BARRA SUPERIOR (SPA MATERIAL DESIGN) -->
 <mat-toolbar color="primary" class="barra-navegacion">
   <div class="logo-area">
-    <span class="titulo-app">HelpDesk TI — Mesa de Ayuda</span>
+    <span class="titulo-app">HelpDesk TI — Mesa de Ayuda Distribuida</span>
   </div>
   <span class="spacer"></span>
 </mat-toolbar>
@@ -10,21 +10,28 @@
 <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start" class="contenedor-pestanas">
 
   <!-- 1. SERVICIO ESTADÍSTICAS (:8082) -->
-  <mat-tab label="Estadisticas">
+  <mat-tab label="servicio-estadisticas (:8082) — Metricas">
     <div class="vista-contenedor">
       <app-dashboard></app-dashboard>
     </div>
   </mat-tab>
 
-  <!-- 2. SERVICIO TICKETS (:8080) CON COMUNICACIÓN INTEGRADA (:8084) -->
-  <mat-tab label="Tickets y Bitacora">
+  <!-- 2. SERVICIO TICKETS (:8080) -->
+  <mat-tab label="servicio-tickets (:8080) — Casos e Incidentes">
     <div class="vista-contenedor">
       <app-tickets></app-tickets>
     </div>
   </mat-tab>
 
-  <!-- 3. SERVICIO IDENTIDAD (:8083) -->
-  <mat-tab label="Equipo Tecnico">
+  <!-- 3. SERVICIO COMUNICACIÓN (:8084) -->
+  <mat-tab label="servicio-comunicacion (:8084) — Bitacora y Notas">
+    <div class="vista-contenedor">
+      <app-comunicacion></app-comunicacion>
+    </div>
+  </mat-tab>
+
+  <!-- 4. SERVICIO IDENTIDAD (:8083) -->
+  <mat-tab label="servicio-identidad (:8083) — Equipo Tecnico">
     <div class="vista-contenedor">
       <app-identidad></app-identidad>
     </div>
