@@ -1,0 +1,110 @@
+.vista-contenido {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 16px 0;
+}
+
+.encabezado-seccion {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  h2 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 500;
+    color: #1a237e;
+  }
+  .subtitulo {
+    margin: 4px 0 0;
+    color: #666;
+    font-size: 0.9rem;
+  }
+}
+
+.comunicacion-columnas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+
+  .formulario-comentario {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .lista-comentarios {
+    max-height: 380px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    .item-comentario {
+      background-color: #f9f9f9;
+      border-left: 4px solid #1976d2;
+      padding: 10px 14px;
+      border-radius: 4px;
+
+      .meta-comentario {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.85rem;
+        color: #1976d2;
+      }
+      .texto-c {
+        margin: 6px 0 0;
+        font-size: 0.95rem;
+        color: #333;
+      }
+    }
+  }
+
+  .lista-notificaciones {
+    max-height: 480px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    .item-notificacion {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      border-radius: 6px;
+      background-color: #fff8e1;
+      border: 1px solid #ffe082;
+
+      &.leida {
+        background-color: #f5f5f5;
+        border-color: #e0e0e0;
+        opacity: 0.7;
+      }
+
+      .notif-cuerpo {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+
+        p {
+          margin: 0;
+          font-size: 0.9rem;
+        }
+      }
+    }
+  }
+
+  .sin-datos {
+    text-align: center;
+    padding: 24px;
+    color: #777;
+    font-style: italic;
+  }
+}

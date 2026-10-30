@@ -1,0 +1,118 @@
+.contenido-dialogo {
+  min-width: 480px;
+  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 8px;
+}
+
+.cabecera-info {
+  .titulo-caso {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #212121;
+    line-height: 1.3;
+  }
+
+  .desc-caso {
+    margin: 6px 0 10px;
+    font-size: 0.88rem;
+    color: #555555;
+    line-height: 1.4;
+  }
+
+  .chips-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.82rem;
+    color: #424242;
+
+    .separador {
+      color: #bdbdbd;
+    }
+  }
+}
+
+.formulario-nota {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .campo-nota {
+    width: 100%;
+  }
+
+  .acciones-nota {
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+
+.bitacora-seccion {
+  .subtitulo-bitacora {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #616161;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+}
+
+/* TABLA LIMPIA Y PROFESIONAL */
+.tabla-bitacora-limpia {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+
+  thead tr {
+    background-color: #f5f5f5;
+    border-bottom: 1px solid #e0e0e0;
+
+    th {
+      padding: 10px 12px;
+      font-weight: 600;
+      color: #424242;
+      text-align: left;
+    }
+  }
+
+  tbody tr {
+    border-bottom: 1px solid #eeeeee;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background-color: #fafafa;
+    }
+
+    td {
+      padding: 10px 12px;
+      vertical-align: top;
+    }
+
+    .col-num {
+      font-weight: 600;
+      color: #616161;
+    }
+
+    .col-texto {
+      color: #212121;
+      line-height: 1.4;
+    }
+  }
+
+  .sin-registros {
+    text-align: center;
+    padding: 20px 12px;
+    color: #888888;
+    font-style: italic;
+  }
+}

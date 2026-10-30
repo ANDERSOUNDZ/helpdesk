@@ -60,4 +60,32 @@ public class TicketService {
         ticket.setEstado(EstadoTicket.RESUELTO);
         return tickets.save(ticket);
     }
+
+    public Ticket reabrir(Long id) {
+        Ticket ticket = obtenerPorId(id);
+        if (ticket.getEstado() != EstadoTicket.RESUELTO) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Solo se puede reabrir un ticket resuelto");
+        }
+        ticket.setEstado(EstadoTicket.EN_PROGRESO);
+        return tickets.save(ticket);
+    }
+
+    public Ticket actualizar(Long id, Ticket datos) {
+        Ticket ticket = obtenerPorId(id);
+        if (datos.getTitulo() != null && !datos.getTitulo().isBlank()) {
+            ticket.setTitulo(datos.getTitulo());
+        }
+        if (datos.getDescripcion() != null) {
+            ticket.setDescripcion(datos.getDescripcion());
+        }
+        if (datos.getPrioridad() != null) {
+            ticket.setPrioridad(datos.getPrioridad());
+        }
+        return tickets.save(ticket);
+    }
+
+    public void eliminar(Long id) {
+        Ticket ticket = obtenerPorId(id);
+        tickets.delete(ticket);
+    }
 }

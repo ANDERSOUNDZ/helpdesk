@@ -1,0 +1,81 @@
+<div class="vista-contenido">
+  <div class="encabezado-seccion">
+    <div>
+      <h2>Canal de Comunicacion y Avisos</h2>
+      <p class="subtitulo">Gestion de notas tecnicas servida por <code>servicio-comunicacion (:8084)</code></p>
+    </div>
+    <button mat-stroked-button (click)="cargarDatos()">
+      <mat-icon>refresh</mat-icon> Actualizar
+    </button>
+  </div>
+
+  <div class="comunicacion-columnas">
+    <!-- Columna 1: Historial de Comentarios por Ticket -->
+    <mat-card class="columna-card">
+      <mat-card-header>
+        <mat-card-title>Notas y Comentarios de Soporte</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="formulario-comentario">
+          <mat-form-field appearance="outline" class="select-ticket-com">
+            <mat-label>Para el Ticket #</mat-label>
+            <mat-select [(ngModel)]="nuevoComentarioTicketId">
+              <mat-option *ngFor="let t of tickets" [value]="t.id">
+                #{{ t.id }} — {{ t.titulo }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="campo-full">
+            <mat-label>Escribe la nota tecnica</mat-label>
+            <textarea matInput [(ngModel)]="nuevoComentarioTexto" placeholder="Describe el avance tecnico"></textarea>
+          </mat-form-field>
+
+          <button mat-flat-button color="primary" (click)="agregarComentario()">
+            <mat-icon>send</mat-icon> Publicar Nota
+          </button>
+        </div>
+
+        <mat-divider style="margin: 16px 0;"></mat-divider>
+
+        <div class="lista-comentarios">
+          <div *ngFor="let c of comentarios" class="item-comentario">
+            <div class="meta-comentario">
+              <strong>Ticket #{{ c.ticketId }}</strong>
+              <button mat-icon-button color="warn" (click)="eliminarComentario(c.id)" title="Eliminar">
+                <mat-icon style="font-size: 18px;">close</mat-icon>
+              </button>
+            </div>
+            <p class="texto-c">{{ c.texto }}</p>
+          </div>
+          <div *ngIf="comentarios.length === 0" class="sin-datos">
+            No hay comentarios registrados.
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Columna 2: Centro de Notificaciones -->
+    <mat-card class="columna-card">
+      <mat-card-header>
+        <mat-card-title>Bandeja de Alertas</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="lista-notificaciones">
+          <div *ngFor="let n of notificaciones" class="item-notificacion" [class.leida]="n.leida">
+            <div class="notif-cuerpo">
+              <mat-icon [color]="n.leida ? '' : 'accent'">notifications</mat-icon>
+              <p>{{ n.mensaje }}</p>
+            </div>
+            <button mat-button *ngIf="!n.leida" (click)="marcarNotificacionLeida(n.id)">
+              Marcar Leida
+            </button>
+          </div>
+          <div *ngIf="notificaciones.length === 0" class="sin-datos">
+            No tienes notificaciones pendientes.
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

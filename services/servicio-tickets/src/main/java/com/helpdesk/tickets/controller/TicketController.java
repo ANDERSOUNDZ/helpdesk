@@ -48,4 +48,20 @@ public class TicketController {
     public Ticket resolverTicket(@PathVariable Long id) {
         return ticketService.resolver(id);
     }
+
+    @PutMapping("/tickets/{id}/reabrir")
+    public Ticket reabrirTicket(@PathVariable Long id) {
+        return ticketService.reabrir(id);
+    }
+
+    @PutMapping("/tickets/{id}")
+    public Ticket actualizarTicket(@PathVariable Long id, @RequestBody Ticket datos) {
+        return ticketService.actualizar(id, datos);
+    }
+
+    @org.springframework.web.bind.annotation.DeleteMapping("/tickets/{id}")
+    public ResponseEntity<Void> eliminarTicket(@PathVariable Long id) {
+        ticketService.eliminar(id);
+        return ResponseEntity.noContent().build();
+    }
 }

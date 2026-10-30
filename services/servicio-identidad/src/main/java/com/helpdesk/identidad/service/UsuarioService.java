@@ -38,4 +38,20 @@ public class UsuarioService {
         nuevo.setId(null);
         return usuarios.save(nuevo);
     }
+
+    public Usuario actualizar(Long id, Usuario datos) {
+        Usuario usuario = obtenerPorId(id);
+        if (datos.getNombre() != null && !datos.getNombre().isBlank()) {
+            usuario.setNombre(datos.getNombre());
+        }
+        if (datos.getRol() != null) {
+            usuario.setRol(datos.getRol());
+        }
+        return usuarios.save(usuario);
+    }
+
+    public void eliminar(Long id) {
+        Usuario usuario = obtenerPorId(id);
+        usuarios.delete(usuario);
+    }
 }

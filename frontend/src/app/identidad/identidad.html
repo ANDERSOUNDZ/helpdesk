@@ -1,0 +1,124 @@
+<div class="vista-contenido">
+  <div class="encabezado-seccion">
+    <div>
+      <h2>Equipo de Tecnicos de TI</h2>
+      <p class="subtitulo">Gestion de especialistas disponibles para atender incidentes (<code>servicio-identidad :8083</code>)</p>
+    </div>
+    <button mat-stroked-button (click)="cargarUsuarios()">
+      <mat-icon>refresh</mat-icon> Actualizar
+    </button>
+  </div>
+
+  <!-- Formulario para Registrar Tecnico -->
+  <mat-card class="tarjeta-formulario" *ngIf="!tecnicoEnEdicion">
+    <mat-card-header>
+      <mat-card-title>Registrar Nuevo Tecnico de Soporte</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="formulario-grid-usuarios">
+        <mat-form-field appearance="outline">
+          <mat-label>Nombre del Tecnico</mat-label>
+          <input matInput [(ngModel)]="nuevoUsuarioNombre" placeholder="Ej. Carlos Mendoza" required>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Rol Tecnico</mat-label>
+          <mat-select [(ngModel)]="nuevoUsuarioRol">
+            <mat-option value="TECNICO">Tecnico de Soporte</mat-option>
+            <mat-option value="ADMINISTRADOR">Administrador de Mesa</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <div class="btn-usuario-contenedor">
+          <button mat-flat-button color="primary" (click)="crearUsuario()">
+            <mat-icon>person_add</mat-icon> Guardar Tecnico
+          </button>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Formulario de Edición de Técnico (UPDATE) -->
+  <mat-card class="tarjeta-formulario tarjeta-edicion" *ngIf="tecnicoEnEdicion">
+    <mat-card-header>
+      <mat-card-title>Modificar Datos del Tecnico #{{ tecnicoEnEdicion.id }}</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="formulario-grid-usuarios">
+        <mat-form-field appearance="outline">
+          <mat-label>Modificar Nombre</mat-label>
+          <input matInput [(ngModel)]="editarNombre" required>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Modificar Rol</mat-label>
+          <mat-select [(ngModel)]="editarRol">
+            <mat-option value="TECNICO">Tecnico de Soporte</mat-option>
+            <mat-option value="ADMINISTRADOR">Administrador de Mesa</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <div class="btn-usuario-contenedor" style="display: flex; gap: 8px;">
+          <button mat-flat-button color="accent" (click)="guardarEdicion()">
+            <mat-icon>save</mat-icon> Guardar
+          </button>
+          <button mat-stroked-button (click)="cancelarEdicion()">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Tabla de Técnicos (READ, UPDATE, DELETE) -->
+  <mat-card class="tarjeta-tabla">
+    <mat-card-header>
+      <mat-card-title>Plantilla de Tecnicos Habilitados</mat-card-title>
+      <mat-card-subtitle>Disponibles para asignacion de tickets</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="tabla-scroll">
+        <table mat-table [dataSource]="usuarios" class="tabla-material">
+
+          <ng-container matColumnDef="id">
+            <th mat-header-cell *matHeaderCellDef style="width: 70px;"> ID </th>
+            <td mat-cell *matCellDef="let u"> #{{ u.id }} </td>
+          </ng-container>
+
+          <ng-container matColumnDef="nombre">
+            <th mat-header-cell *matHeaderCellDef> Nombre del Especialista </th>
+            <td mat-cell *matCellDef="let u"> <strong>{{ u.nombre }}</strong> </td>
+          </ng-container>
+
+          <ng-container matColumnDef="rol">
+            <th mat-header-cell *matHeaderCellDef style="width: 160px;"> Rol </th>
+            <td mat-cell *matCellDef="let u">
+              <mat-chip>{{ u.rol }}</mat-chip>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="acciones">
+            <th mat-header-cell *matHeaderCellDef style="width: 140px;"> Acciones </th>
+            <td mat-cell *matCellDef="let u">
+              <button mat-icon-button color="primary" (click)="iniciarEdicion(u)" title="Editar tecnico">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" (click)="eliminarUsuario(u.id)" title="Dar de baja tecnico">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="columnasUsuarios"></tr>
+          <tr mat-row *matRowDef="let row; columns: columnasUsuarios;"></tr>
+
+          <tr class="mat-row" *matNoDataRow>
+            <td class="mat-cell sin-datos" colspan="4">
+              No hay tecnicos registrados.
+            </td>
+          </tr>
+        </table>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

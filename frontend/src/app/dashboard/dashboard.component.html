@@ -1,0 +1,191 @@
+<div class="grid-container">
+  <div class="dashboard-header">
+    <div>
+      <h2 class="titulo-panel">Metricas y Reportes Operativos</h2>
+      <p class="subtitulo-panel">Consolidado general de incidentes (servicio-estadisticas :8082)</p>
+    </div>
+    <div class="acciones-panel">
+      <button mat-stroked-button (click)="cargarDatos()">
+        <mat-icon>refresh</mat-icon> Actualizar
+      </button>
+      <button mat-stroked-button color="warn" (click)="resetearEstadisticas()" title="Reiniciar contadores">
+        <mat-icon>restart_alt</mat-icon> Reiniciar
+      </button>
+    </div>
+  </div>
+
+  <!-- 4 TARJETAS KPI LIMPIAS -->
+  <div class="kpi-grid">
+    <mat-card class="kpi-card card-total">
+      <mat-card-header>
+        <mat-card-subtitle>TOTAL DE CASOS</mat-card-subtitle>
+        <mat-card-title class="kpi-num">{{ resumen.total }}</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <span class="kpi-desc">Incidentes registrados</span>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="kpi-card card-abierto">
+      <mat-card-header>
+        <mat-card-subtitle>ABIERTOS</mat-card-subtitle>
+        <mat-card-title class="kpi-num color-abierto">{{ resumen.abiertos }}</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <span class="kpi-desc">Pendientes de asignacion</span>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="kpi-card card-progreso">
+      <mat-card-header>
+        <mat-card-subtitle>EN PROGRESO</mat-card-subtitle>
+        <mat-card-title class="kpi-num color-progreso">{{ resumen.enProgreso }}</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <span class="kpi-desc">En atencion tecnica</span>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="kpi-card card-resuelto">
+      <mat-card-header>
+        <mat-card-subtitle>RESUELTOS</mat-card-subtitle>
+        <mat-card-title class="kpi-num color-resuelto">{{ resumen.resueltos }}</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <span class="kpi-desc">Finalizados con exito</span>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- TABLA 1: DESGLOSE PORCENTUAL POR ESTADO -->
+  <mat-card class="tarjeta-resumen-estados">
+    <mat-card-header>
+      <mat-card-title>Desglose por Estado Operativo</mat-card-title>
+      <mat-card-subtitle>Distribucion porcentual de la carga de trabajo</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="tabla-scroll">
+        <table class="tabla-metricas">
+          <thead>
+            <tr>
+              <th>Estado</th>
+              <th>Cantidad</th>
+              <th>Porcentaje del Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><mat-chip class="chip-abierto">ABIERTO</mat-chip></td>
+              <td><strong>{{ resumen.abiertos }}</strong></td>
+              <td>{{ resumen.total > 0 ? ((resumen.abiertos / resumen.total) * 100 | number:'1.0-1') : 0 }}%</td>
+            </tr>
+            <tr>
+              <td><mat-chip class="chip-progreso">EN_PROGRESO</mat-chip></td>
+              <td><strong>{{ resumen.enProgreso }}</strong></td>
+              <td>{{ resumen.total > 0 ? ((resumen.enProgreso / resumen.total) * 100 | number:'1.0-1') : 0 }}%</td>
+            </tr>
+            <tr>
+              <td><mat-chip class="chip-resuelto">RESUELTO</mat-chip></td>
+              <td><strong>{{ resumen.resueltos }}</strong></td>
+              <td>{{ resumen.total > 0 ? ((resumen.resueltos / resumen.total) * 100 | number:'1.0-1') : 0 }}%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- TABLA 2: TABLA DE REPORTES Y AUDITORÍA DE INCIDENTES -->
+  <mat-card class="tarjeta-reportes">
+    <mat-card-header>
+      <mat-card-title>Tabla de Reportes de Incidentes</mat-card-title>
+      <mat-card-subtitle>Listado consolidado para informe directivo y auditoria</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <!-- Filtros rápidos para el reporte -->
+      <div class="filtros-reporte">
+        <mat-form-field appearance="outline" class="filtro-campo">
+          <mat-label>Filtrar por Estado</mat-label>
+          <mat-select [(ngModel)]="filtroEstado">
+            <mat-option value="TODOS">Todos los Estados</mat-option>
+            <mat-option value="ABIERTO">Abiertos</mat-option>
+            <mat-option value="EN_PROGRESO">En Progreso</mat-option>
+            <mat-option value="RESUELTO">Resueltos</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filtro-campo">
+          <mat-label>Filtrar por Prioridad</mat-label>
+          <mat-select [(ngModel)]="filtroPrioridad">
+            <mat-option value="TODAS">Todas las Prioridades</mat-option>
+            <mat-option value="BAJA">Baja</mat-option>
+            <mat-option value="MEDIA">Media</mat-option>
+            <mat-option value="ALTA">Alta</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <span class="contador-filtrados">
+          Mostrando <strong>{{ ticketsFiltrados.length }}</strong> de {{ todosLosTickets.length }} casos
+        </span>
+      </div>
+
+      <!-- Tabla de Reporte Material -->
+      <div class="tabla-scroll">
+        <table mat-table [dataSource]="ticketsFiltrados" class="tabla-reporte-mat">
+
+          <ng-container matColumnDef="id">
+            <th mat-header-cell *matHeaderCellDef style="width: 70px;"> # ID </th>
+            <td mat-cell *matCellDef="let t"> <strong>#{{ t.id }}</strong> </td>
+          </ng-container>
+
+          <ng-container matColumnDef="titulo">
+            <th mat-header-cell *matHeaderCellDef> Asunto de la Falla </th>
+            <td mat-cell *matCellDef="let t">
+              <div class="reporte-titulo">{{ t.titulo }}</div>
+              <small class="reporte-sub">{{ t.descripcion || 'Sin detalle adicional' }}</small>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="solicitante">
+            <th mat-header-cell *matHeaderCellDef style="width: 170px;"> Solicitante / Area </th>
+            <td mat-cell *matCellDef="let t">
+              <strong>{{ extraerSolicitante(t) }}</strong>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="prioridad">
+            <th mat-header-cell *matHeaderCellDef style="width: 100px;"> Prioridad </th>
+            <td mat-cell *matCellDef="let t">
+              <mat-chip [highlighted]="t.prioridad === 'ALTA'">{{ t.prioridad }}</mat-chip>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="estado">
+            <th mat-header-cell *matHeaderCellDef style="width: 120px;"> Estado </th>
+            <td mat-cell *matCellDef="let t">
+              <span [class]="'badge-estado estado-' + t.estado?.toLowerCase()">
+                {{ t.estado }}
+              </span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="tecnico">
+            <th mat-header-cell *matHeaderCellDef style="width: 160px;"> Tecnico a Cargo </th>
+            <td mat-cell *matCellDef="let t">
+              <span>{{ getNombreTecnico(t.tecnicoId) }}</span>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="columnasReporte"></tr>
+          <tr mat-row *matRowDef="let row; columns: columnasReporte;"></tr>
+
+          <tr class="mat-row" *matNoDataRow>
+            <td class="mat-cell sin-reporte" colspan="5">
+              No hay incidentes que coincidan con los filtros seleccionados.
+            </td>
+          </tr>
+        </table>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

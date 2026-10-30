@@ -30,5 +30,17 @@ services:
         condition: service_healthy
     mem_limit: 320m
 
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5054:80"
+    depends_on:
+      db:
+        condition: service_healthy
+    mem_limit: 256m
+
 volumes:
   datos:

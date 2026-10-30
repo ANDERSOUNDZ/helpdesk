@@ -1,0 +1,41 @@
+.barra-navegacion {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+
+  .logo-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .titulo-app {
+      font-size: 1.15rem;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
+  }
+
+  .spacer {
+    flex: 1 1 auto;
+  }
+}
+
+.contenedor-pestanas {
+  background-color: #f8f9fa;
+  min-height: calc(100vh - 64px);
+
+  .icono-tab {
+    margin-right: 8px;
+  }
+}
+
+.vista-contenedor {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 20px 16px;
+
+  @media (max-width: 600px) {
+    padding: 12px 8px;
+  }
+}

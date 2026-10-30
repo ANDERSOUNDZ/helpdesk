@@ -1,0 +1,155 @@
+<div class="vista-contenido">
+  <div class="encabezado-seccion">
+    <div>
+      <h2>Mesa de Incidentes y Tickets</h2>
+      <p class="subtitulo">Gestion del ciclo de vida atendida por <code>servicio-tickets (:8080)</code></p>
+    </div>
+    <button mat-stroked-button (click)="cargarDatos()">
+      <mat-icon>refresh</mat-icon> Actualizar
+    </button>
+  </div>
+
+  <!-- Formulario para Crear Ticket -->
+  <mat-card class="tarjeta-formulario">
+    <mat-card-header>
+      <mat-card-title>Registrar Nuevo Incidente</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="formulario-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Nombre del Solicitante</mat-label>
+          <input matInput [(ngModel)]="solicitanteNombre" placeholder="Ej. Ana Morales" required>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Departamento / Area</mat-label>
+          <mat-select [(ngModel)]="departamentoSeleccionado">
+            <mat-option *ngFor="let dep of departamentos" [value]="dep">{{ dep }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Prioridad</mat-label>
+          <mat-select [(ngModel)]="nuevaPrioridad">
+            <mat-option value="BAJA">Baja</mat-option>
+            <mat-option value="MEDIA">Media</mat-option>
+            <mat-option value="ALTA">Alta</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="campo-full">
+          <mat-label>Titulo de la Falla</mat-label>
+          <input matInput [(ngModel)]="nuevoTitulo" placeholder="Ej. Impresora no responde en piso 3" required>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="campo-full">
+          <mat-label>Detalle adicional de la falla</mat-label>
+          <input matInput [(ngModel)]="nuevaDescripcion" placeholder="Describe brevemente el comportamiento">
+        </mat-form-field>
+      </div>
+      <div class="fila-botones">
+        <button mat-flat-button color="primary" (click)="crearTicket()">
+          <mat-icon>add</mat-icon> Crear Incidente
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Tabla de Tickets con Ciclo de Vida -->
+  <mat-card class="tarjeta-tabla">
+    <mat-card-header>
+      <mat-card-title>Cola de Casos Activos</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="tabla-scroll">
+        <table mat-table [dataSource]="tickets" class="tabla-material">
+
+          <ng-container matColumnDef="id">
+            <th mat-header-cell *matHeaderCellDef class="col-id"> # ID </th>
+            <td mat-cell *matCellDef="let t" class="col-id"> <strong>#{{ t.id }}</strong> </td>
+          </ng-container>
+
+          <ng-container matColumnDef="titulo">
+            <th mat-header-cell *matHeaderCellDef class="col-asunto"> Asunto & Solicitante </th>
+            <td mat-cell *matCellDef="let t" class="col-asunto">
+              <div class="titulo-ticket">{{ t.titulo }}</div>
+              <small *ngIf="t.descripcion" class="desc-ticket" [title]="t.descripcion">{{ t.descripcion }}</small>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="prioridad">
+            <th mat-header-cell *matHeaderCellDef class="col-prioridad"> Prioridad </th>
+            <td mat-cell *matCellDef="let t" class="col-prioridad">
+              <mat-chip [highlighted]="t.prioridad === 'ALTA'">{{ t.prioridad }}</mat-chip>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="estado">
+            <th mat-header-cell *matHeaderCellDef class="col-estado"> Estado </th>
+            <td mat-cell *matCellDef="let t" class="col-estado">
+              <span [class]="'badge-estado estado-' + t.estado?.toLowerCase()">
+                {{ t.estado }}
+              </span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="tecnico">
+            <th mat-header-cell *matHeaderCellDef class="col-tecnico"> Tecnico Asignado </th>
+            <td mat-cell *matCellDef="let t" class="col-tecnico">
+              <span>{{ getNombreTecnico(t.tecnicoId) }}</span>
+            </td>
+          </ng-container>
+
+          <!-- Columna Bitacora y Notas Técnicas (servicio-comunicacion) -->
+          <ng-container matColumnDef="bitacora">
+            <th mat-header-cell *matHeaderCellDef class="col-bitacora"> Bitacora </th>
+            <td mat-cell *matCellDef="let t" class="col-bitacora">
+              <button mat-stroked-button (click)="abrirModalDetalle(t)" title="Ver notas de este incidente">
+                <mat-icon>chat</mat-icon> Notas
+              </button>
+            </td>
+          </ng-container>
+
+          <!-- Columna Acciones con contenedor flexbox responsivo -->
+          <ng-container matColumnDef="acciones">
+            <th mat-header-cell *matHeaderCellDef class="col-acciones"> Acciones del Flujo </th>
+            <td mat-cell *matCellDef="let t" class="col-acciones">
+              <div class="grupo-acciones">
+                <!-- Fase 1: Abierto -> Abrir Modal para Asignar Tecnico -->
+                <button mat-stroked-button color="primary" class="btn-accion" *ngIf="t.estado === 'ABIERTO'" (click)="abrirModalAsignar(t)">
+                  <mat-icon>person_add</mat-icon> Asignar
+                </button>
+
+                <!-- Fase 2: En Progreso -> Tecnico termina tarea y marca como Resuelto -->
+                <button mat-flat-button color="accent" class="btn-accion" *ngIf="t.estado === 'EN_PROGRESO'" (click)="resolverTicket(t)">
+                  <mat-icon>done</mat-icon> Finalizar
+                </button>
+
+                <!-- Fase 3: Resuelto -> Opciones del Solicitante: Reabrir o Pedir otro derivado -->
+                <button mat-stroked-button color="warn" class="btn-accion" *ngIf="t.estado === 'RESUELTO'" (click)="reabrirTicket(t)" title="La falla persiste en el mismo tema">
+                  <mat-icon>replay</mat-icon> Reabrir
+                </button>
+                <button mat-stroked-button color="primary" class="btn-accion" *ngIf="t.estado === 'RESUELTO'" (click)="pedirOtroTicketRelacionado(t)" title="Solicitar ticket derivado">
+                  <mat-icon>post_add</mat-icon> Nuevo Ticket
+                </button>
+
+                <button mat-icon-button color="warn" class="btn-delete" (click)="eliminarTicket(t.id)" title="Eliminar ticket">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="columnasTickets"></tr>
+          <tr mat-row *matRowDef="let row; columns: columnasTickets;"></tr>
+
+          <tr class="mat-row" *matNoDataRow>
+            <td class="mat-cell sin-datos" colspan="7">
+              No hay incidentes registrados en la base de datos.
+            </td>
+          </tr>
+        </table>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
