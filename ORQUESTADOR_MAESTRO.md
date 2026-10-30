@@ -16,7 +16,7 @@ El sistema **HelpDesk** es una **Plataforma Distribuida de Mesa de Ayuda de TI (
 | **Gabriel Emilio Ponce Salazar** | **Servicio de Comunicación** (Comentarios y avisos) | `services/servicio-comunicacion` | `8084` | `5435` | `5054` |
 | **Miguel Anderson Chanchay** | **Servicio de Estadísticas** (Métricas y auditoría TI) | `services/servicio-estadisticas` | `8082` | `5436` | `5052` |
 | **Dylan Miguel Vargas Onofa** | **Frontend SPA + API Gateway** (Entrada y UI Web) | `frontend` / `gateway` | `3000` / `8000` | N/A | N/A |
-| *Módulo Base Compartido* | **Servicio de Identidad** (Usuarios y roles) | `services/servicio-identidad` | `8083` | `5434` | `5053` |
+| **Anthony Marcel Orozco Junia** | **Servicio de Identidad** (Usuarios, roles y catalogo) | `services/servicio-identidad` | `8083` | `5434` | `5053` |
 
 ---
 1. **Detección y Apertura:** Un empleado (`USUARIO`) detecta una anomalía y registra un ticket en el sistema con un nivel de prioridad asignado.
@@ -54,6 +54,7 @@ Para que cualquier desarrollador pueda clonar el proyecto, agregar código y pro
      - **Ariel Martín Guerrero Sandoval**  Únicamente en `services/servicio-tickets/` (`feat/tickets`).
      - **Gabriel Emilio Ponce Salazar**  Únicamente en `services/servicio-comunicacion/` (`feat/comunicacion`).
      - **Dylan Miguel Vargas Onofa**  Únicamente en `frontend/` y `gateway/` (`feat/frontend`, `feat/gateway`).  
+      - **Anthony Marcel Orozco Junia** ➔ Únicamente en `services/servicio-identidad/` (`feat/identidad`).
    *Regla inquebrantable:* Ningún colaborador puede tocar código ajeno ni hacer push directo a `dev` ni a `main`. Todo cambio requiere Pull Request firmado por el colaborador asignado y aprobado por Miguel Chanchay.
 
 5. **NUNCA ejecutar comandos destructivos de Docker:**  

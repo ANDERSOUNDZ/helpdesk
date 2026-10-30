@@ -7,7 +7,7 @@ Microservicio de **gestión de usuarios, roles de TI y control de acceso** de la
 
 ---
 
-##  Para el Equipo de Desarrollo
+## Para el Desarrollador (Anthony Marcel Orozco Junia)
 ### ¿Qué está hecho hasta ahora?
 - Entidad [`Usuario.java`](src/main/java/com/helpdesk/identidad/model/Usuario.java) con `id`, `nombre`, `email`, enum [`Rol.java`](src/main/java/com/helpdesk/identidad/model/Rol.java) (`USUARIO`, `TECNICO`, `ADMINISTRADOR`) y `activo`.
 - Servicio [`UsuarioService.java`](src/main/java/com/helpdesk/identidad/service/UsuarioService.java) y Controlador REST [`UsuarioController.java`](src/main/java/com/helpdesk/identidad/controller/UsuarioController.java) con rutas completas para listar, crear y cambiar estado de activación.

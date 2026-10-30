@@ -37,7 +37,7 @@ Cuando un usuario interactúe con el asistente, se debe verificar:
 | **Gabriel Emilio Ponce Salazar** | Servicio de Comunicación | `feat/comunicacion` | `services/servicio-comunicacion/` |
 | **Miguel Anderson Chanchay** *(Admin/Dueño)* | Servicio de Estadísticas + Control Global | `feat/estadisticas` / `main` | `services/servicio-estadisticas/` + Acceso Total |
 | **Dylan Miguel Vargas Onofa** | Frontend SPA + API Gateway | `feat/frontend` y `feat/gateway` | `frontend/` y `gateway/` |
-| *Módulo de Catálogo Común* | Servicio de Identidad | `feat/identidad` | `services/servicio-identidad/` |
+| **Anthony Marcel Orozco Junia** | Servicio de Identidad | `feat/identidad` | `services/servicio-identidad/` |
 
 Reglas Inmutables de Aislamiento:
 

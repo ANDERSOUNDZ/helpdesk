@@ -30,7 +30,7 @@ flowchart TD
 | **Gabriel Emilio Ponce Salazar** | **`servicio-comunicacion`** | **Canal de soporte:** Registro de notas y comentarios sobre tickets, y notificaciones automáticas al usuario. | App: `8084`<br>BD: `5435`<br>pgAdmin: `5054` |
 | **Miguel Anderson Chanchay** | **`servicio-estadisticas`** | **Auditoría y KPIs:** Métricas en tiempo real de tickets abiertos, en progreso y resueltos para el tablero gerencial. | App: `8082`<br>BD: `5436`<br>pgAdmin: `5052` |
 | **Dylan Miguel Vargas Onofa** | **Frontend Web + API Gateway** | **Experiencia de Usuario y Enrutamiento:** Puerta de enlace unificada (`:8000`), CORS central y aplicación SPA (`:3000`). | Gateway: `8000`<br>SPA: `3000` |
-| *Módulo de Catálogo Común* | **`servicio-identidad`** | **Control de Identidad:** Catálogo de roles corporativos (`USUARIO`, `TECNICO`, `ADMINISTRADOR`). | App: `8083`<br>BD: `5434`<br>pgAdmin: `5053` |
+| **Anthony Marcel Orozco Junia** | **`servicio-identidad`** | **Control de Identidad:** Catálogo de roles corporativos (`USUARIO`, `TECNICO`, `ADMINISTRADOR`). | App: `8083`<br>BD: `5434`<br>pgAdmin: `5053` |
 
 ---
 
@@ -272,7 +272,7 @@ coordinacion del equipo ([ADR 0001](docs/adr/0001-monorepo-clean-microservicios.
 |---|---|---|---|---|
 | `servicio-tickets` | Nucleo: crear tickets, prioridad, asignacion, estados (falta: categoria e historial de cambios) | 8080 | Entidades + endpoints basicos + su PostgreSQL | por asignar |
 | `servicio-estadisticas` | Estadisticas por estado (falta: categoria, prioridad, tiempo promedio, carga de tecnicos) | 8082 | Entidades + endpoints basicos + su PostgreSQL | por asignar |
-| `servicio-identidad` | Usuarios y roles (falta: inicio de sesion y permisos) | 8083 | Entidades + endpoints basicos + su PostgreSQL | por asignar |
+| `servicio-identidad` | Usuarios y roles (gestion de personal y tecnicos) | 8083 | Entidades + endpoints basicos + su PostgreSQL | Anthony Marcel Orozco Junia |
 | `servicio-comunicacion` | Comentarios y notificaciones de cambio de estado, avisos pendientes o leidos | 8084 | Entidades + endpoints basicos + su PostgreSQL | por asignar |
 
 Quien es dueno de que dato (para no pisarse):
