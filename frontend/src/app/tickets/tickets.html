@@ -133,6 +133,10 @@
                   <mat-icon>post_add</mat-icon> Nuevo Ticket
                 </button>
 
+                <button mat-icon-button color="primary" class="btn-delete" (click)="abrirModalEditarTicket(t)" title="Editar ticket en modal">
+                  <mat-icon>edit</mat-icon>
+                </button>
+
                 <button mat-icon-button color="warn" class="btn-delete" (click)="eliminarTicket(t.id)" title="Eliminar ticket">
                   <mat-icon>delete</mat-icon>
                 </button>

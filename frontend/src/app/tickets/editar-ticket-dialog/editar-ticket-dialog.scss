@@ -1,0 +1,15 @@
+.contenido-modal {
+  min-width: 420px;
+  max-width: 540px;
+  padding-top: 8px;
+}
+
+.formulario-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  .campo-full {
+    width: 100%;
+  }
+}

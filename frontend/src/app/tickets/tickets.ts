@@ -16,6 +16,7 @@ import { HelpdeskService } from '../services/helpdesk.service';
 import { Ticket, Usuario, Prioridad, Comentario } from '../models/helpdesk.model';
 import { AsignarDialog } from './asignar-dialog/asignar-dialog';
 import { DetalleDialog } from './detalle-dialog/detalle-dialog';
+import { EditarTicketDialog } from './editar-ticket-dialog/editar-ticket-dialog';
 
 @Component({
   selector: 'app-tickets',
@@ -160,6 +161,26 @@ export class Tickets implements OnInit, OnDestroy {
       data: {
         ticket,
         nombreTecnico: this.getNombreTecnico(ticket.tecnicoId)
+      }
+    });
+  }
+
+  // --- MODAL DE EDICIÓN DE TICKET (UPDATE) ---
+  abrirModalEditarTicket(ticket: Ticket): void {
+    const dialogRef = this.dialog.open(EditarTicketDialog, {
+      width: '480px',
+      data: ticket
+    });
+
+    dialogRef.afterClosed().subscribe((datosActualizados: Partial<Ticket> | undefined) => {
+      if (datosActualizados && ticket.id) {
+        this.helpdeskService.actualizarTicket(ticket.id, datosActualizados).subscribe({
+          next: () => {
+            this.snackBar.open(`Ticket #${ticket.id} actualizado correctamente`, 'OK', { duration: 3000 });
+            this.cargarTickets();
+          },
+          error: () => this.snackBar.open('Error al actualizar ticket', 'Cerrar', { duration: 3000 })
+        });
       }
     });
   }

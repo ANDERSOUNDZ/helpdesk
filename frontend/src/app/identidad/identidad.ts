@@ -9,10 +9,12 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Subscription, interval } from 'rxjs';
 import { HelpdeskService } from '../services/helpdesk.service';
 import { Usuario } from '../models/helpdesk.model';
+import { EditarTecnicoDialog } from './editar-tecnico-dialog/editar-tecnico-dialog';
 
 @Component({
   selector: 'app-identidad',
@@ -28,6 +30,7 @@ import { Usuario } from '../models/helpdesk.model';
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    MatDialogModule,
     MatSnackBarModule
   ],
   templateUrl: './identidad.html',
@@ -36,6 +39,7 @@ import { Usuario } from '../models/helpdesk.model';
 export class Identidad implements OnInit, OnDestroy {
   private helpdeskService = inject(HelpdeskService);
   private snackBar = inject(MatSnackBar);
+  private dialog = inject(MatDialog);
   private cdr = inject(ChangeDetectorRef);
   private autoRefreshSub?: Subscription;
 
@@ -43,11 +47,6 @@ export class Identidad implements OnInit, OnDestroy {
   columnasUsuarios: string[] = ['id', 'nombre', 'rol', 'acciones'];
   nuevoUsuarioNombre = '';
   nuevoUsuarioRol: 'USUARIO' | 'TECNICO' | 'ADMINISTRADOR' = 'TECNICO';
-
-  // Edición de Técnico
-  tecnicoEnEdicion: Usuario | null = null;
-  editarNombre = '';
-  editarRol: 'USUARIO' | 'TECNICO' | 'ADMINISTRADOR' = 'TECNICO';
 
   ngOnInit(): void {
     this.cargarUsuarios();
@@ -91,34 +90,23 @@ export class Identidad implements OnInit, OnDestroy {
     });
   }
 
-  iniciarEdicion(u: Usuario): void {
-    this.tecnicoEnEdicion = { ...u };
-    this.editarNombre = u.nombre;
-    this.editarRol = u.rol;
-  }
+  // --- MODAL DE EDICIÓN DE TÉCNICO ---
+  abrirModalEditar(u: Usuario): void {
+    const dialogRef = this.dialog.open(EditarTecnicoDialog, {
+      width: '440px',
+      data: u
+    });
 
-  cancelarEdicion(): void {
-    this.tecnicoEnEdicion = null;
-    this.editarNombre = '';
-  }
-
-  guardarEdicion(): void {
-    if (!this.tecnicoEnEdicion?.id || !this.editarNombre.trim()) {
-      this.snackBar.open('El nombre no puede estar vacio', 'Cerrar', { duration: 3000 });
-      return;
-    }
-    const datosActualizados: Usuario = {
-      id: this.tecnicoEnEdicion.id,
-      nombre: this.editarNombre.trim(),
-      rol: this.editarRol
-    };
-    this.helpdeskService.actualizarUsuario(this.tecnicoEnEdicion.id, datosActualizados).subscribe({
-      next: (actualizado) => {
-        this.snackBar.open(`Tecnico #${actualizado.id} actualizado correctamente`, 'OK', { duration: 3000 });
-        this.cancelarEdicion();
-        this.cargarUsuarios();
-      },
-      error: () => this.snackBar.open('Error al actualizar tecnico', 'Cerrar', { duration: 3000 })
+    dialogRef.afterClosed().subscribe((datosActualizados: Usuario | undefined) => {
+      if (datosActualizados && datosActualizados.id) {
+        this.helpdeskService.actualizarUsuario(datosActualizados.id, datosActualizados).subscribe({
+          next: (res) => {
+            this.snackBar.open(`Tecnico #${res.id} actualizado con exito`, 'OK', { duration: 3000 });
+            this.cargarUsuarios();
+          },
+          error: () => this.snackBar.open('Error al actualizar tecnico', 'Cerrar', { duration: 3000 })
+        });
+      }
     });
   }
 

@@ -1,0 +1,33 @@
+<h2 mat-dialog-title>
+  Modificar Incidente #{{ data.id }}
+</h2>
+
+<mat-dialog-content class="contenido-modal">
+  <div class="formulario-modal">
+    <mat-form-field appearance="outline" class="campo-full">
+      <mat-label>Titulo de la Falla</mat-label>
+      <input matInput [(ngModel)]="titulo" required placeholder="Resumen del incidente">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="campo-full">
+      <mat-label>Prioridad</mat-label>
+      <mat-select [(ngModel)]="prioridad">
+        <mat-option value="BAJA">Baja</mat-option>
+        <mat-option value="MEDIA">Media</mat-option>
+        <mat-option value="ALTA">Alta</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="campo-full">
+      <mat-label>Descripcion y Detalle</mat-label>
+      <textarea matInput [(ngModel)]="descripcion" rows="3" placeholder="Informacion detallada del caso"></textarea>
+    </mat-form-field>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancelar()">Cancelar</button>
+  <button mat-flat-button color="primary" [disabled]="!titulo.trim()" (click)="guardar()">
+    <mat-icon>save</mat-icon> Guardar Cambios
+  </button>
+</mat-dialog-actions>
