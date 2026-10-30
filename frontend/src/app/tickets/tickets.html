@@ -4,9 +4,7 @@
       <h2>Mesa de Incidentes y Tickets</h2>
       <p class="subtitulo">Gestion del ciclo de vida atendida por <code>servicio-tickets (:8080)</code></p>
     </div>
-    <button mat-stroked-button (click)="cargarDatos()">
-      <mat-icon>refresh</mat-icon> Actualizar
-    </button>
+    <button mat-stroked-button (click)="cargarDatos()">Actualizar</button>
   </div>
 
   <!-- Formulario para Crear Ticket -->
@@ -48,9 +46,7 @@
         </mat-form-field>
       </div>
       <div class="fila-botones">
-        <button mat-flat-button color="primary" (click)="crearTicket()">
-          <mat-icon>add</mat-icon> Crear Incidente
-        </button>
+        <button mat-flat-button color="primary" (click)="crearTicket()">Crear Incidente</button>
       </div>
     </mat-card-content>
   </mat-card>
@@ -104,9 +100,7 @@
           <ng-container matColumnDef="bitacora">
             <th mat-header-cell *matHeaderCellDef class="col-bitacora"> Bitacora </th>
             <td mat-cell *matCellDef="let t" class="col-bitacora">
-              <button mat-stroked-button (click)="abrirModalDetalle(t)" title="Ver notas de este incidente">
-                <mat-icon>chat</mat-icon> Notas
-              </button>
+              <button mat-stroked-button (click)="abrirModalDetalle(t)" title="Ver notas de este incidente">Notas</button>
             </td>
           </ng-container>
 
@@ -116,30 +110,18 @@
             <td mat-cell *matCellDef="let t" class="col-acciones">
               <div class="grupo-acciones">
                 <!-- Fase 1: Abierto -> Abrir Modal para Asignar Tecnico -->
-                <button mat-stroked-button color="primary" class="btn-accion" *ngIf="t.estado === 'ABIERTO'" (click)="abrirModalAsignar(t)">
-                  <mat-icon>person_add</mat-icon> Asignar
-                </button>
+                <button mat-stroked-button color="primary" class="btn-accion" *ngIf="t.estado === 'ABIERTO'" (click)="abrirModalAsignar(t)">Asignar</button>
 
                 <!-- Fase 2: En Progreso -> Tecnico termina tarea y marca como Resuelto -->
-                <button mat-flat-button color="accent" class="btn-accion" *ngIf="t.estado === 'EN_PROGRESO'" (click)="resolverTicket(t)">
-                  <mat-icon>done</mat-icon> Finalizar
-                </button>
+                <button mat-flat-button color="accent" class="btn-accion" *ngIf="t.estado === 'EN_PROGRESO'" (click)="resolverTicket(t)">Finalizar</button>
 
                 <!-- Fase 3: Resuelto -> Opciones del Solicitante: Reabrir o Pedir otro derivado -->
-                <button mat-stroked-button color="warn" class="btn-accion" *ngIf="t.estado === 'RESUELTO'" (click)="reabrirTicket(t)" title="La falla persiste en el mismo tema">
-                  <mat-icon>replay</mat-icon> Reabrir
-                </button>
-                <button mat-stroked-button color="primary" class="btn-accion" *ngIf="t.estado === 'RESUELTO'" (click)="pedirOtroTicketRelacionado(t)" title="Solicitar ticket derivado">
-                  <mat-icon>post_add</mat-icon> Nuevo Ticket
-                </button>
+                <button mat-stroked-button color="warn" class="btn-accion" *ngIf="t.estado === 'RESUELTO'" (click)="reabrirTicket(t)" title="La falla persiste en el mismo tema">Reabrir</button>
+                <button mat-stroked-button color="primary" class="btn-accion" *ngIf="t.estado === 'RESUELTO'" (click)="pedirOtroTicketRelacionado(t)" title="Solicitar ticket derivado">Nuevo Ticket</button>
 
-                <button mat-icon-button color="primary" class="btn-delete" (click)="abrirModalEditarTicket(t)" title="Editar ticket en modal">
-                  <mat-icon>edit</mat-icon>
-                </button>
+                <button mat-stroked-button color="primary" class="btn-accion" (click)="abrirModalEditarTicket(t)" title="Editar ticket en modal">Editar</button>
 
-                <button mat-icon-button color="warn" class="btn-delete" (click)="eliminarTicket(t.id)" title="Eliminar ticket">
-                  <mat-icon>delete</mat-icon>
-                </button>
+                <button mat-stroked-button color="warn" class="btn-accion" (click)="eliminarTicket(t.id)" title="Eliminar ticket">Eliminar</button>
               </div>
             </td>
           </ng-container>

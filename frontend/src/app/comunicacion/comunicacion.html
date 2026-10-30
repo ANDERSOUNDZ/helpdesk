@@ -4,9 +4,7 @@
       <h2>Canal de Comunicacion y Avisos</h2>
       <p class="subtitulo">Gestion de notas tecnicas servida por <code>servicio-comunicacion (:8084)</code></p>
     </div>
-    <button mat-stroked-button (click)="cargarDatos()">
-      <mat-icon>refresh</mat-icon> Actualizar
-    </button>
+    <button mat-stroked-button (click)="cargarDatos()">Actualizar</button>
   </div>
 
   <div class="comunicacion-columnas">
@@ -31,9 +29,7 @@
             <textarea matInput [(ngModel)]="nuevoComentarioTexto" placeholder="Describe el avance tecnico"></textarea>
           </mat-form-field>
 
-          <button mat-flat-button color="primary" (click)="agregarComentario()">
-            <mat-icon>send</mat-icon> Publicar Nota
-          </button>
+          <button mat-flat-button color="primary" (click)="agregarComentario()">Publicar Nota</button>
         </div>
 
         <mat-divider style="margin: 16px 0;"></mat-divider>
@@ -42,9 +38,7 @@
           <div *ngFor="let c of comentarios" class="item-comentario">
             <div class="meta-comentario">
               <strong>Ticket #{{ c.ticketId }}</strong>
-              <button mat-icon-button color="warn" (click)="eliminarComentario(c.id)" title="Eliminar">
-                <mat-icon style="font-size: 18px;">close</mat-icon>
-              </button>
+              <button mat-stroked-button color="warn" (click)="eliminarComentario(c.id)">Eliminar</button>
             </div>
             <p class="texto-c">{{ c.texto }}</p>
           </div>
@@ -64,7 +58,6 @@
         <div class="lista-notificaciones">
           <div *ngFor="let n of notificaciones" class="item-notificacion" [class.leida]="n.leida">
             <div class="notif-cuerpo">
-              <mat-icon [color]="n.leida ? '' : 'accent'">notifications</mat-icon>
               <p>{{ n.mensaje }}</p>
             </div>
             <button mat-button *ngIf="!n.leida" (click)="marcarNotificacionLeida(n.id)">

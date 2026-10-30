@@ -4,9 +4,7 @@
       <h2>Equipo de Tecnicos de TI</h2>
       <p class="subtitulo">Gestion de especialistas disponibles para atender incidentes (<code>servicio-identidad :8083</code>)</p>
     </div>
-    <button mat-stroked-button (click)="cargarUsuarios()">
-      <mat-icon>refresh</mat-icon> Actualizar
-    </button>
+    <button mat-stroked-button (click)="cargarUsuarios()">Actualizar</button>
   </div>
 
   <!-- Formulario para Registrar Tecnico -->
@@ -30,9 +28,7 @@
         </mat-form-field>
 
         <div class="btn-usuario-contenedor">
-          <button mat-flat-button color="primary" (click)="crearUsuario()">
-            <mat-icon>person_add</mat-icon> Guardar Tecnico
-          </button>
+          <button mat-flat-button color="primary" (click)="crearUsuario()">Guardar Tecnico</button>
         </div>
       </div>
     </mat-card-content>
@@ -68,12 +64,8 @@
           <ng-container matColumnDef="acciones">
             <th mat-header-cell *matHeaderCellDef style="width: 140px;"> Acciones </th>
             <td mat-cell *matCellDef="let u">
-              <button mat-icon-button color="primary" (click)="abrirModalEditar(u)" title="Editar tecnico en modal">
-                <mat-icon>edit</mat-icon>
-              </button>
-              <button mat-icon-button color="warn" (click)="eliminarUsuario(u.id)" title="Dar de baja tecnico">
-                <mat-icon>delete</mat-icon>
-              </button>
+              <button mat-stroked-button color="primary" (click)="abrirModalEditar(u)" style="margin-right: 6px;">Editar</button>
+              <button mat-stroked-button color="warn" (click)="eliminarUsuario(u.id)">Eliminar</button>
             </td>
           </ng-container>
 
