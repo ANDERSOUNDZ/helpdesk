@@ -1,0 +1,46 @@
+<!-- BARRA SUPERIOR (SPA MATERIAL DESIGN) -->
+<mat-toolbar color="primary" class="barra-navegacion">
+  <div class="logo-area">
+    <mat-icon>support_agent</mat-icon>
+    <span class="titulo-app">HelpDesk TI — Mesa de Ayuda</span>
+  </div>
+  <span class="spacer"></span>
+</mat-toolbar>
+
+<!-- PESTAÑAS: VISTAS INDEPENDIENTES Y LIMPIAS -->
+<mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start" class="contenedor-pestanas">
+
+  <!-- 1. SERVICIO ESTADÍSTICAS (:8082) -->
+  <mat-tab>
+    <ng-template mat-tab-label>
+      <mat-icon class="icono-tab">analytics</mat-icon>
+      Estadisticas (KPIs)
+    </ng-template>
+    <div class="vista-contenedor">
+      <app-dashboard></app-dashboard>
+    </div>
+  </mat-tab>
+
+  <!-- 2. SERVICIO TICKETS (:8080) CON COMUNICACIÓN INTEGRADA (:8084) -->
+  <mat-tab>
+    <ng-template mat-tab-label>
+      <mat-icon class="icono-tab">confirmation_number</mat-icon>
+      Tickets & Bitacora
+    </ng-template>
+    <div class="vista-contenedor">
+      <app-tickets></app-tickets>
+    </div>
+  </mat-tab>
+
+  <!-- 3. SERVICIO IDENTIDAD (:8083) -->
+  <mat-tab>
+    <ng-template mat-tab-label>
+      <mat-icon class="icono-tab">engineering</mat-icon>
+      Equipo Tecnico (TI)
+    </ng-template>
+    <div class="vista-contenedor">
+      <app-identidad></app-identidad>
+    </div>
+  </mat-tab>
+
+</mat-tab-group>

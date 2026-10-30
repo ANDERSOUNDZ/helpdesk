@@ -1,0 +1,178 @@
+{
+  "info": {
+    "name": "HelpDesk API - Colección Oficial",
+    "description": "Endpoints básicos para probar todos los verbos HTTP (GET, POST, PUT, DELETE) en cada microservicio independiente.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Servicio Tickets (:8080 - Ariel)",
+      "item": [
+        {
+          "name": "GET - Listar todos los tickets",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/tickets"
+          }
+        },
+        {
+          "name": "POST - Crear nuevo ticket",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Falla en cable de red\",\n  \"descripcion\": \"No hay conexión en el piso 2\",\n  \"prioridad\": \"ALTA\",\n  \"solicitanteId\": 1\n}"
+            },
+            "url": "http://localhost:8080/tickets"
+          }
+        },
+        {
+          "name": "PUT - Asignar técnico a ticket",
+          "request": {
+            "method": "PUT",
+            "url": "http://localhost:8080/tickets/1/asignar/2"
+          }
+        },
+        {
+          "name": "PUT - Resolver ticket",
+          "request": {
+            "method": "PUT",
+            "url": "http://localhost:8080/tickets/1/resolver"
+          }
+        },
+        {
+          "name": "PUT - Actualizar ticket (datos)",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Falla en cable de red (Corregido)\",\n  \"prioridad\": \"MEDIA\"\n}"
+            },
+            "url": "http://localhost:8080/tickets/1"
+          }
+        },
+        {
+          "name": "DELETE - Eliminar ticket",
+          "request": {
+            "method": "DELETE",
+            "url": "http://localhost:8080/tickets/1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Servicio Estadísticas (:8082 - Miguel)",
+      "item": [
+        {
+          "name": "GET - Obtener Resumen y KPIs de TI",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8082/resumen"
+          }
+        },
+        {
+          "name": "POST - Notificar cambio de estado a estadísticas",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estadoAnterior\": \"ABIERTO\",\n  \"estadoNuevo\": \"EN_PROGRESO\"\n}"
+            },
+            "url": "http://localhost:8082/eventos/ticket-estado"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Servicio Identidad (:8083 - Catálogo)",
+      "item": [
+        {
+          "name": "GET - Listar usuarios",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8083/usuarios"
+          }
+        },
+        {
+          "name": "POST - Crear usuario (Técnico o Usuario)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Carlos Técnico\",\n  \"rol\": \"TECNICO\"\n}"
+            },
+            "url": "http://localhost:8083/usuarios"
+          }
+        },
+        {
+          "name": "PUT - Actualizar usuario",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Carlos Soporte Senior\",\n  \"rol\": \"TECNICO\"\n}"
+            },
+            "url": "http://localhost:8083/usuarios/1"
+          }
+        },
+        {
+          "name": "DELETE - Eliminar usuario",
+          "request": {
+            "method": "DELETE",
+            "url": "http://localhost:8083/usuarios/1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Servicio Comunicación (:8084 - Gabriel)",
+      "item": [
+        {
+          "name": "GET - Listar comentarios por ticket",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8084/comentarios?ticketId=1"
+          }
+        },
+        {
+          "name": "POST - Agregar comentario al ticket",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ticketId\": 1,\n  \"autorId\": 2,\n  \"texto\": \"Se revisó el puerto físico del switch y se reconectó.\"\n}"
+            },
+            "url": "http://localhost:8084/comentarios"
+          }
+        },
+        {
+          "name": "DELETE - Eliminar comentario",
+          "request": {
+            "method": "DELETE",
+            "url": "http://localhost:8084/comentarios/1"
+          }
+        },
+        {
+          "name": "GET - Listar notificaciones de usuario",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8084/notificaciones?usuarioId=1"
+          }
+        },
+        {
+          "name": "PUT - Marcar notificación como leída",
+          "request": {
+            "method": "PUT",
+            "url": "http://localhost:8084/notificaciones/1/leida"
+          }
+        }
+      ]
+    }
+  ]
+}

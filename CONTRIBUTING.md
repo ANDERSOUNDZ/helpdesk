@@ -17,25 +17,35 @@ Hay dos ramas permanentes. **Nadie empuja directo a ninguna de las dos**: todo e
 
 Asi un error de una persona rompe `dev` y no `main`.
 
-### Una rama por persona
+### Una rama por persona (Blindaje Hermético)
 
-Cada persona crea **una sola rama, una sola vez, a partir de `dev`**, y desarrolla ahi todo lo de su servicio.
-No se crea una rama por cada tarea.
+Cada desarrollador tiene **asignación exclusiva y hermética** sobre su componente y su rama. **Nadie puede modificar el código de otra persona**.
 
-| Quien lleva | Su rama | Su carpeta |
-|---|---|---|
-| tickets | `feat/tickets` | `services/servicio-tickets` |
-| identidad | `feat/identidad` | `services/servicio-identidad` |
-| comunicacion | `feat/comunicacion` | `services/servicio-comunicacion` |
-| estadisticas | `feat/estadisticas` | `services/servicio-estadisticas` |
+> 👑 **PROPIETARIO Y ADMINISTRADOR GENERAL:**  
+> **Miguel Anderson Chanchay** (`@ANDERSOUNDZ` / `miguelchanchay`) es el **Dueño del Repositorio**. Como administrador general, tiene **acceso total e irrestricto** a todo el monorepo para resolver incidentes globales, coordinar arquitectura, aprobar PRs y auditar cualquier microservicio.
 
-Reglas:
+#### 🛡️ Protocolo de Identificación para el Asistente / Agente:
+Cuando un usuario interactúe con el asistente, se debe verificar:
+1. **¿Cuál es tu nombre completo?**
+2. **¿Cuál es tu usuario de GitHub conectado al repositorio?**
+3. Si el usuario es el dueño (**Miguel Anderson Chanchay**), tiene acceso global a todo el proyecto.
+4. Si es otro colaborador, el agente **solo tiene permitido realizar cambios en la carpeta correspondiente a su asignación**:
 
-- Nombres en **minusculas con guiones y sin tildes**. Linux es sensible a mayusculas y macOS/Windows no;
-  mezclarlas rompe el repo en una de las dos.
-- Tu rama **no se borra** despues de entrar a `dev`: es tu rama de trabajo durante todo el proyecto.
-- Solo editas la carpeta de **tu** servicio. Si necesitas tocar otra, avisa a su responsable.
-- Lo compartido (ver "Como no chocar") se cambia con una rama corta aparte, `chore/<tema>`.
+| Desarrollador Asignado | Componente Exclusivo | Su Rama Única | Su Carpeta Hermética |
+|---|---|---|---|
+| **Ariel Martín Guerrero Sandoval** | Servicio de Tickets | `feat/tickets` | `services/servicio-tickets/` |
+| **Gabriel Emilio Ponce Salazar** | Servicio de Comunicación | `feat/comunicacion` | `services/servicio-comunicacion/` |
+| **Miguel Anderson Chanchay** *(Admin/Dueño)* | Servicio de Estadísticas + Control Global | `feat/estadisticas` / `main` | `services/servicio-estadisticas/` + Acceso Total |
+| **Dylan Miguel Vargas Onofa** | Frontend SPA + API Gateway | `feat/frontend` y `feat/gateway` | `frontend/` y `gateway/` |
+| *Módulo de Catálogo Común* | Servicio de Identidad | `feat/identidad` | `services/servicio-identidad/` |
+
+Reglas Inmutables de Aislamiento:
+
+- **Hermetismo estricto para colaboradores:** Solo editas la carpeta de **tu** servicio. Queda terminantemente prohibido alterar el código o los archivos dentro de la carpeta de otro compañero salvo autorización directa del dueño del repo.
+- **Sin colisiones:** Cada desarrollador prueba su código en local con su propio Docker/pgAdmin (`5050`, `5052`, `5053`, `5054`) o en `http://localhost:4200` para el Frontend.
+- **Firmas y PRs protegidos:** Ningún colaborador empuja directo a `dev` ni a `main`. Todo cambio debe ser enviado mediante Pull Request firmado con su usuario verificado de GitHub y revisado y aprobado por Miguel Anderson Chanchay (`@ANDERSOUNDZ`).
+- **Nombres en minúsculas con guiones y sin tildes.**
+- Tu rama **no se borra** después de entrar a `dev`: es tu rama de trabajo durante todo el proyecto.
 
 ## 2. Flujo: tu rama -> dev -> main
 

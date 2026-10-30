@@ -1,15 +1,71 @@
-# HelpDesk
+# HelpDesk: Plataforma Distribuida de Mesa de Ayuda de TI
 
-Plataforma de tickets de soporte construida como **microservicios** independientes.
-Primero el backend (Spring Boot); el frontend vendra despues.
+Plataforma de **gestión de incidentes y requerimientos tecnológicos** construida como **microservicios distribuidos e independientes** con Spring Boot 4 y PostgreSQL; preparada para integración con Bus de Eventos, API Gateway y Frontend SPA.
 
-> **Estado: fase 1, servicios simples con su propia base de datos.** Cada servicio es lo mas sencillo
-> posible, igual que `espacios-service`: sus entidades (`model/`), su acceso a datos (`repository/`), un
-> servicio con la logica (`service/`) y un controller (`controller/`). **Cada servicio tiene su propio
-> PostgreSQL** y se puede levantar solo, con un comando, para trabajar de forma independiente
-> (ver [Levantar el proyecto](#levantar-el-proyecto)). Las capas de Clean se agregan cuando hagan falta
-> (ver [Arquitectura de cada servicio](#arquitectura-de-cada-servicio)). Lo marcado como
-> *(planificado)* se ira construyendo por fases (ver [Hoja de ruta](#hoja-de-ruta)).
+> 🚨 **DOCUMENTO MAESTRO PARA DESARROLLADORES:**  
+> Consulta la [**Guía Maestra y Reglas Inmutables (ORQUESTADOR_MAESTRO.md)**](ORQUESTADOR_MAESTRO.md) antes de escribir código para conocer las reglas que evitan que los microservicios colapsen entre sí.
+
+---
+
+## 🎯 Propósito y Enfoque del Proyecto
+
+El objetivo principal de este sistema es **centralizar, rastrear y resolver solicitudes o fallas técnicas corporativas** (incidentes de hardware, software, accesos y redes) reportadas por usuarios, asignándolas a un técnico especialista y midiendo los tiempos de atención mediante un ciclo de vida formal y desacoplado.
+
+### 🔄 Flujo Central del Negocio (Ciclo de Vida de TI)
+
+```mermaid
+flowchart TD
+    A["👤 1. Usuario Solicitante\nReporta un problema de TI\n(Crea un Ticket con título, descrip. y prioridad)"] -->|"Genera Ticket #ID\n(Estado: ABIERTO)"| B["📋 2. Mesa de Ayuda / Cola de Soporte\nEl caso entra a la cola general de TI"]
+    B -->|"Asignación\n(Se asocia a un tecnicoId)"| C["🛠️ 3. Técnico de TI\n(Estado: EN_PROGRESO)"]
+    C -->|"Diagnóstico y comentarios\n(Servicio Comunicación)"| D["💬 4. Comunicación con el Usuario\n(Notas, notificaciones y avisos)"]
+    D -->|"El técnico arregla la falla"| E["✅ 5. Resolución\n(Estado: RESUELTO / CERRADO)"]
+    E -->|"Métricas actualizadas"| F["📊 6. Métricas y KPIs de TI\n(Servicio Estadísticas)"]
+```
+
+### 🧩 Responsabilidades y Asignación de Desarrolladores
+
+| Desarrollador | Microservicio / Módulo | Responsabilidad en la Mesa de Ayuda | Puertos |
+|---|---|---|:---:|
+| **Ariel Martín Guerrero Sandoval** | **`servicio-tickets`** | **Corazón del incidente:** Genera folios de tickets, máquina de estados (`ABIERTO` ➔ `EN_PROGRESO` ➔ `RESUELTO`) y asignación de técnicos. | App: `8080`<br>BD: `5433`<br>pgAdmin: `5050` |
+| **Gabriel Emilio Ponce Salazar** | **`servicio-comunicacion`** | **Canal de soporte:** Registro de notas y comentarios sobre tickets, y notificaciones automáticas al usuario. | App: `8084`<br>BD: `5435`<br>pgAdmin: `5054` |
+| **Miguel Anderson Chanchay** | **`servicio-estadisticas`** | **Auditoría y KPIs:** Métricas en tiempo real de tickets abiertos, en progreso y resueltos para el tablero gerencial. | App: `8082`<br>BD: `5436`<br>pgAdmin: `5052` |
+| **Dylan Miguel Vargas Onofa** | **Frontend Web + API Gateway** | **Experiencia de Usuario y Enrutamiento:** Puerta de enlace unificada (`:8000`), CORS central y aplicación SPA (`:3000`). | Gateway: `8000`<br>SPA: `3000` |
+| *Módulo de Catálogo Común* | **`servicio-identidad`** | **Control de Identidad:** Catálogo de roles corporativos (`USUARIO`, `TECNICO`, `ADMINISTRADOR`). | App: `8083`<br>BD: `5434`<br>pgAdmin: `5053` |
+
+---
+
+## 🗺️ Roadmap del Proyecto & Estado Actual
+
+Este roadmap describe el orden cronológico de los procesos implementados, los que están operativos y los que están planificados:
+
+```mermaid
+flowchart LR
+    F0["Fase 0\nFundación\n(Git, Ramas, Reglas)"]:::completed
+    F1["Fase 1\nMicroservicios Base\n(4 Servicios + Postgres Indep.)"]:::completed
+    F2["Fase 2\nSincronización\n(Broker / Event-Driven)"]:::planned
+    F3["Fase 3\nAPI Gateway\n(Punto único :8000)"]:::planned
+    F4["Fase 4\nFrontend SPA\n(Cliente Web :3000)"]:::planned
+
+    F0 --> F1
+    F1 --> F2
+    F2 --> F3
+    F3 --> F4
+
+    classDef completed fill:#2ea44f,stroke:#22863a,stroke-width:2px,color:#fff;
+    classDef planned fill:#0366d6,stroke:#005cc5,stroke-width:2px,color:#fff,stroke-dasharray: 4 4;
+```
+
+### Tabla de Seguimiento del Roadmap
+
+| Fase | Proceso / Hito | Estado | Qué está levantado / Qué falta |
+| :---: | :--- | :---: | :--- |
+| **0** | **Fundación del Repositorio** | ✅ **Completado** | Estructura en un solo repo Git, convenciones, plantillas de PR, workflow de cherry-pick. |
+| **1** | **Microservicios Independientes** | ✅ **Completado & Levantable** | **4 microservicios funcionales** con Spring Boot y Spring Data JPA.<br>• `servicio-tickets` (8080)<br>• `servicio-identidad` (8083)<br>• `servicio-comunicacion` (8084)<br>• `servicio-estadisticas` (8082)<br>• **Persistencia:** Bases de datos PostgreSQL individuales (5433-5436) y base conjunta (5432).<br>• **Herramientas:** Wrappers de Maven (`mvnw`) y pruebas pasando al 100%. |
+| **2** | **Orquestación & Sincronización Global** | ⏳ *Planificado* | Módulo de contratos comunes (`helpdesk-common`) y Bus de eventos global (RabbitMQ/Broker) que interconecta a **los 4 servicios** sin llamadas HTTP bloqueantes (detallado en [ORQUESTADOR_MAESTRO.md](ORQUESTADOR_MAESTRO.md)). |
+| **3** | **API Gateway** | ⏳ *Especificado* | Enrutamiento inverso unificado en puerto `8000`, CORS centralizado y seguridad (detallado en [ORQUESTADOR_MAESTRO.md](ORQUESTADOR_MAESTRO.md)). |
+| **4** | **Frontend SPA** | ⏳ *Especificado* | Cliente web para usuarios y técnicos. Contratos de TypeScript listos (detallado en [ORQUESTADOR_MAESTRO.md](ORQUESTADOR_MAESTRO.md)). |
+
+---
 
 ## Inicio rapido
 
@@ -32,15 +88,19 @@ probaron con los cuatro servicios.
 
 ### Paso 0: elegir el servicio
 
-| Servicio | Carpeta | App | PostgreSQL | Base de datos | Comprobacion | Tablas |
-|---|---|---|---|---|---|---|
-| `servicio-tickets` | `services/servicio-tickets` | 8080 | 5433 | `tickets_db` | `GET /tickets` | `tickets` |
-| `servicio-identidad` | `services/servicio-identidad` | 8083 | 5434 | `identidad_db` | `GET /usuarios` | `usuarios` |
-| `servicio-comunicacion` | `services/servicio-comunicacion` | 8084 | 5435 | `comunicacion_db` | `GET /comentarios` | `comentarios`, `notificaciones` |
-| `servicio-estadisticas` | `services/servicio-estadisticas` | 8082 | 5436 | `estadisticas_db` | `GET /resumen` | `contadores_estado` |
+| Servicio | Carpeta | App | PostgreSQL | PGAdmin | Base de datos | Comprobacion | Tablas |
+|---|---|---|---|---|---|---|---|
+| `servicio-tickets` | `services/servicio-tickets` | 8080 | 5433 | [5050](http://localhost:5050) | `tickets_db` | `GET /tickets` | `tickets` |
+| `servicio-identidad` | `services/servicio-identidad` | 8083 | 5434 | [5053](http://localhost:5053) | `identidad_db` | `GET /usuarios` | `usuarios` |
+| `servicio-comunicacion` | `services/servicio-comunicacion` | 8084 | 5435 | [5054](http://localhost:5054) | `comunicacion_db` | `GET /comentarios` | `comentarios`, `notificaciones` |
+| `servicio-estadisticas` | `services/servicio-estadisticas` | 8082 | 5436 | [5052](http://localhost:5052) | `estadisticas_db` | `GET /resumen` | `contadores_estado` |
 
 El usuario y la clave de cada base son el nombre corto del servicio (`tickets`/`tickets`,
 `identidad`/`identidad`, `comunicacion`/`comunicacion`, `estadisticas`/`estadisticas`).
+Las credenciales de acceso para **pgAdmin** en todos los servicios son:
+- **Email:** `admin@admin.com`
+- **Password:** `admin`
+- **Host de la BD al conectar en pgAdmin:** `db` (puerto `5432` interno de la red Docker)
 
 ### Paso 1: comprobar los requisitos
 
@@ -536,12 +596,11 @@ feat/estadisticas ──┘   (integracion)    (estable)
 Los commits siguen [Conventional Commits](https://www.conventionalcommits.org/es/) (`feat(tickets): ...`).
 Todo el detalle, los comandos y las reglas estan en [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## Hoja de ruta
+## 📋 Hoja de ruta detallada
 
-- [x] **Fase 0, fundacion:** repositorio, estructura, reglas de equipo, cherry-pick automatizado.
-- [x] **Fase 1, servicios simples con su base:** los cuatro servicios con entidades, endpoints basicos y su propio PostgreSQL, levantables de a uno o todos juntos.
-- [ ] **Fase 1b, infraestructura comun:** POM padre, Flyway y comprobaciones de salud (`/actuator/health`).
-- [ ] **Fase 2, CI:** workflow de build y tests por ruta; ejecutarlo en local con [`act`](https://github.com/nektos/act).
-- [ ] **Fase 3, desarrollar los servicios:** cada responsable completa el suyo (campos que faltan, base de datos, y capas si el servicio crece).
-- [ ] **Fase 4, gateway y seguridad:** API Gateway, autenticacion JWT.
-- [ ] **Fase 5, frontend.**
+- [x] **Fase 0: Fundación:** repositorio, monorepo, convenciones de Git, cherry-pick automatizado.
+- [x] **Fase 1: Microservicios base:** cuatro microservicios (`tickets`, `identidad`, `comunicacion`, `estadisticas`) con capas simples, PostgreSQL independiente por servicio y conjunto, y Maven Wrappers integrados.
+- [ ] **Fase 2: Orquestación & Sincronización Global:** bus de eventos / broker asíncrono para interconectar los 4 microservicios (Tickets, Identidad, Comunicación, Estadísticas) sin bloqueos ni caídas en cascada (ver [ORQUESTADOR_MAESTRO.md](ORQUESTADOR_MAESTRO.md)).
+- [ ] **Fase 3: Infraestructura común:** comprobaciones de salud (`/actuator/health`) y migraciones Flyway.
+- [ ] **Fase 4: API Gateway y Seguridad:** punto único de entrada (puerto `8000`), proxy inverso, resolución de CORS y autenticación JWT (ver [ORQUESTADOR_MAESTRO.md](ORQUESTADOR_MAESTRO.md)).
+- [ ] **Fase 5: Frontend SPA:** cliente web (React/Vue/Angular), tablero Kanban de tickets, interacción de comentarios y métricas (ver [ORQUESTADOR_MAESTRO.md](ORQUESTADOR_MAESTRO.md)).

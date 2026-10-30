@@ -1,0 +1,63 @@
+<h2 mat-dialog-title>
+  Bitacora del Ticket #{{ data.ticket.id }}
+</h2>
+
+<mat-dialog-content class="contenido-dialogo">
+  <div class="cabecera-info">
+    <div class="titulo-caso">{{ data.ticket.titulo }}</div>
+    <div class="desc-caso">{{ data.ticket.descripcion || 'Sin descripcion adicional.' }}</div>
+    
+    <div class="chips-info">
+      <span class="etiqueta">Estado: <strong>{{ data.ticket.estado }}</strong></span>
+      <span class="separador">|</span>
+      <span class="etiqueta">Prioridad: <strong>{{ data.ticket.prioridad }}</strong></span>
+      <span class="separador">|</span>
+      <span class="etiqueta">Tecnico: <strong>{{ data.nombreTecnico }}</strong></span>
+    </div>
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <!-- FORMULARIO PARA AGREGAR NOTA -->
+  <div class="formulario-nota">
+    <mat-form-field appearance="outline" class="campo-nota">
+      <mat-label>Nueva intervencion o nota tecnica</mat-label>
+      <textarea matInput [(ngModel)]="nuevaNota" rows="2" placeholder="Detalle tecnico del avance o resolucion..."></textarea>
+    </mat-form-field>
+    
+    <div class="acciones-nota">
+      <button mat-flat-button color="primary" [disabled]="!nuevaNota.trim()" (click)="agregarNota()">
+        <mat-icon>send</mat-icon> Publicar Nota
+      </button>
+    </div>
+  </div>
+
+  <!-- TABLA ESTANDAR MATERIAL PARA LA BITÁCORA -->
+  <div class="bitacora-seccion">
+    <div class="subtitulo-bitacora">Historial de Intervenciones (servicio-comunicacion)</div>
+
+    <table class="tabla-bitacora-limpia">
+      <thead>
+        <tr>
+          <th style="width: 80px;">Registro</th>
+          <th>Detalle de la Nota</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let c of comentarios">
+          <td class="col-num">#{{ c.id }}</td>
+          <td class="col-texto">{{ c.texto }}</td>
+        </tr>
+        <tr *ngIf="comentarios.length === 0">
+          <td colspan="2" class="sin-registros">
+            No se han registrado notas tecnicas para este incidente.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cerrar()">Cerrar</button>
+</mat-dialog-actions>

@@ -1,0 +1,24 @@
+<h2 mat-dialog-title>
+  Asignar Tecnico al Ticket #{{ data.ticket.id }}
+</h2>
+
+<mat-dialog-content>
+  <p class="ticket-titulo"><strong>Asunto:</strong> {{ data.ticket.titulo }}</p>
+  <p *ngIf="data.ticket.descripcion" class="ticket-desc"><strong>Detalles:</strong> {{ data.ticket.descripcion }}</p>
+
+  <mat-form-field appearance="outline" class="campo-full" style="margin-top: 12px; width: 100%;">
+    <mat-label>Selecciona el Tecnico Especialista</mat-label>
+    <mat-select [(ngModel)]="tecnicoIdSeleccionado" required>
+      <mat-option *ngFor="let tec of data.tecnicos" [value]="tec.id">
+        {{ tec.nombre }} (ID: {{ tec.id }} - {{ tec.rol }})
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancelar()">Cancelar</button>
+  <button mat-flat-button color="primary" [disabled]="!tecnicoIdSeleccionado" (click)="confirmar()">
+    <mat-icon>check</mat-icon> Confirmar Asignacion
+  </button>
+</mat-dialog-actions>

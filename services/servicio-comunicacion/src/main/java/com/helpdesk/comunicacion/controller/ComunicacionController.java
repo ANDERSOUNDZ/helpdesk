@@ -36,6 +36,12 @@ public class ComunicacionController {
         return ResponseEntity.status(HttpStatus.CREATED).body(comunicacionService.crearComentario(nuevoComentario));
     }
 
+    @org.springframework.web.bind.annotation.DeleteMapping("/comentarios/{id}")
+    public ResponseEntity<Void> eliminarComentario(@PathVariable Long id) {
+        comunicacionService.eliminarComentario(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/notificaciones")
     public List<Notificacion> obtenerNotificaciones(@RequestParam(required = false) Long usuarioId,
                                                     @RequestParam(required = false) Boolean leida) {

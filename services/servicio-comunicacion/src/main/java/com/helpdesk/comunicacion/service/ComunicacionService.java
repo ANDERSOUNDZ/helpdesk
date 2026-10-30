@@ -55,6 +55,12 @@ public class ComunicacionService {
         return notificaciones.save(notificacion);
     }
 
+    public void eliminarComentario(Long id) {
+        Comentario comentario = comentarios.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No existe el comentario con id " + id));
+        comentarios.delete(comentario);
+    }
+
     public Notificacion alCambiarEstado(TicketEstadoCambiado evento) {
         if (evento.ticketId() == null || evento.solicitanteId() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ticketId y solicitanteId son obligatorios");
