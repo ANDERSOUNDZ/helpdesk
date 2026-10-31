@@ -1,0 +1,157 @@
+{
+  "info": {
+    "name": "HelpDesk - servicio-estadisticas (:8082)",
+    "description": "Los 6 endpoints de servicio-estadisticas. Responsable: Miguel Anderson Chanchay. Requiere el servicio levantado (docker compose up -d) en el puerto 8082.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8082" },
+    { "key": "estado", "value": "ABIERTO" }
+  ],
+  "item": [
+    {
+      "name": "1. GET - Resumen ejecutivo",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Trae abiertos, enProgreso y resueltos', function () {",
+              "  var b = pm.response.json();",
+              "  pm.expect(b).to.have.property('abiertos');",
+              "  pm.expect(b).to.have.property('enProgreso');",
+              "  pm.expect(b).to.have.property('resueltos');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/resumen", "host": ["{{baseUrl}}"], "path": ["resumen"] },
+        "description": "Resumen con los totales de tickets por estado."
+      }
+    },
+    {
+      "name": "2. GET - Listar contadores por estado",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Es una lista', function () { pm.expect(pm.response.json()).to.be.an('array'); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/estadisticas/estados", "host": ["{{baseUrl}}"], "path": ["estadisticas", "estados"] },
+        "description": "Lista todos los contadores (ABIERTO, EN_PROGRESO, RESUELTO)."
+      }
+    },
+    {
+      "name": "3. GET - Contador de un estado",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Devuelve estado y cantidad', function () {",
+              "  var b = pm.response.json();",
+              "  pm.expect(b).to.have.property('estado');",
+              "  pm.expect(b).to.have.property('cantidad');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/estadisticas/estados/{{estado}}", "host": ["{{baseUrl}}"], "path": ["estadisticas", "estados", "{{estado}}"] },
+        "description": "Cambia la variable de coleccion 'estado' a ABIERTO, EN_PROGRESO o RESUELTO."
+      }
+    },
+    {
+      "name": "4. POST - Notificar cambio de estado (evento)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Devuelve el resumen recalculado', function () { pm.expect(pm.response.json()).to.have.property('resueltos'); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"estadoAnterior\": \"ABIERTO\",\n  \"estadoNuevo\": \"EN_PROGRESO\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": { "raw": "{{baseUrl}}/eventos/ticket-estado", "host": ["{{baseUrl}}"], "path": ["eventos", "ticket-estado"] },
+        "description": "Modifica los contadores: resta 1 a estadoAnterior y suma 1 a estadoNuevo."
+      }
+    },
+    {
+      "name": "5. PUT - Ajustar contador manualmente",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Cantidad ajustada a 5', function () { pm.expect(pm.response.json().cantidad).to.eql(5); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/estadisticas/estados/{{estado}}?cantidad=5",
+          "host": ["{{baseUrl}}"],
+          "path": ["estadisticas", "estados", "{{estado}}"],
+          "query": [{ "key": "cantidad", "value": "5" }]
+        },
+        "description": "Calibra el contador del estado indicado. Modifica datos."
+      }
+    },
+    {
+      "name": "6. DELETE - Resetear todos los contadores",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 204', function () { pm.response.to.have.status(204); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/estadisticas/reset", "host": ["{{baseUrl}}"], "path": ["estadisticas", "reset"] },
+        "description": "Pone todos los contadores en cero. Modifica datos."
+      }
+    }
+  ]
+}

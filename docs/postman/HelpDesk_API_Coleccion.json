@@ -1,175 +1,703 @@
 {
   "info": {
     "name": "HelpDesk API - Colección Oficial",
-    "description": "Endpoints básicos para probar todos los verbos HTTP (GET, POST, PUT, DELETE) en cada microservicio independiente.",
+    "description": "Todos los endpoints de los 4 microservicios con JSON de ejemplo en raw. Orden: identidad, tickets, comunicación, estadísticas.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "1. Servicio Tickets (:8080 - Ariel)",
+      "name": "1. Identidad (:8083 - Anthony)",
       "item": [
         {
-          "name": "GET - Listar todos los tickets",
+          "name": "1. GET - Listar usuarios",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8080/tickets"
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8083/usuarios",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8083",
+              "path": [
+                "usuarios"
+              ]
+            },
+            "description": "Lista todas las personas."
           }
         },
         {
-          "name": "POST - Crear nuevo ticket",
+          "name": "2. POST - Crear solicitante",
           "request": {
             "method": "POST",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8083/usuarios",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8083",
+              "path": [
+                "usuarios"
+              ]
+            },
+            "description": "Roles: ESTUDIANTE, TECNICO, ADMINISTRADOR.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"titulo\": \"Falla en cable de red\",\n  \"descripcion\": \"No hay conexión en el piso 2\",\n  \"prioridad\": \"ALTA\",\n  \"solicitanteId\": 1\n}"
+              "raw": "{\n  \"nombre\": \"Carlos Pérez\",\n  \"rol\": \"ESTUDIANTE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "3. POST - Crear técnico",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8083/usuarios",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8083",
+              "path": [
+                "usuarios"
+              ]
             },
-            "url": "http://localhost:8080/tickets"
-          }
-        },
-        {
-          "name": "PUT - Asignar técnico a ticket",
-          "request": {
-            "method": "PUT",
-            "url": "http://localhost:8080/tickets/1/asignar/2"
-          }
-        },
-        {
-          "name": "PUT - Resolver ticket",
-          "request": {
-            "method": "PUT",
-            "url": "http://localhost:8080/tickets/1/resolver"
-          }
-        },
-        {
-          "name": "PUT - Actualizar ticket (datos)",
-          "request": {
-            "method": "PUT",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"titulo\": \"Falla en cable de red (Corregido)\",\n  \"prioridad\": \"MEDIA\"\n}"
-            },
-            "url": "http://localhost:8080/tickets/1"
+              "raw": "{\n  \"nombre\": \"Laura Gómez\",\n  \"rol\": \"TECNICO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           }
         },
         {
-          "name": "DELETE - Eliminar ticket",
+          "name": "4. GET - Usuario por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8083/usuarios/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8083",
+              "path": [
+                "usuarios",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "5. PUT - Actualizar usuario",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8083/usuarios/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8083",
+              "path": [
+                "usuarios",
+                "1"
+              ]
+            },
+            "description": "Solo cambia lo que se envía.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Carlos Pérez Ruiz\",\n  \"rol\": \"ADMINISTRADOR\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "6. DELETE - Eliminar usuario",
           "request": {
             "method": "DELETE",
-            "url": "http://localhost:8080/tickets/1"
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8083/usuarios/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8083",
+              "path": [
+                "usuarios",
+                "1"
+              ]
+            },
+            "description": "Devuelve 204."
           }
         }
       ]
     },
     {
-      "name": "2. Servicio Estadísticas (:8082 - Miguel)",
+      "name": "2. Tickets (:8080 - Ariel)",
       "item": [
         {
-          "name": "GET - Obtener Resumen y KPIs de TI",
+          "name": "1. GET - Listar tickets",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8082/resumen"
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/tickets",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "tickets"
+              ]
+            }
           }
         },
         {
-          "name": "POST - Notificar cambio de estado a estadísticas",
+          "name": "2. POST - Crear ticket",
           "request": {
             "method": "POST",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/tickets",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "tickets"
+              ]
+            },
+            "description": "Prioridades: BAJA, MEDIA, ALTA. Nace ABIERTO y sin técnico.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"estadoAnterior\": \"ABIERTO\",\n  \"estadoNuevo\": \"EN_PROGRESO\"\n}"
+              "raw": "{\n  \"titulo\": \"No enciende la computadora\",\n  \"descripcion\": \"El equipo del laboratorio 3 no da imagen.\",\n  \"prioridad\": \"ALTA\",\n  \"solicitanteId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "3. GET - Ticket por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/tickets/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "tickets",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "4. PUT - Editar ticket",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/tickets/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "tickets",
+                "1"
+              ]
             },
-            "url": "http://localhost:8082/eventos/ticket-estado"
+            "description": "Solo cambia lo que se envía.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Computadora no enciende (editado)\",\n  \"descripcion\": \"Se revisó el cable y sigue igual.\",\n  \"prioridad\": \"MEDIA\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "5. PUT - Asignar técnico",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/tickets/1/asignar/2",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "tickets",
+                "1",
+                "asignar",
+                "2"
+              ]
+            },
+            "description": "Sin body. El ticket pasa a EN_PROGRESO."
+          }
+        },
+        {
+          "name": "6. PUT - Resolver",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/tickets/1/resolver",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "tickets",
+                "1",
+                "resolver"
+              ]
+            },
+            "description": "Sin body. Pasa a RESUELTO."
+          }
+        },
+        {
+          "name": "7. PUT - Reabrir",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/tickets/1/reabrir",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "tickets",
+                "1",
+                "reabrir"
+              ]
+            },
+            "description": "Sin body. Solo si estaba RESUELTO; vuelve a EN_PROGRESO."
+          }
+        },
+        {
+          "name": "8. DELETE - Eliminar ticket",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/tickets/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "tickets",
+                "1"
+              ]
+            },
+            "description": "Devuelve 204."
           }
         }
       ]
     },
     {
-      "name": "3. Servicio Identidad (:8083 - Catálogo)",
+      "name": "3. Comunicación (:8084 - Gabriel)",
       "item": [
         {
-          "name": "GET - Listar usuarios",
+          "name": "1. GET - Comentarios por ticket",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8083/usuarios"
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8084/comentarios?ticketId=1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8084",
+              "path": [
+                "comentarios"
+              ],
+              "query": [
+                {
+                  "key": "ticketId",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Sin ?ticketId= trae todos."
           }
         },
         {
-          "name": "POST - Crear usuario (Técnico o Usuario)",
+          "name": "2. POST - Crear nota",
           "request": {
             "method": "POST",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8084/comentarios",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8084",
+              "path": [
+                "comentarios"
+              ]
+            },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Carlos Técnico\",\n  \"rol\": \"TECNICO\"\n}"
-            },
-            "url": "http://localhost:8083/usuarios"
+              "raw": "{\n  \"ticketId\": 1,\n  \"autorId\": 2,\n  \"texto\": \"Revisé la fuente de poder y está dañada.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           }
         },
         {
-          "name": "PUT - Actualizar usuario",
+          "name": "3. POST - Avisar cambio de estado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8084/eventos/ticket-estado",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8084",
+              "path": [
+                "eventos",
+                "ticket-estado"
+              ]
+            },
+            "description": "Crea una notificación para el solicitante.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ticketId\": 1,\n  \"estadoNuevo\": \"EN_PROGRESO\",\n  \"solicitanteId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "4. GET - Notificaciones sin leer",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8084/notificaciones?usuarioId=1&leida=false",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8084",
+              "path": [
+                "notificaciones"
+              ],
+              "query": [
+                {
+                  "key": "usuarioId",
+                  "value": "1"
+                },
+                {
+                  "key": "leida",
+                  "value": "false"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "5. PUT - Marcar notificación leída",
           "request": {
             "method": "PUT",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Carlos Soporte Senior\",\n  \"rol\": \"TECNICO\"\n}"
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8084/notificaciones/1/leida",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8084",
+              "path": [
+                "notificaciones",
+                "1",
+                "leida"
+              ]
             },
-            "url": "http://localhost:8083/usuarios/1"
+            "description": "Sin body."
           }
         },
         {
-          "name": "DELETE - Eliminar usuario",
+          "name": "6. DELETE - Eliminar comentario",
           "request": {
             "method": "DELETE",
-            "url": "http://localhost:8083/usuarios/1"
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8084/comentarios/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8084",
+              "path": [
+                "comentarios",
+                "1"
+              ]
+            },
+            "description": "Devuelve 204."
           }
         }
       ]
     },
     {
-      "name": "4. Servicio Comunicación (:8084 - Gabriel)",
+      "name": "4. Estadísticas (:8082 - Miguel)",
       "item": [
         {
-          "name": "GET - Listar comentarios por ticket",
+          "name": "1. GET - Resumen",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8084/comentarios?ticketId=1"
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8082/resumen",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8082",
+              "path": [
+                "resumen"
+              ]
+            },
+            "description": "Devuelve abiertos, enProgreso y resueltos."
           }
         },
         {
-          "name": "POST - Agregar comentario al ticket",
+          "name": "2. GET - Listar contadores",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8082/estadisticas/estados",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8082",
+              "path": [
+                "estadisticas",
+                "estados"
+              ]
+            }
+          }
+        },
+        {
+          "name": "3. GET - Contador de un estado",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8082/estadisticas/estados/ABIERTO",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8082",
+              "path": [
+                "estadisticas",
+                "estados",
+                "ABIERTO"
+              ]
+            }
+          }
+        },
+        {
+          "name": "4. POST - Cambio de estado ABIERTO a EN_PROGRESO",
           "request": {
             "method": "POST",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8082/eventos/ticket-estado",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8082",
+              "path": [
+                "eventos",
+                "ticket-estado"
+              ]
+            },
+            "description": "Resta 1 al anterior y suma 1 al nuevo.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"ticketId\": 1,\n  \"autorId\": 2,\n  \"texto\": \"Se revisó el puerto físico del switch y se reconectó.\"\n}"
+              "raw": "{\n  \"estadoAnterior\": \"ABIERTO\",\n  \"estadoNuevo\": \"EN_PROGRESO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "5. POST - Cambio de estado EN_PROGRESO a RESUELTO",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8082/eventos/ticket-estado",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8082",
+              "path": [
+                "eventos",
+                "ticket-estado"
+              ]
             },
-            "url": "http://localhost:8084/comentarios"
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estadoAnterior\": \"EN_PROGRESO\",\n  \"estadoNuevo\": \"RESUELTO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           }
         },
         {
-          "name": "DELETE - Eliminar comentario",
-          "request": {
-            "method": "DELETE",
-            "url": "http://localhost:8084/comentarios/1"
-          }
-        },
-        {
-          "name": "GET - Listar notificaciones de usuario",
-          "request": {
-            "method": "GET",
-            "url": "http://localhost:8084/notificaciones?usuarioId=1"
-          }
-        },
-        {
-          "name": "PUT - Marcar notificación como leída",
+          "name": "6. PUT - Ajustar contador",
           "request": {
             "method": "PUT",
-            "url": "http://localhost:8084/notificaciones/1/leida"
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8082/estadisticas/estados/ABIERTO?cantidad=2",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8082",
+              "path": [
+                "estadisticas",
+                "estados",
+                "ABIERTO"
+              ],
+              "query": [
+                {
+                  "key": "cantidad",
+                  "value": "2"
+                }
+              ]
+            },
+            "description": "Sin body. Fija el contador; nunca deja negativos."
+          }
+        },
+        {
+          "name": "7. DELETE - Reset de contadores",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8082/estadisticas/reset",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8082",
+              "path": [
+                "estadisticas",
+                "reset"
+              ]
+            },
+            "description": "Devuelve 204. Pone los 3 contadores en 0."
           }
         }
       ]
