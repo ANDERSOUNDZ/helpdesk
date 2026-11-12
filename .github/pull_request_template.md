@@ -2,20 +2,30 @@
 
 <!-- Una o dos lineas: que hace este PR y por que. -->
 
-## Servicio(s) afectado(s)
+## Mi area y tipo de PR
 
-- [ ] servicio-tickets
-- [ ] otro: <!-- nombre -->
-- [ ] infraestructura / docs
+- [ ] Rama `feat/<servicio>`: solo toca **mi area** (mi servicio y mi pestana del frontend)
+- [ ] Rama `chore/<tema>`: solo toca **archivos compartidos** (proxy, services/models del frontend, docker-compose, docs...), con cambios aditivos
+- [ ] Mi servicio: <!-- tickets / comunicacion / identidad / estadisticas / frontend / gateway -->
 
 ## Checklist
 
-- [ ] El PR va de mi rama (`feat/<servicio>`) hacia `dev` y uso *Create a merge commit*
+- [ ] El PR va hacia `dev` (nunca hacia `main`) y uso *Create a merge commit*
 - [ ] Hice `git merge origin/dev` antes de abrir el PR
 - [ ] Los commits siguen Conventional Commits (`feat(tickets): ...`)
-- [ ] Probado localmente (tests del servicio en verde)
-- [ ] No toca codigo de otro servicio (si lo hace, esta justificado abajo)
+- [ ] Probado localmente (tests del servicio en verde; `ng build` si toque el frontend)
+- [ ] Revise `git diff --name-only origin/dev...HEAD` y **todos** los archivos son de mi area (docs/REGLAS_DE_ALCANCE.md)
+- [ ] Si mi funcionalidad necesita cambios en el codigo de otro duenio, **no los hice**: los anote abajo
 - [ ] Sin secretos ni archivos `.env` en el diff
+
+## Pendiente de integracion por otros duenios
+
+<!-- Si algo de lo tuyo necesita cambios en pantallas o servicios ajenos, listalo aqui con el duenio. Si no hay, escribe "Ninguno". -->
+
+## Archivos que cambio
+
+<!-- Pega la salida de: git diff --name-only origin/dev...HEAD -->
+
 
 ## Notas para quien revisa
 

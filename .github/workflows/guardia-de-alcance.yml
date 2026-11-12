@@ -1,0 +1,128 @@
+# Guardia de alcance: cada PR solo puede tocar el area de su rama.
+#
+# Falla el PR si cambia archivos que no son de su duenio. No arregla nada solo: dice que archivos sobran
+# para que el autor los saque de su rama (ver docs/REGLAS_DE_ALCANCE.md, seccion "Si ya paso").
+#
+# Para que BLOQUEE el merge hay que marcar este chequeo como obligatorio en la proteccion de ramas
+# (una sola vez, el propietario): docs/REGLAS_DE_ALCANCE.md, seccion "Configuracion unica".
+#
+# Mapa de areas: debe coincidir con la tabla de docs/REGLAS_DE_ALCANCE.md y con .github/CODEOWNERS.
+
+name: Guardia de alcance
+
+on:
+  pull_request:
+    branches: [dev, main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  guardia:
+    runs-on: ubuntu-latest
+    env:
+      # Las entradas pasan por variables de entorno, nunca interpoladas en el script:
+      # asi un nombre de rama malicioso no puede inyectar comandos.
+      HEAD_REF: ${{ github.head_ref }}
+      BASE_REF: ${{ github.base_ref }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      AUTOR: ${{ github.event.pull_request.user.login }}
+      DUENO: ${{ github.repository_owner }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verificar que el PR solo toca el area de su rama
+        run: |
+          set -euo pipefail
+          # Sin expansion de comodines: los patrones de AREA (services/x/*) se comparan como texto.
+          set -f
+
+          if [ "$AUTOR" = "$DUENO" ]; then
+            echo "El autor es el duenio del repositorio: sin restriccion de alcance."
+            exit 0
+          fi
+          case "$AUTOR" in
+            *"[bot]") echo "PR de un bot (por ejemplo cherry-pick): sin restriccion."; exit 0 ;;
+          esac
+
+          if [ "$BASE_REF" = "main" ]; then
+            if [ "$HEAD_REF" = "dev" ]; then
+              echo "Release dev -> main: lo revisa el duenio."
+              exit 0
+            fi
+            echo "::error::Los PR hacia main solo pueden venir de dev. Abre el PR hacia dev."
+            exit 1
+          fi
+
+          # Archivos compartidos: solo cambian en una rama chore/<tema> y los aprueba el duenio.
+          es_compartido() {
+            case "$1" in
+              docker-compose.yml|docker/*|.gitignore|.gitattributes|.editorconfig|pom.xml) return 0 ;;
+              .github/*|docs/*) return 0 ;;
+              README.md|CONTRIBUTING.md|ORQUESTADOR_MAESTRO.md|CLAUDE.md) return 0 ;;
+              frontend/proxy.conf.json|frontend/src/environments/*) return 0 ;;
+              frontend/src/app/services/*|frontend/src/app/models/*) return 0 ;;
+            esac
+            return 1
+          }
+
+          # Area propia de cada rama (patrones glob; el * incluye subcarpetas).
+          AREA=""
+          ES_FRONTEND=0
+          case "$HEAD_REF" in
+            feat/tickets)      AREA="services/servicio-tickets/* frontend/src/app/tickets/*" ;;
+            feat/comunicacion) AREA="services/servicio-comunicacion/* frontend/src/app/comunicacion/*" ;;
+            feat/identidad)    AREA="services/servicio-identidad/* frontend/src/app/identidad/*" ;;
+            feat/gateway)      AREA="gateway/*" ;;
+            feat/frontend|feat/fronted) AREA="frontend/*"; ES_FRONTEND=1 ;;
+            chore/*)           AREA="" ;;
+            *)
+              echo "::error::La rama '$HEAD_REF' no es una rama valida. Usa tu rama asignada (feat/tickets, feat/comunicacion, feat/identidad, feat/frontend, feat/gateway) o chore/<tema> para archivos compartidos."
+              exit 1
+              ;;
+          esac
+
+          git diff --name-only "origin/${BASE_REF}...${HEAD_SHA}" > cambiados.txt
+          echo "Rama: $HEAD_REF -> $BASE_REF  |  Archivos cambiados: $(wc -l < cambiados.txt)"
+
+          FUERA=0
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            if es_compartido "$f"; then
+              case "$HEAD_REF" in
+                chore/*) continue ;;
+              esac
+              echo "::error file=$f::Archivo COMPARTIDO: no se cambia desde $HEAD_REF. Va en una rama chore/<tema> con un PR aparte."
+              FUERA=$((FUERA+1)); continue
+            fi
+            case "$HEAD_REF" in
+              chore/*)
+                echo "::error file=$f::Una rama chore/ solo puede tocar archivos compartidos, y este no lo es."
+                FUERA=$((FUERA+1)); continue ;;
+            esac
+            if [ "$ES_FRONTEND" = "1" ]; then
+              case "$f" in
+                frontend/src/app/tickets/*|frontend/src/app/comunicacion/*|frontend/src/app/identidad/*|frontend/src/app/dashboard/*)
+                  echo "::error file=$f::Es la pestana de otro duenio: no se toca desde $HEAD_REF."
+                  FUERA=$((FUERA+1)); continue ;;
+              esac
+            fi
+            DENTRO=0
+            for patron in $AREA; do
+              # shellcheck disable=SC2053
+              if [[ "$f" == $patron ]]; then DENTRO=1; break; fi
+            done
+            if [ "$DENTRO" = "0" ]; then
+              echo "::error file=$f::Fuera del area de $HEAD_REF."
+              FUERA=$((FUERA+1))
+            fi
+          done < cambiados.txt
+
+          if [ "$FUERA" -gt 0 ]; then
+            echo "::error::$FUERA archivo(s) fuera de tu area. Mira docs/REGLAS_DE_ALCANCE.md (seccion 'Si ya paso')."
+            exit 1
+          fi
+          echo "OK: todos los archivos estan dentro del area de $HEAD_REF."
