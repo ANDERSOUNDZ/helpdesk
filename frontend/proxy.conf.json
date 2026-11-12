@@ -28,5 +28,20 @@
     "target": "http://localhost:8084",
     "secure": false,
     "changeOrigin": true
+  },
+  "/adjuntos": {
+    "target": "http://localhost:8084",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/encuestas": {
+    "target": "http://localhost:8084",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/eventos": {
+    "target": "http://localhost:8084",
+    "secure": false,
+    "changeOrigin": true
   }
 }

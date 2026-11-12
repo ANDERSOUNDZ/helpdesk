@@ -194,11 +194,16 @@ export class Tickets implements OnInit, OnDestroy {
         const nota: Comentario = {
           ticketId: ticket.id!,
           autorId: ticket.tecnicoId || 1,
+          autorNombre: localStorage.getItem('helpdesk.usuarioActualNombre') ?? undefined,
+          ticketTitulo: ticket.titulo,
+          destinatarioId: ticket.solicitanteId,
           texto: 'Trabajo tecnico finalizado satisfactoriamente. Incidente resuelto, en espera de validacion del solicitante.'
         };
         this.helpdeskService.crearComentario(nota).subscribe();
+        this.helpdeskService.enviarEventoTicketEstado(
+          ticket.id!, 'RESUELTO', ticket.solicitanteId).subscribe();
 
-        this.snackBar.open(`Ticket #${ticket.id} resuelto por el tecnico con nota de finalizacion`, 'OK', { duration: 3500 });
+        this.snackBar.open(`Ticket #${ticket.id} resuelto. Se envio la encuesta de satisfaccion.`, 'OK', { duration: 3500 });
         this.cargarTickets();
       },
       error: () => this.snackBar.open('Error al resolver ticket', 'Cerrar', { duration: 3000 })
@@ -214,6 +219,9 @@ export class Tickets implements OnInit, OnDestroy {
         const nota: Comentario = {
           ticketId: ticket.id!,
           autorId: ticket.solicitanteId,
+          autorNombre: localStorage.getItem('helpdesk.usuarioActualNombre') ?? undefined,
+          ticketTitulo: ticket.titulo,
+          destinatarioId: ticket.tecnicoId ?? null,
           texto: 'Ticket reabierto por el solicitante: el problema o falla persiste en el mismo caso.'
         };
         this.helpdeskService.crearComentario(nota).subscribe();

@@ -11,7 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Subscription, interval } from 'rxjs';
 import { HelpdeskService } from '../services/helpdesk.service';
-import { ResumenTickets, ContadorEstado, Ticket, Usuario } from '../models/helpdesk.model';
+import { ResumenTickets, ContadorEstado, Ticket, Usuario, ResumenEncuestas } from '../models/helpdesk.model';
 
 @Component({
   selector: 'app-dashboard',
@@ -37,6 +37,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private autoRefreshSub?: Subscription;
 
   resumen: ResumenTickets = { abiertos: 0, enProgreso: 0, resueltos: 0, total: 0 };
+  resumenEncuestas: ResumenEncuestas = {
+    totalEncuestas: 0,
+    respondidas: 0,
+    pendientes: 0,
+    promedio: 0,
+    distribucion: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
+  };
   contadoresDetalle: ContadorEstado[] = [];
   todosLosTickets: Ticket[] = [];
   usuarios: Usuario[] = [];
@@ -50,8 +57,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.cargarDatos();
     this.cargarUsuarios();
+    this.cargarResumenEncuestas();
     this.autoRefreshSub = interval(3000).subscribe(() => {
       this.cargarDatos();
+      this.cargarResumenEncuestas();
     });
   }
 
@@ -112,6 +121,22 @@ export class DashboardComponent implements OnInit, OnDestroy {
         });
       }
     });
+  }
+
+  cargarResumenEncuestas(): void {
+    this.helpdeskService.getResumenEncuestas().subscribe({
+      next: (res) => {
+        this.resumenEncuestas = res;
+        this.cdr.markForCheck();
+      },
+      error: () => console.warn('Resumen CSAT no disponible')
+    });
+  }
+
+  porcentajeCsat(puntuacion: number): number {
+    const total = this.resumenEncuestas.respondidas;
+    if (!total) return 0;
+    return Math.round(((this.resumenEncuestas.distribucion[puntuacion] ?? 0) / total) * 100);
   }
 
   get ticketsFiltrados(): Ticket[] {

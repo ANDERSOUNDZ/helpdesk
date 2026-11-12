@@ -57,9 +57,13 @@ export class DetalleDialog implements OnInit {
 
   agregarNota(): void {
     if (!this.nuevaNota.trim() || !this.data.ticket.id) return;
+    const autorId = this.usuarioActualId();
     const comentario: Comentario = {
       ticketId: this.data.ticket.id,
-      autorId: 1,
+      autorId,
+      autorNombre: localStorage.getItem('helpdesk.usuarioActualNombre') ?? undefined,
+      ticketTitulo: this.data.ticket.titulo,
+      destinatarioId: this.determinarDestinatario(autorId),
       texto: this.nuevaNota
     };
     this.helpdeskService.crearComentario(comentario).subscribe({
@@ -70,6 +74,21 @@ export class DetalleDialog implements OnInit {
       },
       error: () => this.snackBar.open('Error al guardar nota', 'Cerrar', { duration: 3000 })
     });
+  }
+
+  private usuarioActualId(): number {
+    const guardado = Number(localStorage.getItem('helpdesk.usuarioActualId'));
+    return Number.isFinite(guardado) && guardado > 0 ? guardado : 1;
+  }
+
+  private determinarDestinatario(autorId: number): number | null {
+    if (this.data.ticket.solicitanteId === autorId) {
+      return this.data.ticket.tecnicoId ?? null;
+    }
+    if (this.data.ticket.tecnicoId === autorId) {
+      return this.data.ticket.solicitanteId;
+    }
+    return this.data.ticket.solicitanteId;
   }
 
   cerrar(): void {
