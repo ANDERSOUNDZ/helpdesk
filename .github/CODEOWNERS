@@ -1,18 +1,41 @@
-# Cada servicio tiene un dueno que revisa sus PR automaticamente.
-# Formato: <ruta> @usuario-github
+# Cada area tiene un duenio que revisa sus PR. Guia completa: docs/REGLAS_DE_ALCANCE.md
+#
+# Formato: <ruta> @usuario-github. Si varias reglas coinciden, vale la ULTIMA (por eso las mas
+# especificas van al final).
 # Para que funcione, el usuario debe tener acceso de escritura al repo.
 #
-# Por ahora todo pasa por el propietario del repo. Al crear un servicio,
-# agrega su linea y quita el comodin para ese servicio, por ejemplo:
+# @ANDERSOUNDZ (duenio) figura siempre junto al duenio de cada area: el autor de un PR no puede aprobar el
+# suyo, asi que el duenio del repo es quien lo aprueba.
 #
-#   /services/servicio-tickets/        @usuario-1
-#   /services/servicio-identidad/      @usuario-2
-#   /services/servicio-comunicacion/   @usuario-3
-#   /services/servicio-estadisticas/   @usuario-4
+# La proteccion de ramas de dev y main exige la revision de los code owners
+# (docs/REGLAS_DE_ALCANCE.md, seccion "Configuracion unica").
 
-*                @ANDERSOUNDZ
+# Por defecto, todo pasa por el propietario del repo.
+*                                        @ANDERSOUNDZ
 
-# Infraestructura compartida: siempre la revisa el propietario.
-/.github/        @ANDERSOUNDZ
-/docs/           @ANDERSOUNDZ
-/pom.xml         @ANDERSOUNDZ
+# Dylan: gateway y estructura del frontend. Va primero porque las lineas siguientes son mas especificas
+# (pestanas de otros y archivos compartidos) y deben ganarle.
+/gateway/                                @ForDylan @ANDERSOUNDZ
+/frontend/                               @ForDylan @ANDERSOUNDZ
+
+# Areas con duenio asignado (servicio y su pestana del frontend).
+/services/servicio-tickets/              @Martin8bb @ANDERSOUNDZ
+/frontend/src/app/tickets/               @Martin8bb @ANDERSOUNDZ
+/services/servicio-comunicacion/         @TGabVoid @ANDERSOUNDZ
+/frontend/src/app/comunicacion/          @TGabVoid @ANDERSOUNDZ
+/services/servicio-identidad/            @AnthonyJ11281128 @ANDERSOUNDZ
+/frontend/src/app/identidad/             @AnthonyJ11281128 @ANDERSOUNDZ
+/services/servicio-estadisticas/         @ANDERSOUNDZ
+/frontend/src/app/dashboard/             @ANDERSOUNDZ
+
+# Archivos compartidos: solo los revisa el propietario (se cambian en ramas chore/<tema>).
+/.github/                                @ANDERSOUNDZ
+/docs/                                   @ANDERSOUNDZ
+/docker/                                 @ANDERSOUNDZ
+/docker-compose.yml                      @ANDERSOUNDZ
+/pom.xml                                 @ANDERSOUNDZ
+/CLAUDE.md                               @ANDERSOUNDZ
+/frontend/proxy.conf.json                @ANDERSOUNDZ
+/frontend/src/environments/              @ANDERSOUNDZ
+/frontend/src/app/services/              @ANDERSOUNDZ
+/frontend/src/app/models/                @ANDERSOUNDZ

@@ -1,0 +1,352 @@
+{
+  "info": {
+    "_postman_id": "2a8fd1cb-169a-4b8a-aefe-773c5d03f749",
+    "name": "HelpDesk - Comunicación (flujo completo)",
+    "description": "Comentarios, notificaciones, encuestas CSAT, adjuntos y eventos del servicio de comunicación. Ejecutar la carpeta en orden con un Environment que defina baseUrl.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8084" },
+    { "key": "ticketId", "value": "1" },
+    { "key": "solicitanteId", "value": "1" },
+    { "key": "autorId", "value": "2" },
+    { "key": "destinatarioId", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "Comentarios",
+      "item": [
+        {
+          "name": "POST Crear comentario",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('comentarioId', body.id);",
+                  "pm.test('Tiene fecha de creación', () => pm.expect(body.creadoEn).to.be.a('string'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ticketId\": {{ticketId}},\n  \"autorId\": {{autorId}},\n  \"autorNombre\": \"Tecnico Demo\",\n  \"ticketTitulo\": \"Ticket de prueba\",\n  \"texto\": \"Comentario de prueba con notificación automática.\",\n  \"destinatarioId\": {{destinatarioId}}\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/comentarios", "host": ["{{baseUrl}}"], "path": ["comentarios"] }
+          }
+        },
+        {
+          "name": "GET Listar comentarios compatible",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Devuelve un array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/comentarios?ticketId={{ticketId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["comentarios"],
+              "query": [{ "key": "ticketId", "value": "{{ticketId}}" }]
+            }
+          }
+        },
+        {
+          "name": "GET Comentarios paginados y búsqueda",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Tiene página', () => pm.expect(pm.response.json()).to.have.property('content'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/comentarios/paginados?page=0&size=10&q=prueba",
+              "host": ["{{baseUrl}}"],
+              "path": ["comentarios", "paginados"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" },
+                { "key": "q", "value": "prueba" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE Eliminar comentario creado",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/comentarios/{{comentarioId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["comentarios", "{{comentarioId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notificaciones",
+      "item": [
+        {
+          "name": "GET Listar notificaciones del usuario",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Devuelve un array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/notificaciones?usuarioId={{destinatarioId}}&leida=false",
+              "host": ["{{baseUrl}}"],
+              "path": ["notificaciones"],
+              "query": [
+                { "key": "usuarioId", "value": "{{destinatarioId}}" },
+                { "key": "leida", "value": "false" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Contador de notificaciones",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Tiene noLeidas', () => pm.expect(pm.response.json()).to.have.property('noLeidas'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/notificaciones/contador?usuarioId={{destinatarioId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["notificaciones", "contador"],
+              "query": [{ "key": "usuarioId", "value": "{{destinatarioId}}" }]
+            }
+          }
+        },
+        {
+          "name": "PUT Marcar todas como leídas",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{baseUrl}}/notificaciones/leidas?usuarioId={{destinatarioId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["notificaciones", "leidas"],
+              "query": [{ "key": "usuarioId", "value": "{{destinatarioId}}" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Eventos y encuestas CSAT",
+      "item": [
+        {
+          "name": "POST Evento ticket RESUELTO",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test('Notificación de estado', () => pm.expect(body.tipo).to.eql('TICKET_ESTADO'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ticketId\": {{ticketId}},\n  \"estadoNuevo\": \"RESUELTO\",\n  \"solicitanteId\": {{solicitanteId}}\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/eventos/ticket-estado", "host": ["{{baseUrl}}"], "path": ["eventos", "ticket-estado"] }
+          }
+        },
+        {
+          "name": "GET Encuesta del ticket",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Ticket correcto', () => pm.expect(pm.response.json().ticketId).to.eql(Number(pm.collectionVariables.get('ticketId'))));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/encuestas/{{ticketId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["encuestas", "{{ticketId}}"]
+            }
+          }
+        },
+        {
+          "name": "POST Responder encuesta",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Respondida', () => pm.expect(pm.response.json().respondida).to.eql(true));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"puntuacion\": 5,\n  \"comentario\": \"Atención rápida y clara\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/encuestas/{{ticketId}}/respuesta",
+              "host": ["{{baseUrl}}"],
+              "path": ["encuestas", "{{ticketId}}", "respuesta"]
+            }
+          }
+        },
+        {
+          "name": "GET Resumen CSAT",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Tiene promedio', () => pm.expect(pm.response.json()).to.have.property('promedio'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/encuestas/resumen", "host": ["{{baseUrl}}"], "path": ["encuestas", "resumen"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Adjuntos",
+      "item": [
+        {
+          "name": "POST Subir adjunto (seleccionar archivo)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "if (body[0]) pm.collectionVariables.set('adjuntoId', body[0].id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "archivos",
+                  "type": "file",
+                  "src": "",
+                  "description": "Selecciona un PNG, JPG o PDF de máximo 5 MB"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/comentarios/{{comentarioId}}/adjuntos",
+              "host": ["{{baseUrl}}"],
+              "path": ["comentarios", "{{comentarioId}}", "adjuntos"]
+            }
+          }
+        },
+        {
+          "name": "GET Listar adjuntos del comentario",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/comentarios/{{comentarioId}}/adjuntos",
+              "host": ["{{baseUrl}}"],
+              "path": ["comentarios", "{{comentarioId}}", "adjuntos"]
+            }
+          }
+        },
+        {
+          "name": "GET Vista previa adjunto",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/adjuntos/{{adjuntoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["adjuntos", "{{adjuntoId}}"]
+            }
+          }
+        },
+        {
+          "name": "GET Descargar adjunto",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/adjuntos/{{adjuntoId}}/descargar",
+              "host": ["{{baseUrl}}"],
+              "path": ["adjuntos", "{{adjuntoId}}", "descargar"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -7,6 +7,8 @@ export const environment = {
     estadisticas: '/resumen',
     usuarios: '/usuarios',
     comentarios: '/comentarios',
-    notificaciones: '/notificaciones'
+    notificaciones: '/notificaciones',
+    adjuntos: '/adjuntos',
+    encuestas: '/encuestas'
   }
 };

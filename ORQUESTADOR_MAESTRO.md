@@ -31,6 +31,16 @@ El sistema **HelpDesk** es una **Plataforma Distribuida de Mesa de Ayuda de TI (
 
 Para que cualquier desarrollador pueda clonar el proyecto, agregar código y probar en su máquina sin que los microservicios de los demás colapsen, existen 5 reglas obligatorias:
 
+> **REGLA CERO (prevalece sobre las demás): cada quien solo modifica su área.**
+> El área de cada persona es su servicio **y su pestaña del frontend** (`frontend/src/app/<dominio>/`), no solo la
+> carpeta del servicio: Ariel `tickets/`, Gabriel `comunicacion/`, Anthony `identidad/`, Miguel `dashboard/`.
+> Dylan es dueño de `gateway/` y del resto de `frontend/`, salvo las pestañas de los demás. Los archivos
+> compartidos (`docker-compose.yml`, `frontend/proxy.conf.json`, `frontend/src/environments/`,
+> `frontend/src/app/services/`, `frontend/src/app/models/`, `.github/`, `docs/`) solo cambian en una rama
+> `chore/<tema>` con un PR pequeño y aditivo aprobado por Miguel. Que no haya conflicto de Git no significa que el
+> cambio sea seguro. Si tu funcionalidad necesita algo fuera de tu área, no lo hagas: avisa al dueño.
+> Guía completa y cómo se hace cumplir: [docs/REGLAS_DE_ALCANCE.md](docs/REGLAS_DE_ALCANCE.md).
+
 1. **PROHIBIDO compartir Entidades (`@Entity`) entre servicios:**  
    Cada microservicio es dueño absoluto de sus tablas. Para vincular información de otro servicio (usuario, ticket, autor), usa **únicamente IDs numéricos primitivos** (`Long solicitanteId`, `Long ticketId`, `Long autorId`).  
     *Prohibido:* `@ManyToOne private Usuario usuario;` (acopla las bases de datos y tumba el proyecto si el compañero cambia su tabla).  
