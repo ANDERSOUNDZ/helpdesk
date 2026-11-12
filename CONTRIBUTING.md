@@ -190,6 +190,7 @@ El equipo usa los tres sistemas. Lo que mantiene todo igual:
 |---|---|
 | Fin de linea (CRLF vs LF) | `.gitattributes` fuerza LF. No lo cambies. Los `.sh` en CRLF fallan en Linux/Mac. |
 | "En mi maquina funciona" | Todo corre en **Docker**. No hace falta instalar Java ni Maven. |
+| Version de Java local | No importa si tienes **Java 21 o 25**: los `pom.xml` compilan siempre para Java 21 (`java.version`) y los Dockerfile usan Java 21, asi que el resultado es igual. Los tests de los 4 servicios se verificaron con ambas versiones. **No cambies `java.version`** ni la imagen base. Sin JDK local: `docker run --rm -v "$PWD":/app -w /app maven:3.9-eclipse-temurin-21-alpine mvn -q test` desde la carpeta del servicio. |
 | Apple Silicon (M1/M2/M3) | Las imagenes base son multi-arquitectura; **no** fijes `platform: linux/amd64` en los Dockerfile. |
 | Mayusculas en rutas | Todo en minusculas (ver seccion 1). |
 | Permisos de archivos en Linux | Evita `bind mounts` de escritura en produccion; el contenedor corre con usuario no root. |

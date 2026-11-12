@@ -109,21 +109,41 @@ git checkout origin/dev -- ruta/del/archivo/que/sobra
 El guardia no aplica a PR del duenio ni a los de bots (cherry-pick). Se probo con los commits reales del
 12 de noviembre: el commit original marca 11 archivos ajenos y la version corregida pasa.
 
-## 8. Configuracion unica (la hace el duenio, una vez)
+## 8. Proteccion de ramas (configuracion unica del duenio)
 
-Sin esto, el guardia avisa pero no impide fusionar. En GitHub: **Settings > Branches > Add branch protection
-rule**, para `dev` y para `main`:
+Sin esto, el guardia avisa pero no impide fusionar. **Es gratis** en repositorios publicos como este. Ya esta
+aplicada a `dev` y a `main` con estas reglas:
 
-1. Marcar **Require a pull request before merging** y **Require approvals** (1).
-2. Marcar **Require review from Code Owners**.
-3. Marcar **Require status checks to pass before merging** y agregar el chequeo **`guardia`**
-   (aparece en la lista despues de que el workflow corra por primera vez en un PR).
-4. Marcar **Do not allow force pushes** y **Do not allow deletions**.
-5. Dejar **sin marcar** "Do not allow bypassing the above settings" si quieres poder fusionar tu como duenio
-   en caso de emergencia.
+1. **Require a pull request before merging**, con **1 aprobacion**.
+2. **Require review from Code Owners** (lo que define `.github/CODEOWNERS`).
+3. **Require status checks to pass**: el chequeo **`guardia`** (el job de `guardia-de-alcance.yml`).
+4. **No force pushes** y **no deletions**.
+5. **Los administradores pueden saltarse la regla** (`enforce_admins` apagado), para que el duenio pueda
+   fusionar sus propios PR (nadie puede aprobar el suyo) y resolver una emergencia.
 
-Ademas, en `.github/CODEOWNERS` hay lineas comentadas para Ariel, Anthony y Dylan: se activan al agregar su
-usuario de GitHub (y darles acceso de escritura al repositorio).
+Como duenio, tus PR se fusionan con `gh pr merge <n> --merge --admin` o con "Merge without waiting for
+requirements" en la web. Un colaborador no puede saltarse nada: necesita la aprobacion del duenio y el `guardia`
+en verde.
+
+Si hay que volver a aplicarla (por ejemplo, en un repositorio nuevo), por rama (`dev` y `main`):
+
+```bash
+gh api -X PUT repos/ANDERSOUNDZ/helpdesk/branches/dev/protection --input - <<'EOF'
+{
+  "required_status_checks": { "strict": false, "contexts": ["guardia"] },
+  "enforce_admins": false,
+  "required_pull_request_reviews": { "required_approving_review_count": 1, "require_code_owner_reviews": true },
+  "restrictions": null,
+  "allow_force_pushes": false,
+  "allow_deletions": false
+}
+EOF
+```
+
+El chequeo `guardia` solo puede exigirse despues de que `guardia-de-alcance.yml` exista en `dev`; si se exige
+antes, ningun PR podria fusionarse. Para revisar el estado: `gh api repos/ANDERSOUNDZ/helpdesk/branches/dev/protection`.
+
+Los usuarios de GitHub de cada persona estan en `.github/CODEOWNERS` (todos con acceso de escritura).
 
 ## 9. Si ya paso (como se arregla sin reescribir historia)
 
@@ -134,7 +154,8 @@ Se hizo asi el 12 de noviembre (PR #8 y #6):
    fusiona primero.
 2. **Limpiar la rama `feat/`.** Se devuelve a `dev` todo lo que no es tuyo:
    `git checkout origin/dev -- <archivos>`, commit y push **normal** (nunca `--force`).
-3. **Traer `dev` y verificar.** `git merge origin/dev`, `npx ng build` y `./mvnw test` (o Maven con Java 21
-   en Docker). Si algo no compila, no se restaura nada ajeno: se avisa al duenio.
+3. **Traer `dev` y verificar.** `git merge origin/dev`, `npx ng build` y `./mvnw test` (funciona con Java 21 o
+   25; sin JDK local, Maven con Java 21 en Docker, ver `CONTRIBUTING.md`, seccion 5). Si algo no compila, no
+   se restaura nada ajeno: se avisa al duenio.
 4. **PR de la rama `feat/` hacia `dev`**, con la seccion "Pendiente de integracion por otros duenios".
 5. Si se abrio un PR hacia `main` por error, se cierra sin fusionar con un comentario que explique el motivo.

@@ -1,18 +1,34 @@
 # Cada area tiene un duenio que revisa sus PR. Guia completa: docs/REGLAS_DE_ALCANCE.md
 #
-# Formato: <ruta> @usuario-github. Si varias reglas coinciden, vale la ULTIMA.
+# Formato: <ruta> @usuario-github. Si varias reglas coinciden, vale la ULTIMA (por eso las mas
+# especificas van al final).
 # Para que funcione, el usuario debe tener acceso de escritura al repo.
 #
 # @ANDERSOUNDZ (duenio) figura siempre junto al duenio de cada area: el autor de un PR no puede aprobar el
 # suyo, asi que el duenio del repo es quien lo aprueba.
 #
-# Para que estas reglas OBLIGUEN la revision, activar "Require review from Code Owners" en la proteccion de
-# ramas de dev y main (docs/REGLAS_DE_ALCANCE.md, seccion "Configuracion unica").
+# La proteccion de ramas de dev y main exige la revision de los code owners
+# (docs/REGLAS_DE_ALCANCE.md, seccion "Configuracion unica").
 
 # Por defecto, todo pasa por el propietario del repo.
 *                                        @ANDERSOUNDZ
 
-# Archivos compartidos: siempre los revisa el propietario (se cambian solo en ramas chore/<tema>).
+# Dylan: gateway y estructura del frontend. Va primero porque las lineas siguientes son mas especificas
+# (pestanas de otros y archivos compartidos) y deben ganarle.
+/gateway/                                @ForDylan @ANDERSOUNDZ
+/frontend/                               @ForDylan @ANDERSOUNDZ
+
+# Areas con duenio asignado (servicio y su pestana del frontend).
+/services/servicio-tickets/              @Martin8bb @ANDERSOUNDZ
+/frontend/src/app/tickets/               @Martin8bb @ANDERSOUNDZ
+/services/servicio-comunicacion/         @TGabVoid @ANDERSOUNDZ
+/frontend/src/app/comunicacion/          @TGabVoid @ANDERSOUNDZ
+/services/servicio-identidad/            @AnthonyJ11281128 @ANDERSOUNDZ
+/frontend/src/app/identidad/             @AnthonyJ11281128 @ANDERSOUNDZ
+/services/servicio-estadisticas/         @ANDERSOUNDZ
+/frontend/src/app/dashboard/             @ANDERSOUNDZ
+
+# Archivos compartidos: solo los revisa el propietario (se cambian en ramas chore/<tema>).
 /.github/                                @ANDERSOUNDZ
 /docs/                                   @ANDERSOUNDZ
 /docker/                                 @ANDERSOUNDZ
@@ -23,19 +39,3 @@
 /frontend/src/environments/              @ANDERSOUNDZ
 /frontend/src/app/services/              @ANDERSOUNDZ
 /frontend/src/app/models/                @ANDERSOUNDZ
-
-# Areas con duenio asignado.
-/services/servicio-estadisticas/         @ANDERSOUNDZ
-/frontend/src/app/dashboard/             @ANDERSOUNDZ
-/services/servicio-comunicacion/         @TGabVoid @ANDERSOUNDZ
-/frontend/src/app/comunicacion/          @TGabVoid @ANDERSOUNDZ
-
-# PENDIENTE: activar cuando se conozca el usuario de GitHub de cada persona (y tenga acceso de escritura).
-# Mientras tanto, estas carpetas las revisa @ANDERSOUNDZ por la regla "*".
-#
-# /services/servicio-tickets/            @usuario-ariel @ANDERSOUNDZ
-# /frontend/src/app/tickets/             @usuario-ariel @ANDERSOUNDZ
-# /services/servicio-identidad/          @usuario-anthony @ANDERSOUNDZ
-# /frontend/src/app/identidad/           @usuario-anthony @ANDERSOUNDZ
-# /gateway/                              @usuario-dylan @ANDERSOUNDZ
-# /frontend/                             @usuario-dylan @ANDERSOUNDZ   (ponerla ANTES de las lineas de pestanas y compartidos)
