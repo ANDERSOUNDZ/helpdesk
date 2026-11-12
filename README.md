@@ -4,6 +4,8 @@ Plataforma de **gestión de incidentes y requerimientos tecnológicos** construi
 
 >  **DOCUMENTO MAESTRO PARA DESARROLLADORES:**  
 > Consulta la [**Guía Maestra y Reglas Inmutables (ORQUESTADOR_MAESTRO.md)**](ORQUESTADOR_MAESTRO.md) antes de escribir código para conocer las reglas que evitan que los microservicios colapsen entre sí.
+>
+> **Regla de oro:** cada quien solo modifica su área (su servicio y su pestaña del frontend). Detalle y cómo se hace cumplir en [docs/REGLAS_DE_ALCANCE.md](docs/REGLAS_DE_ALCANCE.md).
 
 ---
 

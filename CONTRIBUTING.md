@@ -33,15 +33,20 @@ Cuando un usuario interactúe con el asistente, se debe verificar:
 
 | Desarrollador Asignado | Componente Exclusivo | Su Rama Única | Su Carpeta Hermética |
 |---|---|---|---|
-| **Ariel Martín Guerrero Sandoval** | Servicio de Tickets | `feat/tickets` | `services/servicio-tickets/` |
-| **Gabriel Emilio Ponce Salazar** | Servicio de Comunicación | `feat/comunicacion` | `services/servicio-comunicacion/` |
-| **Miguel Anderson Chanchay** *(Admin/Dueño)* | Servicio de Estadísticas + Control Global | `feat/estadisticas` / `main` | `services/servicio-estadisticas/` + Acceso Total |
-| **Dylan Miguel Vargas Onofa** | Frontend SPA + API Gateway | `feat/frontend` y `feat/gateway` | `frontend/` y `gateway/` |
-| **Anthony Marcel Orozco Junia** | Servicio de Identidad | `feat/identidad` | `services/servicio-identidad/` |
+| **Ariel Martín Guerrero Sandoval** | Servicio de Tickets | `feat/tickets` | `services/servicio-tickets/` y `frontend/src/app/tickets/` |
+| **Gabriel Emilio Ponce Salazar** | Servicio de Comunicación | `feat/comunicacion` | `services/servicio-comunicacion/` y `frontend/src/app/comunicacion/` |
+| **Miguel Anderson Chanchay** *(Admin/Dueño)* | Servicio de Estadísticas + Control Global | `feat/estadisticas` / `main` | `services/servicio-estadisticas/`, `frontend/src/app/dashboard/` + Acceso Total |
+| **Dylan Miguel Vargas Onofa** | Frontend SPA + API Gateway | `feat/frontend` y `feat/gateway` | `gateway/` y `frontend/` (sin las pestanas de los demas ni los archivos compartidos) |
+| **Anthony Marcel Orozco Junia** | Servicio de Identidad | `feat/identidad` | `services/servicio-identidad/` y `frontend/src/app/identidad/` |
+
+> **REGLA DE ORO:** solo modificas los archivos de **tu area** (tu servicio y tu pestana del frontend). Nada mas,
+> por ningun motivo, aunque "ayude" a tu funcionalidad. Si necesitas algo fuera de tu area, no lo hagas:
+> sigue el procedimiento de [docs/REGLAS_DE_ALCANCE.md](docs/REGLAS_DE_ALCANCE.md) (secciones 4 y 5). Un guardia
+> automatico en GitHub Actions rechaza los PR que se salgan de tu area.
 
 Reglas Inmutables de Aislamiento:
 
-- **Hermetismo estricto para colaboradores:** Solo editas la carpeta de **tu** servicio. Queda terminantemente prohibido alterar el código o los archivos dentro de la carpeta de otro compañero salvo autorización directa del dueño del repo.
+- **Hermetismo estricto para colaboradores:** Solo editas **tu area** (la carpeta de tu servicio y tu pestana del frontend). Queda terminantemente prohibido alterar el código o los archivos dentro de la carpeta de otro compañero salvo autorización directa del dueño del repo.
 - **Sin colisiones:** Cada desarrollador prueba su código en local con su propio Docker/pgAdmin (`5050`, `5052`, `5053`, `5054`) o en `http://localhost:4200` para el Frontend.
 - **Firmas y PRs protegidos:** Ningún colaborador empuja directo a `dev` ni a `main`. Todo cambio debe ser enviado mediante Pull Request firmado con su usuario verificado de GitHub y revisado y aprobado por Miguel Anderson Chanchay (`@ANDERSOUNDZ`).
 - **Nombres en minúsculas con guiones y sin tildes.**
@@ -96,8 +101,10 @@ levantar todo junto y recorrer el guion de prueba (README, "Levantar el proyecto
 
 1. **Cada quien en su carpeta.** `CODEOWNERS` asigna la revision de cada servicio a su responsable.
 2. **Archivos compartidos** (`README.md`, `CONTRIBUTING.md`, `docker-compose.yml` de la raiz, `docker/`, `.github/`,
-   `docs/`): no los edites en tu rama de servicio. Cambialos en una rama corta `chore/<tema>` desde `dev`, con un
-   PR pequeno, y avisa al equipo.
+   `docs/`, `frontend/proxy.conf.json`, `frontend/src/environments/`, `frontend/src/app/services/`,
+   `frontend/src/app/models/`): no los edites en tu rama de servicio. Cambialos en una rama corta `chore/<tema>`
+   desde `dev`, con un PR pequeno y **aditivo**, y avisa al equipo. Lista completa y procedimiento:
+   [docs/REGLAS_DE_ALCANCE.md](docs/REGLAS_DE_ALCANCE.md).
 3. **`git merge origin/dev` a diario**, para no acumular diferencias.
 4. **Respeta el contrato** (puertos, rutas y el aviso de cambio de estado). Si lo vas a cambiar, avisa antes de
    hacerlo.
@@ -183,6 +190,7 @@ El equipo usa los tres sistemas. Lo que mantiene todo igual:
 |---|---|
 | Fin de linea (CRLF vs LF) | `.gitattributes` fuerza LF. No lo cambies. Los `.sh` en CRLF fallan en Linux/Mac. |
 | "En mi maquina funciona" | Todo corre en **Docker**. No hace falta instalar Java ni Maven. |
+| Version de Java local | No importa si tienes **Java 21 o 25**: los `pom.xml` compilan siempre para Java 21 (`java.version`) y los Dockerfile usan Java 21, asi que el resultado es igual. Los tests de los 4 servicios se verificaron con ambas versiones. **No cambies `java.version`** ni la imagen base. Sin JDK local: `docker run --rm -v "$PWD":/app -w /app maven:3.9-eclipse-temurin-21-alpine mvn -q test` desde la carpeta del servicio. |
 | Apple Silicon (M1/M2/M3) | Las imagenes base son multi-arquitectura; **no** fijes `platform: linux/amd64` en los Dockerfile. |
 | Mayusculas en rutas | Todo en minusculas (ver seccion 1). |
 | Permisos de archivos en Linux | Evita `bind mounts` de escritura en produccion; el contenedor corre con usuario no root. |
