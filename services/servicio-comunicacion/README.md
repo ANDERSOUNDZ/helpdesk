@@ -1,90 +1,167 @@
-﻿#  Servicio de Comunicación (HelpDesk)
+﻿# Servicio de Comunicación (HelpDesk)
 
-> **Desarrollador Responsable:** **Gabriel Emilio Ponce Salazar**  
-> **Estado:** ⏸️ **STANDBY (Fase Base Completada — Listo para Fase 2)**  
-> **Rama asignada:** `feat/comunicacion`
+> **Desarrollador responsable:** Gabriel Emilio Ponce Salazar
+> **Rama:** `feat/comunicacion`
+> **Puerto:** `8084`
+> **Base de datos:** `comunicacion_db` (PostgreSQL)
 
-Microservicio responsable del **canal de soporte técnico, registro de comentarios y centro de notificaciones** para usuarios y técnicos.
+Microservicio responsable de la bitácora de soporte, las notificaciones, las encuestas de satisfacción y los adjuntos de los comentarios.
 
----
+## Funcionalidades implementadas
 
-## ‍ Para el Desarrollador (Gabriel Emilio Ponce Salazar)
-### ¿Qué está hecho hasta ahora?
-- Entidades [`Comentario.java`](src/main/java/com/helpdesk/comunicacion/model/Comentario.java) (`ticketId`, `autorId`, `texto`) y [`Notificacion.java`](src/main/java/com/helpdesk/comunicacion/model/Notificacion.java) (`usuarioId`, `mensaje`, `leida`).
-- Servicio [`ComunicacionService.java`](src/main/java/com/helpdesk/comunicacion/service/ComunicacionService.java) para crear/listar comentarios, listar/marcar leídas las notificaciones y procesar cambios de estado (`alCambiarEstado`).
-- Controlador REST [`ComunicacionController.java`](src/main/java/com/helpdesk/comunicacion/controller/ComunicacionController.java) con rutas `GET/POST /comentarios`, `GET/PUT /notificaciones`, `POST /eventos/ticket-estado`.
-- Base de datos PostgreSQL independiente y contenedor de **pgAdmin** listo en puerto `5054`.
+- Comentarios con fecha de creación, autor y título del ticket.
+- Notificaciones con tipo, ticket asociado, fecha, contador de no leídas y lectura masiva.
+- Filtro por ticket, búsqueda por texto/autor/asunto y paginación de la bitácora.
+- Encuesta CSAT de 1 a 5 cuando un ticket pasa a `RESUELTO`.
+- Resumen de satisfacción para la pestaña de comunicación y el dashboard.
+- Adjuntos PNG, JPG y PDF por comentario, con vista previa y descarga.
+- Notificación automática al destinatario cuando se crea un comentario.
+- Se conserva el contrato anterior de `GET /comentarios` y `GET /notificaciones` para no romper el diálogo de tickets.
 
-### Tareas en Standby (Tu trabajo cuando reanudes):
-1. **Recepción de Eventos (Fase 2):** Escuchar los eventos emitidos por **Ariel** (`TicketCreadoEvent`, `TicketEstadoCambiadoEvent`, `TicketAsignadoEvent`) para crear automáticamente una notificación dirigida al solicitante o al técnico sin necesidad de que te llamen por HTTP.
-2. **Historial de Hilos:** Validar que los comentarios por `ticketId` salgan ordenados cronológicamente para que **Dylan** pueda pintarlos fluidamente en el chat/hilo del ticket en el Frontend.
-3. **Filtros de Notificaciones:** Permitir obtener notificaciones no leídas de un usuario en particular (`GET /notificaciones?usuarioId=X&leida=false`).
+## Endpoints
 
----
+### Comentarios
 
-##  ¿Qué hace este servicio? (Propósito de Negocio)
-Es la vía de contacto continuo durante la resolución de un incidente:
-- **Historial técnico de comentarios:** Permite a los técnicos y usuarios intercambiar notas, diagnósticos o comprobaciones asociadas al `ticketId`.
-- **Bandeja de notificaciones:** Genera avisos automáticos al usuario cuando el estado de su ticket cambia (ej. cuando pasa a `EN_PROGRESO` o `RESUELTO`).
-- **Control de lectura:** Permite al usuario marcar sus notificaciones como leídas.
+| Método | Ruta | Descripción |
+|---|---|---|
+| `GET` | `/comentarios?ticketId=` | Lista compatible con el frontend anterior. Devuelve un array. |
+| `GET` | `/comentarios/paginados?ticketId=&q=&page=0&size=10&sort=creadoEn,desc` | Búsqueda y paginación. Devuelve una página de Spring. |
+| `POST` | `/comentarios` | Crea un comentario y, si recibe `destinatarioId`, genera una notificación. |
+| `DELETE` | `/comentarios/{id}` | Elimina el comentario y sus adjuntos. |
 
----
+Ejemplo de creación:
 
-##  Especificaciones de Red y Puertos
-- **Aplicación Spring Boot:** Puerto `8084`
-- **PostgreSQL Local:** Puerto `5435`
-- **pgAdmin 4 (GUI Web):** Puerto `5054`
-- **Base de Datos:** `comunicacion_db`
-- **Usuario BD:** `comunicacion`
-- **Contraseña BD:** `comunicacion`
-
----
-
-##  Cómo levantarlo con Docker
-
-Ejecuta desde esta carpeta:
-```bash
-docker compose up -d --build
+```json
+{
+  "ticketId": 7,
+  "autorId": 2,
+  "autorNombre": "Ana Torres",
+  "ticketTitulo": "No imprime la factura",
+  "texto": "Revisé el controlador de impresión.",
+  "destinatarioId": 3
+}
 ```
 
-Verifica el estado de los 3 contenedores (`app`, `db`, `pgadmin`):
-```bash
-docker compose ps
+`destinatarioId` es opcional. El emisor debe indicarlo porque este servicio no consulta tickets ni identidad.
+
+### Notificaciones
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| `GET` | `/notificaciones?usuarioId=&leida=&tipo=&ticketId=` | Lista filtrada. |
+| `GET` | `/notificaciones/contador?usuarioId=` | Devuelve `total` y `noLeidas`. |
+| `PUT` | `/notificaciones/leidas?usuarioId=` | Marca todas las no leídas del usuario. Devuelve `204`. |
+| `PUT` | `/notificaciones/{id}/leida` | Marca una notificación como leída. |
+
+Tipos: `TICKET_ESTADO`, `COMENTARIO_NUEVO`, `ENCUESTA_SATISFACCION`, `SISTEMA`.
+
+### Encuestas CSAT
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| `GET` | `/encuestas/{ticketId}` | Consulta la encuesta del ticket. |
+| `POST` | `/encuestas/{ticketId}/respuesta` | Guarda una puntuación de 1 a 5. |
+| `GET` | `/encuestas/resumen` | Promedio, respondidas, pendientes y distribución. |
+
+El evento `POST /eventos/ticket-estado` con `estadoNuevo = "RESUELTO"` crea la encuesta y la notificación CSAT una sola vez por ticket.
+
+### Adjuntos
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| `POST` | `/comentarios/{id}/adjuntos` | Multipart con el campo `archivos`. Hasta 3 archivos de 5 MB. |
+| `GET` | `/comentarios/{id}/adjuntos` | Metadata de adjuntos del comentario. |
+| `GET` | `/adjuntos/{id}` | Vista previa inline. |
+| `GET` | `/adjuntos/{id}/descargar` | Descarga con el nombre original. |
+| `DELETE` | `/adjuntos/{id}` | Elimina metadata y archivo. |
+
+Tipos permitidos: `image/png`, `image/jpeg`, `application/pdf`.
+
+## Configuración de adjuntos
+
+```properties
+app.adjuntos.directorio=${ADJUNTOS_DIR:./datos/adjuntos}
+app.adjuntos.max-tamano-bytes=${ADJUNTOS_MAX_BYTES:5242880}
+app.adjuntos.max-archivos=${ADJUNTOS_MAX_ARCHIVOS:3}
+app.adjuntos.tipos-permitidos=${ADJUNTOS_TIPOS:image/png,image/jpeg,application/pdf}
+
+spring.servlet.multipart.max-file-size=5MB
+spring.servlet.multipart.max-request-size=20MB
 ```
 
----
+En Docker, el servicio de comunicación usa el volumen `adjuntos` montado en `/app/adjuntos`.
 
-##  ¿A DÓNDE DEBES IR Y QUÉ DEBES HACER AL LEVANTAR EL SERVICIO?
+## Flujo CSAT
 
-> ️ **¡OJO CON EL ERROR 404 / WHITELABEL ERROR PAGE!**  
-> Si abres `http://localhost:8084/` en el navegador verás un error 404 de Spring Boot. Es normal porque es una **API REST**.
+1. `servicio-tickets` (o el frontend, mientras no exista el evento automático) envía:
 
-### 1. Para probar tu API REST:
-Abre en tu navegador o en Postman el endpoint real:
- **[http://localhost:8084/comentarios](http://localhost:8084/comentarios)** o **[http://localhost:8084/notificaciones](http://localhost:8084/notificaciones)**  
-*Respuesta esperada (JSON):* `[]`.
-
----
-
-### 2. Para ver tu Base de Datos en pgAdmin 4:
-Abre en tu navegador:
- **[http://localhost:5054](http://localhost:5054)**
-1. Inicia sesión con: `admin@admin.com` / `admin`
-2. Registra el servidor (**Servers**  **Register**  **Server...**):
-   - **General:** Nombre: `Comunicacion DB`
-   - **Connection:**
-     - ️ **Host name/address:** `db` *(OJO: escribir exactamente la palabra `db`. Si pones `localhost` o `127.0.0.1` te dará error `Connection refused`)*
-     - ️ **Port:** `5432` *(puerto interno, NO poner 5435)*
-     - **Maintenance database:** `comunicacion_db`
-     - **Username:** `comunicacion`
-     - **Password:** `comunicacion`
-     - Marca *Save password* y clic en **Save**.
-3. Ve a `Schemas  public  Tables` para ver las tablas **`comentarios`** y **`notificaciones`**.
-
----
-
-##  Detener el servicio
-```bash
-docker compose down
+```json
+{
+  "ticketId": 7,
+  "estadoNuevo": "RESUELTO",
+  "solicitanteId": 3
+}
 ```
-*(No uses `-v` para preservar los datos de la base).*
+
+a `POST /eventos/ticket-estado`.
+2. Se crea una notificación de estado.
+3. Se crea una encuesta pendiente y una notificación `ENCUESTA_SATISFACCION`.
+4. El solicitante responde desde la pestaña de comunicación.
+5. El resumen aparece en la pestaña de comunicación y en el dashboard.
+
+## Notificaciones automáticas al comentar
+
+El backend no puede deducir el destinatario porque no consulta `servicio-tickets`. El frontend de comunicación y el diálogo de tickets envían `destinatarioId`:
+
+- Si comenta el técnico, se notifica al solicitante.
+- Si comenta el solicitante, se notifica al técnico asignado.
+- Si el destinatario coincide con el autor, no se genera notificación.
+
+## Integración pendiente
+
+- `servicio-tickets` todavía no emite el evento al resolver por sí solo. Mientras tanto, el frontend de tickets lo envía después de resolver.
+- No hay autenticación real. Los IDs de autor y destinatario se confían desde el cliente; es una simulación para la demo.
+- El dashboard principal consume `/encuestas/resumen`; el dueño del dashboard puede extender la visualización.
+
+## Ejecución
+
+```bash
+cd services/servicio-comunicacion
+./mvnw spring-boot:run
+```
+
+En Windows:
+
+```powershell
+cd services/servicio-comunicacion
+.\mvnw.cmd spring-boot:run
+```
+
+Con Docker desde la raíz:
+
+```bash
+docker compose up -d --build servicio-comunicacion
+```
+
+## Pruebas
+
+```powershell
+cd services/servicio-comunicacion
+.\mvnw.cmd test
+```
+
+Pruebas incluidas:
+
+- Creación de comentarios y notificaciones.
+- Filtros y paginación.
+- Contador y lectura masiva.
+- Evento `RESUELTO`, encuesta y resumen CSAT.
+- Validación de adjuntos, almacenamiento y descarga.
+
+## Postman
+
+La colección está en:
+
+`services/servicio-comunicacion/postman/servicio-comunicacion.postman_collection.json`
+
+Carpetas: Comentarios, Notificaciones, Encuestas, Adjuntos y Eventos.
