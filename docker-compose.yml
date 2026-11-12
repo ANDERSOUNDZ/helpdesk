@@ -51,9 +51,6 @@ services:
       DB_URL: jdbc:postgresql://db:5432/comunicacion_db
       DB_USUARIO: comunicacion
       DB_CLAVE: comunicacion
-      ADJUNTOS_DIR: /app/adjuntos
-    volumes:
-      - adjuntos:/app/adjuntos
     depends_on:
       db:
         condition: service_healthy
@@ -86,4 +83,3 @@ services:
 
 volumes:
   datos:
-  adjuntos:

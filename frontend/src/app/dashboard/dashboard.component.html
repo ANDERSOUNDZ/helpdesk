@@ -53,45 +53,6 @@
     </mat-card>
   </div>
 
-  <!-- TARJETA CSAT: SATISFACCION DEL SERVICIO -->
-  <mat-card class="tarjeta-csat-dashboard">
-    <mat-card-header>
-      <mat-card-title>Satisfaccion del Servicio (CSAT)</mat-card-title>
-      <mat-card-subtitle>Encuestas enviadas al pasar un ticket a RESUELTO</mat-card-subtitle>
-    </mat-card-header>
-    <mat-card-content>
-      <div class="csat-resumen">
-        <div class="csat-dato principal">
-          <strong>{{ resumenEncuestas.promedio | number:'1.1-2' }}</strong>
-          <span>Promedio / 5</span>
-        </div>
-        <div class="csat-dato">
-          <strong>{{ resumenEncuestas.respondidas }}</strong>
-          <span>Respondidas</span>
-        </div>
-        <div class="csat-dato">
-          <strong>{{ resumenEncuestas.pendientes }}</strong>
-          <span>Pendientes</span>
-        </div>
-        <div class="csat-dato">
-          <strong>{{ resumenEncuestas.totalEncuestas }}</strong>
-          <span>Total encuestas</span>
-        </div>
-      </div>
-
-      <div class="csat-distribucion">
-        <div class="csat-fila" *ngFor="let p of [1, 2, 3, 4, 5]">
-          <span class="csat-numero">{{ p }}</span>
-          <mat-icon class="csat-estrella">star</mat-icon>
-          <div class="csat-barra">
-            <div class="csat-barra-relleno" [style.width.%]="porcentajeCsat(p)"></div>
-          </div>
-          <span class="csat-cantidad">{{ resumenEncuestas.distribucion[p] ?? 0 }}</span>
-        </div>
-      </div>
-    </mat-card-content>
-  </mat-card>
-
   <!-- TABLA 1: DESGLOSE PORCENTUAL POR ESTADO -->
   <mat-card class="tarjeta-resumen-estados">
     <mat-card-header>

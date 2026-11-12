@@ -10,9 +10,6 @@ data/
 *.mv.db
 *.trace.db
 
-# Adjuntos locales del servicio de comunicacion
-datos/
-
 # Secretos y configuracion local: solo se versiona .env.example
 .env
 .env.*
