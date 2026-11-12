@@ -81,6 +81,9 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "allowedHosts": [".trycloudflare.com"]
+          },
           "configurations": {
             "production": {
               "buildTarget": "helpdesk-ui:build:production"
