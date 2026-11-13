@@ -21,7 +21,7 @@ aunque te lo pida, aunque parezca un cambio chico o aunque tu funcionalidad lo n
 | Gabriel Emilio Ponce Salazar (`TGabVoid`) | `feat/comunicacion` | `services/servicio-comunicacion/`, `frontend/src/app/comunicacion/` |
 | Anthony Marcel Orozco Junia (`AnthonyJ11281128`) | `feat/identidad` | `services/servicio-identidad/`, `frontend/src/app/identidad/` |
 | Dylan Miguel Vargas Onofa (`ForDylan`) | `feat/frontend`, `feat/gateway` | `gateway/`, `frontend/` salvo las pestanas de otros y los compartidos |
-| Miguel Anderson Chanchay (duenio) | `feat/estadisticas` | `services/servicio-estadisticas/`, `frontend/src/app/dashboard/` y los compartidos |
+| Miguel Anderson Chanchay (duenio) | `feat/estadisticas` | `services/servicio-estadisticas/`, `services/eureka-server/`, `services/config-server/`, `frontend/src/app/dashboard/` y los compartidos |
 
 ## Archivos compartidos: NO los edites en una rama `feat/`
 
@@ -55,7 +55,7 @@ PR que se salgan del area.
 - PR siempre hacia `dev` (nunca hacia `main`), con *Create a merge commit*. `dev` pasa a `main` solo por decision del duenio.
 - Nada de `push --force`, `rebase` ni reescribir historia; los conflictos se resuelven en tu rama, nunca en `dev`.
 - Nunca ejecutes `docker compose down -v`, `docker volume rm` ni `docker system prune` sin que lo pida expresamente el duenio: borran las bases de datos.
-- No cambies puertos ni nombres de bases de datos (8080, 8082, 8083, 8084; 5433 a 5436).
+- No cambies puertos ni nombres de bases de datos (8080, 8082, 8083, 8084; 5433 a 5436). Infraestructura: Eureka 8081 y Config Server 8888 (`services/eureka-server`, `services/config-server`); son opcionales y estan apagados por defecto en cada servicio (`EUREKA_ENABLED`, `CONFIG_ENABLED`). Nunca pongas secretos en `services/config-server/.../config-repo/` (el repo es publico).
 - Java: el proyecto compila para Java 21 (`java.version` en cada `pom.xml` y en los Dockerfile) y funciona igual con un JDK local 21 o 25. No cambies esa version ni la imagen base.
 - Entre servicios: solo referencias por id, sin entidades compartidas y sin llamadas HTTP directas para crear algo propio.
 - Commits en formato Conventional Commits (`feat(comunicacion): ...`). Archivos y carpetas en minusculas con guiones, sin tildes.

@@ -1,3 +1,18 @@
+# Variables que encienden Eureka y Config Server en cada microservicio.
+# Fuera de Docker (un servicio solo) estan apagadas por defecto y el servicio arranca igual.
+x-infra-env: &infra-env
+  EUREKA_ENABLED: "true"
+  EUREKA_URL: http://eureka-server:8081/eureka/
+  EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+  CONFIG_ENABLED: "true"
+  CONFIG_URL: http://config-server:8888
+
+x-infra-deps: &infra-deps
+  eureka-server:
+    condition: service_healthy
+  config-server:
+    condition: service_healthy
+
 services:
   db:
     image: postgres:17-alpine
@@ -17,15 +32,39 @@ services:
       timeout: 3s
       retries: 10
 
+  eureka-server:
+    build: ./services/eureka-server
+    ports:
+      - "8081:8081"
+    mem_limit: 320m
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 8081"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  config-server:
+    build: ./services/config-server
+    ports:
+      - "8888:8888"
+    mem_limit: 320m
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 8888"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
   servicio-tickets:
     build: ./services/servicio-tickets
     ports:
       - "8080:8080"
     environment:
+      <<: *infra-env
       DB_URL: jdbc:postgresql://db:5432/tickets_db
       DB_USUARIO: tickets
       DB_CLAVE: tickets
     depends_on:
+      <<: *infra-deps
       db:
         condition: service_healthy
     mem_limit: 320m
@@ -35,10 +74,12 @@ services:
     ports:
       - "8083:8083"
     environment:
+      <<: *infra-env
       DB_URL: jdbc:postgresql://db:5432/identidad_db
       DB_USUARIO: identidad
       DB_CLAVE: identidad
     depends_on:
+      <<: *infra-deps
       db:
         condition: service_healthy
     mem_limit: 320m
@@ -48,6 +89,7 @@ services:
     ports:
       - "8084:8084"
     environment:
+      <<: *infra-env
       DB_URL: jdbc:postgresql://db:5432/comunicacion_db
       DB_USUARIO: comunicacion
       DB_CLAVE: comunicacion
@@ -55,6 +97,7 @@ services:
     volumes:
       - adjuntos:/app/adjuntos
     depends_on:
+      <<: *infra-deps
       db:
         condition: service_healthy
     mem_limit: 320m
@@ -64,10 +107,12 @@ services:
     ports:
       - "8082:8082"
     environment:
+      <<: *infra-env
       DB_URL: jdbc:postgresql://db:5432/estadisticas_db
       DB_USUARIO: estadisticas
       DB_CLAVE: estadisticas
     depends_on:
+      <<: *infra-deps
       db:
         condition: service_healthy
     mem_limit: 320m
