@@ -285,6 +285,26 @@ Quien es dueno de que dato (para no pisarse):
   mano) y guarda sus propios contadores en su base.
 - **identidad** es el unico que conoce credenciales y roles.
 
+### Infraestructura (Eureka y Config Server)
+
+Dos modulos de apoyo, tomados del proyecto de ejemplo `smart-parking` (misma estructura y configuracion, sin su
+logica de negocio). Viven junto a los servicios, en `services/`.
+
+| Modulo | Para que sirve | Puerto | Panel o prueba |
+|---|---|---|---|
+| `eureka-server` | Descubrimiento: cada servicio se registra con su nombre (`servicio-tickets`...) y se encuentra por nombre, no por puerto | **8081** | http://localhost:8081 |
+| `config-server` | Configuracion centralizada: entrega propiedades desde `config-repo/` (modo `native`) | **8888** | `curl localhost:8888/servicio-tickets/default` |
+
+- **Son opcionales para trabajar.** Cada servicio los trae **apagados por defecto** (`EUREKA_ENABLED` y
+  `CONFIG_ENABLED` en `false`), asi que quien levanta su servicio solo (opciones 1 y 2) no necesita nada mas.
+  El `docker-compose.yml` de la raiz los enciende y levanta ambos servidores (opcion 3).
+- El puerto `8080` del ejemplo es de `servicio-tickets`, por eso el Config Server usa el `8888`.
+- **No cambian las reglas del contrato:** los servicios siguen refiriendose solo por id y no se llaman entre si
+  por HTTP; Eureka sirve para que un gateway los encuentre, no para que se hablen.
+- **El repositorio es publico: nada de contrasenas ni claves en `config-repo/`.** Los secretos van por variables de entorno.
+- Si un servicio tiene su propio `src/test/resources/application.properties` (hoy solo `servicio-tickets`), ese archivo
+  reemplaza al principal en las pruebas: debe llevar `eureka.client.enabled=false` y `spring.cloud.config.enabled=false`.
+
 ### Entidades y contrato entre servicios
 
 Entidades minimas, una clase por concepto (en la carpeta `model/` de cada servicio):
@@ -377,7 +397,9 @@ helpdesk/
    ├─ servicio-tickets/           App en el puerto 8080
    ├─ servicio-identidad/         App en el puerto 8083
    ├─ servicio-comunicacion/      App en el puerto 8084
-   └─ servicio-estadisticas/      App en el puerto 8082
+   ├─ servicio-estadisticas/      App en el puerto 8082
+   ├─ eureka-server/              Infraestructura: descubrimiento, puerto 8081
+   └─ config-server/              Infraestructura: configuracion, puerto 8888
 ```
 
 Dentro de cada servicio:
@@ -462,8 +484,8 @@ Desde la raiz del repositorio. Usa **una sola instancia de PostgreSQL con 4 base
 con su usuario, y ninguno puede entrar a la base de otro), lo que gasta menos que 4 instancias:
 
 ```bash
-docker compose up -d --build                                  # los 4 servicios + PostgreSQL
-docker compose up -d servicio-tickets servicio-comunicacion   # solo algunos (y la base)
+docker compose up -d --build                                  # los 4 servicios + Eureka + Config Server + PostgreSQL
+docker compose up -d servicio-tickets servicio-comunicacion   # solo algunos (y la base, Eureka y Config Server)
 docker compose down                                           # apagar (los datos se conservan)
 docker compose down -v                                        # apagar y BORRAR los datos
 ```

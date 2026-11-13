@@ -19,7 +19,7 @@ Este documento cierra esa duda, y las secciones 7 y 8 explican como se hace cump
 | **Gabriel Emilio Ponce Salazar** | `feat/comunicacion` | `services/servicio-comunicacion/` y `frontend/src/app/comunicacion/` |
 | **Anthony Marcel Orozco Junia** | `feat/identidad` | `services/servicio-identidad/` y `frontend/src/app/identidad/` |
 | **Dylan Miguel Vargas Onofa** | `feat/frontend` y `feat/gateway` | `gateway/` y el resto de `frontend/` (estructura de la app: `app.*`, `main.ts`, `index.html`, `styles.scss`, `angular.json`, `package*.json`, `tsconfig*`), **sin** las pestanas de los demas ni los archivos compartidos |
-| **Miguel Anderson Chanchay** (duenio) | `feat/estadisticas` | `services/servicio-estadisticas/`, `frontend/src/app/dashboard/` y **todos los archivos compartidos** |
+| **Miguel Anderson Chanchay** (duenio) | `feat/estadisticas` | `services/servicio-estadisticas/`, `services/eureka-server/`, `services/config-server/`, `frontend/src/app/dashboard/` y **todos los archivos compartidos** |
 
 Cada duenio de un servicio es tambien duenio de **su pestana** del frontend. Nadie edita la pestana de otro.
 

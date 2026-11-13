@@ -55,6 +55,7 @@ Para que cualquier desarrollador pueda clonar el proyecto, agregar código y pro
    - `servicio-estadisticas`: App **`8082`** | PostgreSQL **`5436`** (`estadisticas_db`)
    - `servicio-identidad`: App **`8083`** | PostgreSQL **`5434`** (`identidad_db`)
    - `servicio-comunicacion`: App **`8084`** | PostgreSQL **`5435`** (`comunicacion_db`)
+   - `eureka-server` (infraestructura): App **`8081`** | `config-server` (infraestructura): App **`8888`**
    - *API Gateway (Futuro):* Puerto **`8000`** | *Frontend Web (Futuro):* Puerto **`3000`**
 
 4. **PROTOCOLO DE IDENTIFICACIÓN, ASIGNACIÓN HERMÉTICA Y PRIVILEGIOS DE DUEÑO:**  
