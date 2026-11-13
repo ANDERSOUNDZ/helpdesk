@@ -94,3 +94,24 @@ Abre en tu navegador:
 docker compose down
 ```
 *(No uses `-v` para preservar los datos de la base).*
+
+
+---
+
+##  Autenticación y permisos por rol
+
+Valida el token (JWT) que emite `servicio-identidad`, **sin llamarlo**. Está **apagada por defecto** (`AUTH_ENABLED=false`):
+con el interruptor apagado todo funciona como antes y no hace falta ningún token. Se enciende con variables de entorno:
+`AUTH_ENABLED=true` y `JWT_SECRET` (la **misma clave** que usa identidad, mínimo 32 caracteres; nunca en el repositorio, que es público).
+
+| Endpoint | Quién puede |
+|---|---|
+| `GET /tickets`, `GET /tickets/{id}`, `POST /tickets` | cualquier usuario autenticado |
+| `PUT /tickets/{id}/reabrir` | cualquier usuario autenticado |
+| `PUT /tickets/{id}/resolver` | `TECNICO`, `ADMINISTRADOR` |
+| `PUT /tickets/{id}/asignar/{tecnicoId}` | `ADMINISTRADOR` |
+| `PUT /tickets/{id}` (editar), `DELETE /tickets/{id}` | `ADMINISTRADOR` |
+| `GET /actuator/health` | público |
+
+Sin token o con un token inválido, vencido o de otro emisor responde `401`; con un rol sin permiso, `403`.
+La regla está en `config/SeguridadConfig.java` y se prueba en `SeguridadConfigTest`.

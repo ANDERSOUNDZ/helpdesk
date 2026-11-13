@@ -165,3 +165,24 @@ La colección está en:
 `services/servicio-comunicacion/postman/servicio-comunicacion.postman_collection.json`
 
 Carpetas: Comentarios, Notificaciones, Encuestas, Adjuntos y Eventos.
+
+
+---
+
+## Autenticación y permisos por rol
+
+Valida el token (JWT) que emite `servicio-identidad`, **sin llamarlo**. Está **apagada por defecto** (`AUTH_ENABLED=false`):
+con el interruptor apagado todo funciona como antes y no hace falta ningún token. Se enciende con variables de entorno:
+`AUTH_ENABLED=true` y `JWT_SECRET` (la **misma clave** que usa identidad, mínimo 32 caracteres; nunca en el repositorio, que es público).
+
+| Endpoint | Quién puede |
+|---|---|
+| Comentarios, adjuntos, notificaciones, encuestas y `POST /eventos/ticket-estado` | cualquier usuario autenticado |
+| `DELETE /comentarios/{id}`, `DELETE /adjuntos/{id}` | `ADMINISTRADOR` |
+| `GET /actuator/health` | público |
+
+Sin token o con un token inválido, vencido o de otro emisor responde `401`; con un rol sin permiso, `403`.
+La regla está en `config/SeguridadConfig.java` y se prueba en `SeguridadConfigTest`.
+
+Nota para el frontend: con la autenticación encendida, descargar un adjunto con un enlace directo (`<a href>` o `<img src>`)
+no envía el token y recibe `401`; hay que pedirlo con `HttpClient` (con el interceptor) y abrirlo como `blob`.
