@@ -6,6 +6,62 @@
   },
   "item": [
     {
+      "name": "0. Autenticacion (:8083)",
+      "item": [
+        {
+          "name": "Login (guarda el token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Login correcto', function () { pm.response.to.have.status(200); });",
+                  "const respuesta = pm.response.json();",
+                  "pm.collectionVariables.set('token', respuesta.token);",
+                  "console.log('Sesion iniciada como ' + respuesta.usuario.nombre + ' (' + respuesta.usuario.rol + ')');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{usuario}}\",\n  \"clave\": \"{{clave}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8083/auth/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8083",
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Solo hace falta si el servidor tiene AUTH_ENABLED=true. Guarda el token en la variable de coleccion \"token\"; las demas peticiones lo envian solas (Authorization: Bearer). Define usuario y clave en las variables de la coleccion."
+          }
+        }
+      ]
+    },
+    {
       "name": "1. Identidad (:8083 - Anthony)",
       "item": [
         {
@@ -701,6 +757,30 @@
           }
         }
       ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "usuario",
+      "value": "admin"
+    },
+    {
+      "key": "clave",
+      "value": ""
     }
   ]
 }
