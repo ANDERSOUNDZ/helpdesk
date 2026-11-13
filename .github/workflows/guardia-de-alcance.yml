@@ -13,7 +13,7 @@ name: Guardia de alcance
 on:
   pull_request:
     branches: [dev, main]
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, edited]
 
 permissions:
   contents: read
@@ -29,6 +29,7 @@ jobs:
       HEAD_SHA: ${{ github.event.pull_request.head.sha }}
       AUTOR: ${{ github.event.pull_request.user.login }}
       DUENO: ${{ github.repository_owner }}
+      PR_TITLE: ${{ github.event.pull_request.title }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -54,6 +55,12 @@ jobs:
               exit 0
             fi
             echo "::error::Los PR hacia main solo pueden venir de dev. Abre el PR hacia dev."
+            exit 1
+          fi
+
+          # El titulo del PR sigue Conventional Commits: tipo(alcance): descripcion (docs/FLUJO_DE_TRABAJO.md).
+          if ! printf '%s' "$PR_TITLE" | grep -Eq '^(feat|fix|docs|refactor|test|chore|ci)(\([a-z0-9-]+\))?: .{3,}'; then
+            echo "::error::El titulo del PR debe tener el formato 'tipo(alcance): descripcion', por ejemplo 'feat(tickets): validar tecnico al asignar'. Tipos: feat, fix, docs, refactor, test, chore, ci."
             exit 1
           fi
 
