@@ -39,9 +39,9 @@ No lo hagas. Explica la regla y propone una de estas dos salidas:
 - Es codigo de otro duenio: avisarle y anotarlo en el PR como "Pendiente de integracion por otros duenios".
   No lo copies ni lo reimplementes en otro lugar.
 
-## Flujo obligatorio, en este orden (guia: `docs/FLUJO_DE_TRABAJO.md`)
+## SEGUNDA REGLA INMUTABLE: flujo obligatorio, en este orden (guia: `docs/FLUJO_DE_TRABAJO.md`)
 
-No te saltes ningun paso ni los cambies de orden:
+Igual de obligatoria que la regla de oro, tambien para ti como agente. No te saltes ningun paso ni los cambies de orden:
 
 1. **Actualizar:** `git fetch origin`, ir a tu rama `feat/<servicio>` y `git merge origin/dev`.
 2. **Cambios y commits** pequenos, formato `tipo(alcance): descripcion`, solo dentro del area.

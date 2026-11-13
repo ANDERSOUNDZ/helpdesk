@@ -1,5 +1,7 @@
 # Flujo de trabajo: el orden de siempre
 
+> **Regla inmutable del proyecto** (la "Regla uno" del `ORQUESTADOR_MAESTRO.md`, junto a la regla de alcance).
+
 Este es el orden que sigue **cada persona y cada agente**, siempre, para no chocar con el trabajo de los demas.
 Se complementa con [REGLAS_DE_ALCANCE.md](REGLAS_DE_ALCANCE.md) (que archivos puedes tocar) y con
 [CONTRIBUTING.md](../CONTRIBUTING.md) (ramas, commits y cherry-pick).

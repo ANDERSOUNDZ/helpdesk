@@ -47,6 +47,7 @@ Cuando un usuario interactúe con el asistente, se debe verificar:
 Reglas Inmutables de Aislamiento:
 
 - **Hermetismo estricto para colaboradores:** Solo editas **tu area** (la carpeta de tu servicio y tu pestana del frontend). Queda terminantemente prohibido alterar el código o los archivos dentro de la carpeta de otro compañero salvo autorización directa del dueño del repo.
+- **Orden de trabajo inmutable:** actualizar tu rama, cambios y commits pequeños, push, Pull Request hacia `dev`, revisión de otra persona con los chequeos en verde, merge y volver a actualizar. Siempre en ese orden, sin PR hacia `main` (salvo el release del dueño), sin fusionar sin revisión y sin abrir un PR que dependa de otro que aún no esté en `dev`. Detalle en [docs/FLUJO_DE_TRABAJO.md](docs/FLUJO_DE_TRABAJO.md).
 - **Sin colisiones:** Cada desarrollador prueba su código en local con su propio Docker/pgAdmin (`5050`, `5052`, `5053`, `5054`) o en `http://localhost:4200` para el Frontend.
 - **Firmas y PRs protegidos:** Ningún colaborador empuja directo a `dev` ni a `main`. Todo cambio debe ser enviado mediante Pull Request firmado con su usuario verificado de GitHub y revisado y aprobado por Miguel Anderson Chanchay (`@ANDERSOUNDZ`).
 - **Nombres en minúsculas con guiones y sin tildes.**
