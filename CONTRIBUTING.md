@@ -54,6 +54,10 @@ Reglas Inmutables de Aislamiento:
 
 ## 2. Flujo: tu rama -> dev -> main
 
+> **El orden exacto de siempre** (actualizar, cambios y commits, push, PR, revision, merge, actualizar) esta en
+> [docs/FLUJO_DE_TRABAJO.md](docs/FLUJO_DE_TRABAJO.md). Es obligatorio para todos, personas y agentes. El
+> **titulo del PR** debe seguir el formato de los commits (`tipo(alcance): descripcion`); el guardia lo comprueba.
+
 ### Paso 1. Crear tu rama (una sola vez)
 
 ```bash

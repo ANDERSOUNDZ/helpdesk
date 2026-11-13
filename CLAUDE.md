@@ -39,6 +39,20 @@ No lo hagas. Explica la regla y propone una de estas dos salidas:
 - Es codigo de otro duenio: avisarle y anotarlo en el PR como "Pendiente de integracion por otros duenios".
   No lo copies ni lo reimplementes en otro lugar.
 
+## Flujo obligatorio, en este orden (guia: `docs/FLUJO_DE_TRABAJO.md`)
+
+No te saltes ningun paso ni los cambies de orden:
+
+1. **Actualizar:** `git fetch origin`, ir a tu rama `feat/<servicio>` y `git merge origin/dev`.
+2. **Cambios y commits** pequenos, formato `tipo(alcance): descripcion`, solo dentro del area.
+3. **Push** normal a tu rama (nunca `--force`).
+4. **Pull Request hacia `dev`** con titulo `tipo(alcance): descripcion` y la plantilla llena (que cambia, por que, como se probo). Un PR, un proposito. Si depende de otro PR que no esta en `dev`, no lo abras todavia (o como borrador) y escribe "Depende de #N".
+5. **Revision** por otra persona con los chequeos en verde. Los cambios que pidan van a la misma rama.
+6. **Merge** solo con el PR aprobado. No fusiones un PR sin revision ni uses `--admin` salvo que el duenio lo pida expresamente.
+7. **Actualizar** otra vez tu rama con `git merge origin/dev`.
+
+Mientras tu PR esta abierto, lo que empujes a esa rama entra en ese PR: no mezcles trabajo sin relacion.
+
 ## Antes de cada commit y de cada PR
 
 ```bash
