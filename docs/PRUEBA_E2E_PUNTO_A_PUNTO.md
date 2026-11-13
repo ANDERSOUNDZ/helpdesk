@@ -23,7 +23,7 @@ Asegurate de que los contenedores esten encendidos ejecutando en la raiz del rep
 ```bash
 docker compose up -d
 ```
-Para verificar que los 4 servicios y la base de datos estan respondiendo:
+Para verificar que los 4 servicios y la base de datos estan respondiendo (con la autenticacion encendida estas comprobaciones responden `401`: ver [AUTENTICACION.md](AUTENTICACION.md); el script del punto 3 ya inicia sesion):
 ```powershell
 Invoke-RestMethod -Uri "http://localhost:8080/tickets" -Method Get
 Invoke-RestMethod -Uri "http://localhost:8082/resumen" -Method Get
@@ -44,6 +44,17 @@ Abre una terminal de PowerShell y ejecuta el siguiente bloque de comandos comple
 
 $fecha = Get-Date -Format "yyyyMMdd_HHmmss"
 
+# Autenticacion: solo si los servicios tienen AUTH_ENABLED=true. Define antes, en esta misma terminal, un administrador:
+#   $env:HELPDESK_USUARIO = "admin" ; $env:HELPDESK_CLAVE = "<la clave del administrador>"
+# Sin esas variables el script funciona igual que siempre, sin token.
+$headers = @{}
+if ($env:HELPDESK_USUARIO) {
+    $loginBody = @{ username = $env:HELPDESK_USUARIO; clave = $env:HELPDESK_CLAVE } | ConvertTo-Json
+    $login = Invoke-RestMethod -Uri "http://localhost:8083/auth/login" -Method Post -Body $loginBody -ContentType "application/json"
+    $headers = @{ Authorization = "Bearer $($login.token)" }
+    Write-Host "Sesion iniciada como $($login.usuario.nombre) ($($login.usuario.rol))" -ForegroundColor Green
+}
+
 Write-Host ">>> PASO 1: Registrar especialista en servicio-identidad (:8083)" -ForegroundColor Cyan
 $tecBody = @{
     nombre = "Ing. Sandra Rivas ($fecha)"
@@ -52,7 +63,7 @@ $tecBody = @{
     activo = $true
 } | ConvertTo-Json
 
-$tecnico = Invoke-RestMethod -Uri "http://localhost:8083/usuarios" -Method Post -Body $tecBody -ContentType "application/json"
+$tecnico = Invoke-RestMethod -Uri "http://localhost:8083/usuarios" -Method Post -Body $tecBody -ContentType "application/json" -Headers $headers
 Write-Host "Especialista Creado: ID=$($tecnico.id) | Nombre=$($tecnico.nombre)" -ForegroundColor Green
 
 Write-Host "`n>>> PASO 2: Radicar ticket en servicio-tickets (:8080)" -ForegroundColor Cyan
@@ -63,7 +74,7 @@ $ticketBody = @{
     solicitanteId = [long]1
 } | ConvertTo-Json
 
-$ticket = Invoke-RestMethod -Uri "http://localhost:8080/tickets" -Method Post -Body $ticketBody -ContentType "application/json"
+$ticket = Invoke-RestMethod -Uri "http://localhost:8080/tickets" -Method Post -Body $ticketBody -ContentType "application/json" -Headers $headers
 Write-Host "Ticket Creado: ID=$($ticket.id) | Estado=$($ticket.estado) | Prioridad=$($ticket.prioridad)" -ForegroundColor Green
 
 Write-Host "`n>>> PASO 3: Registrar nota inicial en servicio-comunicacion (:8084)" -ForegroundColor Cyan
@@ -73,11 +84,11 @@ $nota1Body = @{
     texto = "Recepcion del caso: tecnico asignado se traslada a rack de comunicaciones."
 } | ConvertTo-Json
 
-$nota1 = Invoke-RestMethod -Uri "http://localhost:8084/comentarios" -Method Post -Body $nota1Body -ContentType "application/json"
+$nota1 = Invoke-RestMethod -Uri "http://localhost:8084/comentarios" -Method Post -Body $nota1Body -ContentType "application/json" -Headers $headers
 Write-Host "Nota Guardada: ID=$($nota1.id) para Ticket #$($ticket.id)" -ForegroundColor Green
 
 Write-Host "`n>>> PASO 4: Asignar tecnico en servicio-tickets (Pasa a EN_PROGRESO)" -ForegroundColor Cyan
-$ticketAsignado = Invoke-RestMethod -Uri "http://localhost:8080/tickets/$($ticket.id)/asignar/$($tecnico.id)" -Method Put
+$ticketAsignado = Invoke-RestMethod -Uri "http://localhost:8080/tickets/$($ticket.id)/asignar/$($tecnico.id)" -Method Put -Headers $headers
 Write-Host "Ticket Actualizado: ID=$($ticketAsignado.id) | Estado=$($ticketAsignado.estado) | TecnicoId=$($ticketAsignado.tecnicoId)" -ForegroundColor Green
 
 Write-Host "`n>>> PASO 5: Notificar cambio de estado a servicio-estadisticas (:8082)" -ForegroundColor Cyan
@@ -87,7 +98,7 @@ $evento1 = @{
     estadoNuevo = "EN_PROGRESO"
 } | ConvertTo-Json
 
-$kpiProgreso = Invoke-RestMethod -Uri "http://localhost:8082/eventos/ticket-estado" -Method Post -Body $evento1 -ContentType "application/json"
+$kpiProgreso = Invoke-RestMethod -Uri "http://localhost:8082/eventos/ticket-estado" -Method Post -Body $evento1 -ContentType "application/json" -Headers $headers
 Write-Host "Metricas actualizadas: En Progreso=$($kpiProgreso.enProgreso)" -ForegroundColor Green
 
 Write-Host "`n>>> PASO 6: Registrar nota de intervencion y solucion tecnica (:8084)" -ForegroundColor Cyan
@@ -97,11 +108,11 @@ $nota2Body = @{
     texto = "Se reemplazo modulo SFP monomodo y patchcord. Conectividad 10 Gbps restablecida."
 } | ConvertTo-Json
 
-$nota2 = Invoke-RestMethod -Uri "http://localhost:8084/comentarios" -Method Post -Body $nota2Body -ContentType "application/json"
+$nota2 = Invoke-RestMethod -Uri "http://localhost:8084/comentarios" -Method Post -Body $nota2Body -ContentType "application/json" -Headers $headers
 Write-Host "Nota de Solucion: ID=$($nota2.id) guardada en bitacora" -ForegroundColor Green
 
 Write-Host "`n>>> PASO 7: Resolver ticket en servicio-tickets (:8080)" -ForegroundColor Cyan
-$ticketResuelto = Invoke-RestMethod -Uri "http://localhost:8080/tickets/$($ticket.id)/resolver" -Method Put
+$ticketResuelto = Invoke-RestMethod -Uri "http://localhost:8080/tickets/$($ticket.id)/resolver" -Method Put -Headers $headers
 Write-Host "Ticket Finalizado: ID=$($ticketResuelto.id) | Estado=$($ticketResuelto.estado)" -ForegroundColor Green
 
 Write-Host "`n>>> PASO 8: Notificar resolucion a servicio-estadisticas (:8082)" -ForegroundColor Cyan
@@ -111,11 +122,11 @@ $evento2 = @{
     estadoNuevo = "RESUELTO"
 } | ConvertTo-Json
 
-$kpiFinal = Invoke-RestMethod -Uri "http://localhost:8082/eventos/ticket-estado" -Method Post -Body $evento2 -ContentType "application/json"
+$kpiFinal = Invoke-RestMethod -Uri "http://localhost:8082/eventos/ticket-estado" -Method Post -Body $evento2 -ContentType "application/json" -Headers $headers
 Write-Host "Metricas Finales: Resueltos=$($kpiFinal.resueltos)" -ForegroundColor Green
 
 Write-Host "`n>>> PASO 9: Validar bitacora historica de intervenciones (:8084)" -ForegroundColor Cyan
-$historial = Invoke-RestMethod -Uri "http://localhost:8084/comentarios?ticketId=$($ticket.id)" -Method Get
+$historial = Invoke-RestMethod -Uri "http://localhost:8084/comentarios?ticketId=$($ticket.id)" -Method Get -Headers $headers
 Write-Host "Total notas registradas para Ticket #$($ticket.id): $($historial.Count)" -ForegroundColor Yellow
 foreach ($h in $historial) {
     Write-Host "  - [Nota #$($h.id)] (Tecnico #$($h.autorId)): $($h.texto)"
