@@ -164,4 +164,8 @@ export class HelpdeskService {
   eliminarAdjunto(id: number): Observable<void> {
     return this.http.delete<void>(`${environment.endpoints.adjuntos}/${id}`);
   }
+
+  getArchivo(url: string): Observable<Blob> {
+    return this.http.get(url, { responseType: 'blob' });
+  }
 }

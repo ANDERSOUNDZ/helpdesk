@@ -13,6 +13,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Subscription, interval } from 'rxjs';
 import { HelpdeskService } from '../services/helpdesk.service';
+import { AuthService } from '../auth/auth.service';
 import { Ticket, Usuario, Prioridad, Comentario } from '../models/helpdesk.model';
 import { AsignarDialog } from './asignar-dialog/asignar-dialog';
 import { DetalleDialog } from './detalle-dialog/detalle-dialog';
@@ -44,6 +45,7 @@ export class Tickets implements OnInit, OnDestroy {
   private dialog = inject(MatDialog);
   private cdr = inject(ChangeDetectorRef);
   private autoRefreshSub?: Subscription;
+  readonly auth = inject(AuthService);
 
   tickets: Ticket[] = [];
   usuarios: Usuario[] = [];
