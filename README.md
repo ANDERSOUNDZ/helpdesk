@@ -575,8 +575,8 @@ mismo evento a comunicacion (aparece un aviso para el solicitante) y a estadisti
   tabla referenciada esta en la base de otro servicio.
 - **Comunicacion:** REST sincrono al principio. Cuando haga falta desacoplar (por ejemplo,
   notificar al crear un ticket), se agregara mensajeria por eventos.
-- **Salud:** exponer `/actuator/health` en cada servicio, para que Docker Compose sepa cuando esta listo
-  *(planificado)*.
+- **Salud:** cada servicio expone `GET /actuator/health` (solo ese endpoint, sin detalles). `docker-compose.yml`
+  lo usa como *healthcheck* y Eureka lo usa para reflejar la salud real (`docker compose ps` muestra `healthy`).
 
 ## Entorno de desarrollo (Windows, macOS, Linux)
 
@@ -627,6 +627,6 @@ Todo el detalle, los comandos y las reglas estan en [CONTRIBUTING.md](CONTRIBUTI
 - [x] **Fase 0: Fundación:** repositorio, monorepo, convenciones de Git, cherry-pick automatizado.
 - [x] **Fase 1: Microservicios base:** cuatro microservicios (`tickets`, `identidad`, `comunicacion`, `estadisticas`) con capas simples, PostgreSQL independiente por servicio y conjunto, y Maven Wrappers integrados.
 - [ ] **Fase 2: Orquestación & Sincronización Global:** bus de eventos / broker asíncrono para interconectar los 4 microservicios (Tickets, Identidad, Comunicación, Estadísticas) sin bloqueos ni caídas en cascada (ver [ORQUESTADOR_MAESTRO.md](ORQUESTADOR_MAESTRO.md)).
-- [ ] **Fase 3: Infraestructura común:** comprobaciones de salud (`/actuator/health`) y migraciones Flyway.
+- [ ] **Fase 3: Infraestructura común:** ~~comprobaciones de salud (`/actuator/health`)~~ (hecho) y migraciones Flyway (pendiente).
 - [ ] **Fase 4: API Gateway y Seguridad:** punto único de entrada (puerto `8000`), proxy inverso, resolución de CORS y autenticación JWT (ver [ORQUESTADOR_MAESTRO.md](ORQUESTADOR_MAESTRO.md)).
 - [ ] **Fase 5: Frontend SPA:** cliente web (React/Vue/Angular), tablero Kanban de tickets, interacción de comentarios y métricas (ver [ORQUESTADOR_MAESTRO.md](ORQUESTADOR_MAESTRO.md)).
