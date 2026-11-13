@@ -19,6 +19,11 @@
     "secure": false,
     "changeOrigin": true
   },
+  "/auth": {
+    "target": "http://localhost:8083",
+    "secure": false,
+    "changeOrigin": true
+  },
   "/comentarios": {
     "target": "http://localhost:8084",
     "secure": false,

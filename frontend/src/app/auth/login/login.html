@@ -1,0 +1,34 @@
+<div class="login-contenedor">
+  <mat-card class="login-tarjeta">
+    <mat-card-header>
+      <mat-card-title>HelpDesk TI</mat-card-title>
+      <mat-card-subtitle>Inicia sesion para continuar</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      @if (auth.sesionVencida()) {
+        <p class="aviso">Tu sesion vencio. Vuelve a iniciar sesion.</p>
+      }
+
+      <form (ngSubmit)="ingresar()" class="login-formulario">
+        <mat-form-field appearance="outline">
+          <mat-label>Usuario</mat-label>
+          <input matInput name="usuario" [(ngModel)]="usuario" autocomplete="username" autofocus>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Clave</mat-label>
+          <input matInput type="password" name="clave" [(ngModel)]="clave" autocomplete="current-password">
+        </mat-form-field>
+
+        @if (error()) {
+          <p class="error" role="alert">{{ error() }}</p>
+        }
+
+        <button mat-flat-button color="primary" type="submit" [disabled]="enviando()">
+          {{ enviando() ? 'Entrando...' : 'Entrar' }}
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>
