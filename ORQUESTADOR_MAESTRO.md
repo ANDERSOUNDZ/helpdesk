@@ -41,6 +41,13 @@ Para que cualquier desarrollador pueda clonar el proyecto, agregar código y pro
 > cambio sea seguro. Si tu funcionalidad necesita algo fuera de tu área, no lo hagas: avisa al dueño.
 > Guía completa y cómo se hace cumplir: [docs/REGLAS_DE_ALCANCE.md](docs/REGLAS_DE_ALCANCE.md).
 
+> **REGLA UNO (inmutable, igual de obligatoria que la anterior): el orden de trabajo es siempre el mismo.**
+> Actualizar tu rama (`git merge origin/dev`), cambios y commits pequeños, push, Pull Request hacia `dev`, revisión
+> de otra persona con los chequeos en verde, merge, y volver a actualizar. Nunca un PR hacia `main` (solo el
+> release `dev` → `main` que decide el dueño), nunca fusionar sin revisión, y un PR que depende de otro no se abre
+> hasta que ese otro esté en `dev`. Los agentes la cumplen igual que las personas. Pasos y comandos:
+> [docs/FLUJO_DE_TRABAJO.md](docs/FLUJO_DE_TRABAJO.md).
+
 1. **PROHIBIDO compartir Entidades (`@Entity`) entre servicios:**  
    Cada microservicio es dueño absoluto de sus tablas. Para vincular información de otro servicio (usuario, ticket, autor), usa **únicamente IDs numéricos primitivos** (`Long solicitanteId`, `Long ticketId`, `Long autorId`).  
     *Prohibido:* `@ManyToOne private Usuario usuario;` (acopla las bases de datos y tumba el proyecto si el compañero cambia su tabla).  

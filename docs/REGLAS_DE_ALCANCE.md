@@ -53,6 +53,9 @@ aunque nadie choque. Se corrigio sin reescribir historia (seccion 9) y se agrego
 
 ## 3. Como se trabaja
 
+El orden de los pasos (actualizar, commits, push, PR, revision, merge) esta en
+[FLUJO_DE_TRABAJO.md](FLUJO_DE_TRABAJO.md). En resumen, el camino de las ramas es este:
+
 ```
 feat/<tu-servicio>  ------>  dev  ------>  main
  (solo tu area)             (PR)        (PR de release, lo decide el duenio)
