@@ -32,7 +32,10 @@ export interface ContadorEstado {
 export interface Usuario {
   id?: number;
   nombre: string;
-  rol: 'USUARIO' | 'TECNICO' | 'ADMINISTRADOR';
+  rol: 'SOLICITANTE' | 'TECNICO' | 'ADMINISTRADOR';
+  username?: string;
+  clave?: string;
+  activo?: boolean;
 }
 
 export interface Comentario {

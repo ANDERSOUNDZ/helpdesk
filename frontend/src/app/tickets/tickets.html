@@ -110,18 +110,18 @@
             <td mat-cell *matCellDef="let t" class="col-acciones">
               <div class="grupo-acciones">
                 <!-- Fase 1: Abierto -> Abrir Modal para Asignar Tecnico -->
-                <button mat-stroked-button color="primary" class="btn-accion" *ngIf="t.estado === 'ABIERTO'" (click)="abrirModalAsignar(t)">Asignar</button>
+                <button mat-stroked-button color="primary" class="btn-accion" *ngIf="t.estado === 'ABIERTO' && auth.puede('ADMINISTRADOR')" (click)="abrirModalAsignar(t)">Asignar</button>
 
                 <!-- Fase 2: En Progreso -> Tecnico termina tarea y marca como Resuelto -->
-                <button mat-flat-button color="accent" class="btn-accion" *ngIf="t.estado === 'EN_PROGRESO'" (click)="resolverTicket(t)">Finalizar</button>
+                <button mat-flat-button color="accent" class="btn-accion" *ngIf="t.estado === 'EN_PROGRESO' && auth.puede('TECNICO', 'ADMINISTRADOR')" (click)="resolverTicket(t)">Finalizar</button>
 
                 <!-- Fase 3: Resuelto -> Opciones del Solicitante: Reabrir o Pedir otro derivado -->
                 <button mat-stroked-button color="warn" class="btn-accion" *ngIf="t.estado === 'RESUELTO'" (click)="reabrirTicket(t)" title="La falla persiste en el mismo tema">Reabrir</button>
                 <button mat-stroked-button color="primary" class="btn-accion" *ngIf="t.estado === 'RESUELTO'" (click)="pedirOtroTicketRelacionado(t)" title="Solicitar ticket derivado">Nuevo Ticket</button>
 
-                <button mat-stroked-button color="primary" class="btn-accion" (click)="abrirModalEditarTicket(t)" title="Editar ticket en modal">Editar</button>
+                <button mat-stroked-button color="primary" class="btn-accion" *ngIf="auth.puede('ADMINISTRADOR')" (click)="abrirModalEditarTicket(t)" title="Editar ticket en modal">Editar</button>
 
-                <button mat-stroked-button color="warn" class="btn-accion" (click)="eliminarTicket(t.id)" title="Eliminar ticket">Eliminar</button>
+                <button mat-stroked-button color="warn" class="btn-accion" *ngIf="auth.puede('ADMINISTRADOR')" (click)="eliminarTicket(t.id)" title="Eliminar ticket">Eliminar</button>
               </div>
             </td>
           </ng-container>
