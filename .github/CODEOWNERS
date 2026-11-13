@@ -28,6 +28,10 @@
 /services/servicio-estadisticas/         @ANDERSOUNDZ
 /frontend/src/app/dashboard/             @ANDERSOUNDZ
 
+# Infraestructura (Eureka y Config Server): del propietario.
+/services/eureka-server/                 @ANDERSOUNDZ
+/services/config-server/                 @ANDERSOUNDZ
+
 # Archivos compartidos: solo los revisa el propietario (se cambian en ramas chore/<tema>).
 /.github/                                @ANDERSOUNDZ
 /docs/                                   @ANDERSOUNDZ

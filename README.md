@@ -6,6 +6,8 @@ Plataforma de **gestión de incidentes y requerimientos tecnológicos** construi
 > Consulta la [**Guía Maestra y Reglas Inmutables (ORQUESTADOR_MAESTRO.md)**](ORQUESTADOR_MAESTRO.md) antes de escribir código para conocer las reglas que evitan que los microservicios colapsen entre sí.
 >
 > **Regla de oro:** cada quien solo modifica su área (su servicio y su pestaña del frontend). Detalle y cómo se hace cumplir en [docs/REGLAS_DE_ALCANCE.md](docs/REGLAS_DE_ALCANCE.md).
+>
+> **El orden de siempre** (actualizar, commits, push, PR, revisión, merge): [docs/FLUJO_DE_TRABAJO.md](docs/FLUJO_DE_TRABAJO.md).
 
 ---
 
@@ -285,6 +287,26 @@ Quien es dueno de que dato (para no pisarse):
   mano) y guarda sus propios contadores en su base.
 - **identidad** es el unico que conoce credenciales y roles.
 
+### Infraestructura (Eureka y Config Server)
+
+Dos modulos de apoyo, tomados del proyecto de ejemplo `smart-parking` (misma estructura y configuracion, sin su
+logica de negocio). Viven junto a los servicios, en `services/`.
+
+| Modulo | Para que sirve | Puerto | Panel o prueba |
+|---|---|---|---|
+| `eureka-server` | Descubrimiento: cada servicio se registra con su nombre (`servicio-tickets`...) y se encuentra por nombre, no por puerto | **8081** | http://localhost:8081 |
+| `config-server` | Configuracion centralizada: entrega propiedades desde `config-repo/` (modo `native`) | **8888** | `curl localhost:8888/servicio-tickets/default` |
+
+- **Son opcionales para trabajar.** Cada servicio los trae **apagados por defecto** (`EUREKA_ENABLED` y
+  `CONFIG_ENABLED` en `false`), asi que quien levanta su servicio solo (opciones 1 y 2) no necesita nada mas.
+  El `docker-compose.yml` de la raiz los enciende y levanta ambos servidores (opcion 3).
+- El puerto `8080` del ejemplo es de `servicio-tickets`, por eso el Config Server usa el `8888`.
+- **No cambian las reglas del contrato:** los servicios siguen refiriendose solo por id y no se llaman entre si
+  por HTTP; Eureka sirve para que un gateway los encuentre, no para que se hablen.
+- **El repositorio es publico: nada de contrasenas ni claves en `config-repo/`.** Los secretos van por variables de entorno.
+- Si un servicio tiene su propio `src/test/resources/application.properties` (hoy solo `servicio-tickets`), ese archivo
+  reemplaza al principal en las pruebas: debe llevar `eureka.client.enabled=false` y `spring.cloud.config.enabled=false`.
+
 ### Entidades y contrato entre servicios
 
 Entidades minimas, una clase por concepto (en la carpeta `model/` de cada servicio):
@@ -377,7 +399,9 @@ helpdesk/
    ├─ servicio-tickets/           App en el puerto 8080
    ├─ servicio-identidad/         App en el puerto 8083
    ├─ servicio-comunicacion/      App en el puerto 8084
-   └─ servicio-estadisticas/      App en el puerto 8082
+   ├─ servicio-estadisticas/      App en el puerto 8082
+   ├─ eureka-server/              Infraestructura: descubrimiento, puerto 8081
+   └─ config-server/              Infraestructura: configuracion, puerto 8888
 ```
 
 Dentro de cada servicio:
@@ -462,8 +486,8 @@ Desde la raiz del repositorio. Usa **una sola instancia de PostgreSQL con 4 base
 con su usuario, y ninguno puede entrar a la base de otro), lo que gasta menos que 4 instancias:
 
 ```bash
-docker compose up -d --build                                  # los 4 servicios + PostgreSQL
-docker compose up -d servicio-tickets servicio-comunicacion   # solo algunos (y la base)
+docker compose up -d --build                                  # los 4 servicios + Eureka + Config Server + PostgreSQL
+docker compose up -d servicio-tickets servicio-comunicacion   # solo algunos (y la base, Eureka y Config Server)
 docker compose down                                           # apagar (los datos se conservan)
 docker compose down -v                                        # apagar y BORRAR los datos
 ```
@@ -551,8 +575,8 @@ mismo evento a comunicacion (aparece un aviso para el solicitante) y a estadisti
   tabla referenciada esta en la base de otro servicio.
 - **Comunicacion:** REST sincrono al principio. Cuando haga falta desacoplar (por ejemplo,
   notificar al crear un ticket), se agregara mensajeria por eventos.
-- **Salud:** exponer `/actuator/health` en cada servicio, para que Docker Compose sepa cuando esta listo
-  *(planificado)*.
+- **Salud:** cada servicio expone `GET /actuator/health` (solo ese endpoint, sin detalles). `docker-compose.yml`
+  lo usa como *healthcheck* y Eureka lo usa para reflejar la salud real (`docker compose ps` muestra `healthy`).
 
 ## Entorno de desarrollo (Windows, macOS, Linux)
 
@@ -603,6 +627,6 @@ Todo el detalle, los comandos y las reglas estan en [CONTRIBUTING.md](CONTRIBUTI
 - [x] **Fase 0: Fundación:** repositorio, monorepo, convenciones de Git, cherry-pick automatizado.
 - [x] **Fase 1: Microservicios base:** cuatro microservicios (`tickets`, `identidad`, `comunicacion`, `estadisticas`) con capas simples, PostgreSQL independiente por servicio y conjunto, y Maven Wrappers integrados.
 - [ ] **Fase 2: Orquestación & Sincronización Global:** bus de eventos / broker asíncrono para interconectar los 4 microservicios (Tickets, Identidad, Comunicación, Estadísticas) sin bloqueos ni caídas en cascada (ver [ORQUESTADOR_MAESTRO.md](ORQUESTADOR_MAESTRO.md)).
-- [ ] **Fase 3: Infraestructura común:** comprobaciones de salud (`/actuator/health`) y migraciones Flyway.
+- [ ] **Fase 3: Infraestructura común:** ~~comprobaciones de salud (`/actuator/health`)~~ (hecho) y migraciones Flyway (pendiente).
 - [ ] **Fase 4: API Gateway y Seguridad:** punto único de entrada (puerto `8000`), proxy inverso, resolución de CORS y autenticación JWT (ver [ORQUESTADOR_MAESTRO.md](ORQUESTADOR_MAESTRO.md)).
 - [ ] **Fase 5: Frontend SPA:** cliente web (React/Vue/Angular), tablero Kanban de tickets, interacción de comentarios y métricas (ver [ORQUESTADOR_MAESTRO.md](ORQUESTADOR_MAESTRO.md)).

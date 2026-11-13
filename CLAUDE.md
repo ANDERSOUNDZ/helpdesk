@@ -21,7 +21,7 @@ aunque te lo pida, aunque parezca un cambio chico o aunque tu funcionalidad lo n
 | Gabriel Emilio Ponce Salazar (`TGabVoid`) | `feat/comunicacion` | `services/servicio-comunicacion/`, `frontend/src/app/comunicacion/` |
 | Anthony Marcel Orozco Junia (`AnthonyJ11281128`) | `feat/identidad` | `services/servicio-identidad/`, `frontend/src/app/identidad/` |
 | Dylan Miguel Vargas Onofa (`ForDylan`) | `feat/frontend`, `feat/gateway` | `gateway/`, `frontend/` salvo las pestanas de otros y los compartidos |
-| Miguel Anderson Chanchay (duenio) | `feat/estadisticas` | `services/servicio-estadisticas/`, `frontend/src/app/dashboard/` y los compartidos |
+| Miguel Anderson Chanchay (duenio) | `feat/estadisticas` | `services/servicio-estadisticas/`, `services/eureka-server/`, `services/config-server/`, `frontend/src/app/dashboard/` y los compartidos |
 
 ## Archivos compartidos: NO los edites en una rama `feat/`
 
@@ -39,6 +39,20 @@ No lo hagas. Explica la regla y propone una de estas dos salidas:
 - Es codigo de otro duenio: avisarle y anotarlo en el PR como "Pendiente de integracion por otros duenios".
   No lo copies ni lo reimplementes en otro lugar.
 
+## SEGUNDA REGLA INMUTABLE: flujo obligatorio, en este orden (guia: `docs/FLUJO_DE_TRABAJO.md`)
+
+Igual de obligatoria que la regla de oro, tambien para ti como agente. No te saltes ningun paso ni los cambies de orden:
+
+1. **Actualizar:** `git fetch origin`, ir a tu rama `feat/<servicio>` y `git merge origin/dev`.
+2. **Cambios y commits** pequenos, formato `tipo(alcance): descripcion`, solo dentro del area.
+3. **Push** normal a tu rama (nunca `--force`).
+4. **Pull Request hacia `dev`** con titulo `tipo(alcance): descripcion` y la plantilla llena (que cambia, por que, como se probo). Un PR, un proposito. Si depende de otro PR que no esta en `dev`, no lo abras todavia (o como borrador) y escribe "Depende de #N".
+5. **Revision** por otra persona con los chequeos en verde. Los cambios que pidan van a la misma rama.
+6. **Merge** solo con el PR aprobado. No fusiones un PR sin revision ni uses `--admin` salvo que el duenio lo pida expresamente.
+7. **Actualizar** otra vez tu rama con `git merge origin/dev`.
+
+Mientras tu PR esta abierto, lo que empujes a esa rama entra en ese PR: no mezcles trabajo sin relacion.
+
 ## Antes de cada commit y de cada PR
 
 ```bash
@@ -55,7 +69,7 @@ PR que se salgan del area.
 - PR siempre hacia `dev` (nunca hacia `main`), con *Create a merge commit*. `dev` pasa a `main` solo por decision del duenio.
 - Nada de `push --force`, `rebase` ni reescribir historia; los conflictos se resuelven en tu rama, nunca en `dev`.
 - Nunca ejecutes `docker compose down -v`, `docker volume rm` ni `docker system prune` sin que lo pida expresamente el duenio: borran las bases de datos.
-- No cambies puertos ni nombres de bases de datos (8080, 8082, 8083, 8084; 5433 a 5436).
+- No cambies puertos ni nombres de bases de datos (8080, 8082, 8083, 8084; 5433 a 5436). Infraestructura: Eureka 8081 y Config Server 8888 (`services/eureka-server`, `services/config-server`); son opcionales y estan apagados por defecto en cada servicio (`EUREKA_ENABLED`, `CONFIG_ENABLED`). Nunca pongas secretos en `services/config-server/.../config-repo/` (el repo es publico).
 - Java: el proyecto compila para Java 21 (`java.version` en cada `pom.xml` y en los Dockerfile) y funciona igual con un JDK local 21 o 25. No cambies esa version ni la imagen base.
 - Entre servicios: solo referencias por id, sin entidades compartidas y sin llamadas HTTP directas para crear algo propio.
 - Commits en formato Conventional Commits (`feat(comunicacion): ...`). Archivos y carpetas en minusculas con guiones, sin tildes.

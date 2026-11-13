@@ -19,7 +19,7 @@ Este documento cierra esa duda, y las secciones 7 y 8 explican como se hace cump
 | **Gabriel Emilio Ponce Salazar** | `feat/comunicacion` | `services/servicio-comunicacion/` y `frontend/src/app/comunicacion/` |
 | **Anthony Marcel Orozco Junia** | `feat/identidad` | `services/servicio-identidad/` y `frontend/src/app/identidad/` |
 | **Dylan Miguel Vargas Onofa** | `feat/frontend` y `feat/gateway` | `gateway/` y el resto de `frontend/` (estructura de la app: `app.*`, `main.ts`, `index.html`, `styles.scss`, `angular.json`, `package*.json`, `tsconfig*`), **sin** las pestanas de los demas ni los archivos compartidos |
-| **Miguel Anderson Chanchay** (duenio) | `feat/estadisticas` | `services/servicio-estadisticas/`, `frontend/src/app/dashboard/` y **todos los archivos compartidos** |
+| **Miguel Anderson Chanchay** (duenio) | `feat/estadisticas` | `services/servicio-estadisticas/`, `services/eureka-server/`, `services/config-server/`, `frontend/src/app/dashboard/` y **todos los archivos compartidos** |
 
 Cada duenio de un servicio es tambien duenio de **su pestana** del frontend. Nadie edita la pestana de otro.
 
@@ -52,6 +52,9 @@ mostro ningun conflicto, porque nadie mas habia tocado esos archivos todavia. El
 aunque nadie choque. Se corrigio sin reescribir historia (seccion 9) y se agrego lo que sigue para que no se repita.
 
 ## 3. Como se trabaja
+
+El orden de los pasos (actualizar, commits, push, PR, revision, merge) esta en
+[FLUJO_DE_TRABAJO.md](FLUJO_DE_TRABAJO.md). En resumen, el camino de las ramas es este:
 
 ```
 feat/<tu-servicio>  ------>  dev  ------>  main
