@@ -44,9 +44,11 @@ export class Identidad implements OnInit, OnDestroy {
   private autoRefreshSub?: Subscription;
 
   usuarios: Usuario[] = [];
-  columnasUsuarios: string[] = ['id', 'nombre', 'rol', 'acciones'];
+  columnasUsuarios: string[] = ['id', 'nombre', 'username', 'rol', 'acciones'];
   nuevoUsuarioNombre = '';
-  nuevoUsuarioRol: 'USUARIO' | 'TECNICO' | 'ADMINISTRADOR' = 'TECNICO';
+  nuevoUsuarioRol: 'SOLICITANTE' | 'TECNICO' | 'ADMINISTRADOR' = 'TECNICO';
+  nuevoUsuarioUsername = '';
+  nuevoUsuarioClave = '';
 
   ngOnInit(): void {
     this.cargarUsuarios();
@@ -80,13 +82,21 @@ export class Identidad implements OnInit, OnDestroy {
       nombre: this.nuevoUsuarioNombre,
       rol: this.nuevoUsuarioRol
     };
+    if (this.nuevoUsuarioUsername.trim()) {
+      nuevo.username = this.nuevoUsuarioUsername.trim();
+    }
+    if (this.nuevoUsuarioClave) {
+      nuevo.clave = this.nuevoUsuarioClave;
+    }
     this.helpdeskService.crearUsuario(nuevo).subscribe({
       next: (creado) => {
-        this.snackBar.open(`Tecnico "${creado.nombre}" registrado con exito`, 'OK', { duration: 3000 });
+        this.snackBar.open(`Usuario "${creado.nombre}" registrado con exito`, 'OK', { duration: 3000 });
         this.nuevoUsuarioNombre = '';
+        this.nuevoUsuarioUsername = '';
+        this.nuevoUsuarioClave = '';
         this.cargarUsuarios();
       },
-      error: () => this.snackBar.open('Error al crear tecnico', 'Cerrar', { duration: 3000 })
+      error: (err) => this.snackBar.open(err?.error?.message ?? 'Error al crear usuario', 'Cerrar', { duration: 4000 })
     });
   }
 

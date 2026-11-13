@@ -1,40 +1,55 @@
-<!-- BARRA SUPERIOR (SPA MATERIAL DESIGN) -->
-<mat-toolbar color="primary" class="barra-navegacion">
-  <div class="logo-area">
-    <span class="titulo-app">HelpDesk TI — Mesa de Ayuda Distribuida</span>
-  </div>
-  <span class="spacer"></span>
-</mat-toolbar>
-
-<!-- PESTAÑAS: VISTAS INDEPENDIENTES Y LIMPIAS -->
-<mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start" class="contenedor-pestanas">
-
-  <!-- 1. SERVICIO ESTADÍSTICAS (:8082) -->
-  <mat-tab label="servicio-estadisticas (:8082) — Miguel Chanchay">
-    <div class="vista-contenedor">
-      <app-dashboard></app-dashboard>
+@if (auth.cargando()) {
+  <p class="cargando-inicial">Cargando...</p>
+} @else if (auth.requiereLogin() && !auth.logueado()) {
+  <app-login></app-login>
+} @else {
+  <!-- BARRA SUPERIOR (SPA MATERIAL DESIGN) -->
+  <mat-toolbar color="primary" class="barra-navegacion">
+    <div class="logo-area">
+      <span class="titulo-app">HelpDesk TI — Mesa de Ayuda Distribuida</span>
     </div>
-  </mat-tab>
+    <span class="spacer"></span>
+    @if (auth.logueado()) {
+      <span class="usuario-sesion">{{ auth.usuario()?.nombre }}</span>
+      <span class="rol-sesion">{{ auth.usuario()?.rol }}</span>
+      <button mat-stroked-button class="boton-salir" (click)="auth.cerrarSesion()">Salir</button>
+    }
+  </mat-toolbar>
 
-  <!-- 2. SERVICIO TICKETS (:8080) -->
-  <mat-tab label="servicio-tickets (:8080) — Ariel Guerrero">
-    <div class="vista-contenedor">
-      <app-tickets></app-tickets>
-    </div>
-  </mat-tab>
+  <!-- PESTAÑAS: VISTAS INDEPENDIENTES Y LIMPIAS (segun el rol de quien inicio sesion) -->
+  <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start" class="contenedor-pestanas">
 
-  <!-- 3. SERVICIO COMUNICACIÓN (:8084) -->
-  <mat-tab label="servicio-comunicacion (:8084) — Gabriel Ponce">
-    <div class="vista-contenedor">
-      <app-comunicacion></app-comunicacion>
-    </div>
-  </mat-tab>
+    <!-- 1. SERVICIO ESTADÍSTICAS (:8082): tecnicos y administradores -->
+    @if (auth.puede('TECNICO', 'ADMINISTRADOR')) {
+      <mat-tab label="servicio-estadisticas (:8082) — Miguel Chanchay">
+        <div class="vista-contenedor">
+          <app-dashboard></app-dashboard>
+        </div>
+      </mat-tab>
+    }
 
-  <!-- 4. SERVICIO IDENTIDAD (:8083) -->
-  <mat-tab label="servicio-identidad (:8083) — Anthony Orozco">
-    <div class="vista-contenedor">
-      <app-identidad></app-identidad>
-    </div>
-  </mat-tab>
+    <!-- 2. SERVICIO TICKETS (:8080) -->
+    <mat-tab label="servicio-tickets (:8080) — Ariel Guerrero">
+      <div class="vista-contenedor">
+        <app-tickets></app-tickets>
+      </div>
+    </mat-tab>
 
-</mat-tab-group>
+    <!-- 3. SERVICIO COMUNICACIÓN (:8084) -->
+    <mat-tab label="servicio-comunicacion (:8084) — Gabriel Ponce">
+      <div class="vista-contenedor">
+        <app-comunicacion></app-comunicacion>
+      </div>
+    </mat-tab>
+
+    <!-- 4. SERVICIO IDENTIDAD (:8083): solo administradores -->
+    @if (auth.puede('ADMINISTRADOR')) {
+      <mat-tab label="servicio-identidad (:8083) — Anthony Orozco">
+        <div class="vista-contenedor">
+          <app-identidad></app-identidad>
+        </div>
+      </mat-tab>
+    }
+
+  </mat-tab-group>
+}

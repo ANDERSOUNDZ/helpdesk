@@ -6,7 +6,7 @@
     </div>
     <div class="acciones-panel">
       <button mat-stroked-button (click)="cargarDatos()">Actualizar</button>
-      <button mat-stroked-button color="warn" (click)="resetearEstadisticas()" title="Reiniciar contadores">Reiniciar</button>
+      <button mat-stroked-button color="warn" *ngIf="auth.puede('ADMINISTRADOR')" (click)="resetearEstadisticas()" title="Reiniciar contadores">Reiniciar</button>
     </div>
   </div>
 

@@ -30,7 +30,9 @@ export class EditarTecnicoDialog {
   readonly data: Usuario = inject(MAT_DIALOG_DATA);
 
   nombre: string = this.data.nombre;
-  rol: 'USUARIO' | 'TECNICO' | 'ADMINISTRADOR' = this.data.rol;
+  rol: 'SOLICITANTE' | 'TECNICO' | 'ADMINISTRADOR' = this.data.rol;
+  username: string = this.data.username ?? '';
+  clave = '';
 
   cancelar(): void {
     this.dialogRef.close();
@@ -38,11 +40,18 @@ export class EditarTecnicoDialog {
 
   guardar(): void {
     if (this.nombre.trim()) {
-      this.dialogRef.close({
+      const cambios: Usuario = {
         id: this.data.id,
         nombre: this.nombre.trim(),
         rol: this.rol
-      });
+      };
+      if (this.username.trim()) {
+        cambios.username = this.username.trim();
+      }
+      if (this.clave) {
+        cambios.clave = this.clave;
+      }
+      this.dialogRef.close(cambios);
     }
   }
 }

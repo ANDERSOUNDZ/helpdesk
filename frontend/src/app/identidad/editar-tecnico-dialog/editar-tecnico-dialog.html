@@ -12,9 +12,20 @@
     <mat-form-field appearance="outline" class="campo-full">
       <mat-label>Rol Asignado</mat-label>
       <mat-select [(ngModel)]="rol">
+        <mat-option value="SOLICITANTE">Solicitante</mat-option>
         <mat-option value="TECNICO">Tecnico de Soporte</mat-option>
         <mat-option value="ADMINISTRADOR">Administrador de Mesa</mat-option>
       </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="campo-full">
+      <mat-label>Usuario de acceso</mat-label>
+      <input matInput [(ngModel)]="username" placeholder="Sin acceso si queda vacio" autocomplete="off">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="campo-full">
+      <mat-label>Nueva clave (vacio = no cambiarla)</mat-label>
+      <input matInput type="password" [(ngModel)]="clave" autocomplete="new-password">
     </mat-form-field>
   </div>
 </mat-dialog-content>

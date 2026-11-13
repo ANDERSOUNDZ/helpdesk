@@ -22,9 +22,20 @@
         <mat-form-field appearance="outline">
           <mat-label>Rol Tecnico</mat-label>
           <mat-select [(ngModel)]="nuevoUsuarioRol">
+            <mat-option value="SOLICITANTE">Solicitante</mat-option>
             <mat-option value="TECNICO">Tecnico de Soporte</mat-option>
             <mat-option value="ADMINISTRADOR">Administrador de Mesa</mat-option>
           </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Usuario de acceso (opcional)</mat-label>
+          <input matInput [(ngModel)]="nuevoUsuarioUsername" placeholder="Ej. cmendoza" autocomplete="off">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Clave (opcional, minimo 8)</mat-label>
+          <input matInput type="password" [(ngModel)]="nuevoUsuarioClave" autocomplete="new-password">
         </mat-form-field>
 
         <div class="btn-usuario-contenedor">
@@ -54,6 +65,11 @@
             <td mat-cell *matCellDef="let u"> <strong>{{ u.nombre }}</strong> </td>
           </ng-container>
 
+          <ng-container matColumnDef="username">
+            <th mat-header-cell *matHeaderCellDef style="width: 160px;"> Acceso </th>
+            <td mat-cell *matCellDef="let u"> {{ u.username || 'sin acceso' }} </td>
+          </ng-container>
+
           <ng-container matColumnDef="rol">
             <th mat-header-cell *matHeaderCellDef style="width: 160px;"> Rol </th>
             <td mat-cell *matCellDef="let u">
@@ -73,7 +89,7 @@
           <tr mat-row *matRowDef="let row; columns: columnasUsuarios;"></tr>
 
           <tr class="mat-row" *matNoDataRow>
-            <td class="mat-cell sin-datos" colspan="4">
+            <td class="mat-cell sin-datos" colspan="5">
               No hay tecnicos registrados.
             </td>
           </tr>

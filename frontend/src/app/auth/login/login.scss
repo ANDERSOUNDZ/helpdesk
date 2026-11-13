@@ -1,0 +1,35 @@
+.login-contenedor {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  padding: 12vh 16px 16px;
+  background-color: #f8f9fa;
+  box-sizing: border-box;
+}
+
+.login-tarjeta {
+  width: 100%;
+  max-width: 380px;
+  padding: 8px 8px 16px;
+}
+
+.login-formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 16px;
+}
+
+.aviso {
+  margin: 12px 0 0;
+  padding: 8px 12px;
+  border-radius: 4px;
+  background: #fff4e5;
+  color: #8a5300;
+}
+
+.error {
+  margin: 0 0 8px;
+  color: #b00020;
+}

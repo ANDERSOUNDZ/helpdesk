@@ -4,11 +4,45 @@
     "description": "Los 6 endpoints de servicio-estadisticas. Responsable: Miguel Anderson Chanchay. Requiere el servicio levantado (docker compose up -d) en el puerto 8082.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
   "variable": [
     { "key": "baseUrl", "value": "http://localhost:8082" },
-    { "key": "estado", "value": "ABIERTO" }
+    { "key": "estado", "value": "ABIERTO" },
+    { "key": "token", "value": "" },
+    { "key": "usuario", "value": "admin" },
+    { "key": "clave", "value": "" }
   ],
   "item": [
+    {
+      "name": "0. Login (guarda el token)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Login correcto', function () { pm.response.to.have.status(200); });",
+              "pm.collectionVariables.set('token', pm.response.json().token);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": { "type": "noauth" },
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{usuario}}\",\n  \"clave\": \"{{clave}}\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": { "raw": "http://localhost:8083/auth/login", "protocol": "http", "host": ["localhost"], "port": "8083", "path": ["auth", "login"] },
+        "description": "Solo hace falta si el servidor tiene AUTH_ENABLED=true. Guarda el token en la variable de coleccion token; las demas peticiones lo envian solas. Define usuario y clave en las variables."
+      }
+    },
     {
       "name": "1. GET - Resumen ejecutivo",
       "event": [

@@ -19,6 +19,25 @@
   .spacer {
     flex: 1 1 auto;
   }
+
+  .usuario-sesion {
+    font-size: 0.95rem;
+    margin-right: 10px;
+  }
+
+  .rol-sesion {
+    font-size: 0.75rem;
+    padding: 2px 10px;
+    margin-right: 14px;
+    border: 1px solid currentColor;
+    border-radius: 12px;
+    letter-spacing: 0.4px;
+  }
+}
+
+.cargando-inicial {
+  padding: 24px;
+  color: #5f6368;
 }
 
 .contenedor-pestanas {

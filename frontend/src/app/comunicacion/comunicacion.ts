@@ -13,6 +13,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Subject, Subscription, forkJoin, interval, of } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { HelpdeskService } from '../services/helpdesk.service';
+import { AuthService } from '../auth/auth.service';
 import {
   Ticket, Comentario, Notificacion, Usuario, EncuestaSatisfaccion,
   ResumenEncuestas, Adjunto, ContadorNotificaciones, TipoNotificacion
@@ -44,6 +45,7 @@ export class Comunicacion implements OnInit, OnDestroy {
   private autoRefreshSub?: Subscription;
   private busquedaSub?: Subscription;
   private busqueda$ = new Subject<string>();
+  readonly auth = inject(AuthService);
 
   tickets: Ticket[] = [];
   usuarios: Usuario[] = [];
@@ -325,7 +327,7 @@ export class Comunicacion implements OnInit, OnDestroy {
     if (!ticket) return null;
     if (ticket.solicitanteId === autorId) return ticket.tecnicoId ?? null;
     if (ticket.tecnicoId === autorId) return ticket.solicitanteId;
-    return this.usuarioActual?.rol === 'USUARIO'
+    return this.usuarioActual?.rol === 'SOLICITANTE'
       ? (ticket.tecnicoId ?? null)
       : ticket.solicitanteId;
   }
@@ -488,7 +490,23 @@ export class Comunicacion implements OnInit, OnDestroy {
   }
 
   abrirAdjunto(adjunto: Adjunto, descargar = false): void {
-    window.open(descargar ? adjunto.urlDescarga : adjunto.urlVista, '_blank');
+    // Se pide con HttpClient (lleva el token) y se abre como blob: un enlace directo no enviaria el token.
+    const url = descargar ? adjunto.urlDescarga : adjunto.urlVista;
+    this.helpdeskService.getArchivo(url).subscribe({
+      next: (blob) => {
+        const temporal = URL.createObjectURL(blob);
+        if (descargar) {
+          const enlace = document.createElement('a');
+          enlace.href = temporal;
+          enlace.download = adjunto.nombreOriginal;
+          enlace.click();
+        } else {
+          window.open(temporal, '_blank');
+        }
+        setTimeout(() => URL.revokeObjectURL(temporal), 60000);
+      },
+      error: () => this.snackBar.open('No se pudo abrir el adjunto', 'Cerrar', { duration: 3000 })
+    });
   }
 
   adjuntosDe(comentarioId?: number): Adjunto[] {

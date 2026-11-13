@@ -8,6 +8,8 @@ Plataforma de **gestión de incidentes y requerimientos tecnológicos** construi
 > **Regla de oro:** cada quien solo modifica su área (su servicio y su pestaña del frontend). Detalle y cómo se hace cumplir en [docs/REGLAS_DE_ALCANCE.md](docs/REGLAS_DE_ALCANCE.md).
 >
 > **El orden de siempre** (actualizar, commits, push, PR, revisión, merge): [docs/FLUJO_DE_TRABAJO.md](docs/FLUJO_DE_TRABAJO.md).
+>
+> **Login con roles** (`SOLICITANTE`, `TECNICO`, `ADMINISTRADOR`): viene apagado por defecto. Cómo encenderlo, permisos y pantallas: [docs/AUTENTICACION.md](docs/AUTENTICACION.md).
 
 ---
 

@@ -7,6 +7,12 @@ x-infra-env: &infra-env
   CONFIG_ENABLED: "true"
   CONFIG_URL: http://config-server:8888
 
+# Autenticacion (JWT). Apagada por defecto: no cambia nada hasta que un archivo .env (que NO se versiona, ver
+# .env.example) ponga AUTH_ENABLED=true y un JWT_SECRET de al menos 32 caracteres. Guia: docs/AUTENTICACION.md
+x-auth-env: &auth-env
+  AUTH_ENABLED: ${AUTH_ENABLED:-false}
+  JWT_SECRET: ${JWT_SECRET:-}
+
 x-infra-deps: &infra-deps
   eureka-server:
     condition: service_healthy
@@ -65,7 +71,7 @@ services:
       retries: 12
       start_period: 40s
     environment:
-      <<: *infra-env
+      <<: [*infra-env, *auth-env]
       DB_URL: jdbc:postgresql://db:5432/tickets_db
       DB_USUARIO: tickets
       DB_CLAVE: tickets
@@ -86,10 +92,13 @@ services:
       retries: 12
       start_period: 40s
     environment:
-      <<: *infra-env
+      <<: [*infra-env, *auth-env]
       DB_URL: jdbc:postgresql://db:5432/identidad_db
       DB_USUARIO: identidad
       DB_CLAVE: identidad
+      ADMIN_USUARIO: ${ADMIN_USUARIO:-}
+      ADMIN_CLAVE: ${ADMIN_CLAVE:-}
+      ADMIN_NOMBRE: ${ADMIN_NOMBRE:-Administrador}
     depends_on:
       <<: *infra-deps
       db:
@@ -107,7 +116,7 @@ services:
       retries: 12
       start_period: 40s
     environment:
-      <<: *infra-env
+      <<: [*infra-env, *auth-env]
       DB_URL: jdbc:postgresql://db:5432/comunicacion_db
       DB_USUARIO: comunicacion
       DB_CLAVE: comunicacion
@@ -131,7 +140,7 @@ services:
       retries: 12
       start_period: 40s
     environment:
-      <<: *infra-env
+      <<: [*infra-env, *auth-env]
       DB_URL: jdbc:postgresql://db:5432/estadisticas_db
       DB_USUARIO: estadisticas
       DB_CLAVE: estadisticas

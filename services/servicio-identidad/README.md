@@ -9,7 +9,7 @@ Microservicio de **gestión de usuarios, roles de TI y control de acceso** de la
 
 ## Para el Desarrollador (Anthony Marcel Orozco Junia)
 ### ¿Qué está hecho hasta ahora?
-- Entidad [`Usuario.java`](src/main/java/com/helpdesk/identidad/model/Usuario.java) con `id`, `nombre`, `email`, enum [`Rol.java`](src/main/java/com/helpdesk/identidad/model/Rol.java) (`USUARIO`, `TECNICO`, `ADMINISTRADOR`) y `activo`.
+- Entidad [`Usuario.java`](src/main/java/com/helpdesk/identidad/model/Usuario.java) con `id`, `nombre`, `email`, enum [`Rol.java`](src/main/java/com/helpdesk/identidad/model/Rol.java) (`SOLICITANTE`, `TECNICO`, `ADMINISTRADOR`) y `activo`.
 - Servicio [`UsuarioService.java`](src/main/java/com/helpdesk/identidad/service/UsuarioService.java) y Controlador REST [`UsuarioController.java`](src/main/java/com/helpdesk/identidad/controller/UsuarioController.java) con rutas completas para listar, crear y cambiar estado de activación.
 - Base de datos PostgreSQL independiente y contenedor de **pgAdmin** listo en puerto `5053`.
 
@@ -22,7 +22,7 @@ Microservicio de **gestión de usuarios, roles de TI y control de acceso** de la
 ##  ¿Qué hace este servicio? (Propósito de Negocio)
 Gestiona el catálogo de personas que interactúan en la mesa de ayuda corporativa:
 - **Diferencia los roles de TI:**
-  - `USUARIO`: Empleado que reporta fallos o solicita requerimientos.
+  - `SOLICITANTE`: Empleado que reporta fallos o solicita requerimientos.
   - `TECNICO`: Especialista de soporte asignado para diagnosticar y reparar incidentes.
   - `ADMINISTRADOR`: Supervisor que gestiona la carga operativa y configuración.
 - **Control de estado:** Permite activar o desactivar usuarios en el sistema.
@@ -74,6 +74,59 @@ curl.exe http://localhost:8083/usuarios
      - **Password:** `identidad`
      - Marca *Save password* y haz clic en **Save**.
 4. Ve a `Schemas  public  Tables` para ver las tablas **`usuarios`** y **`departamentos`**.
+
+---
+
+##  Autenticación y roles
+
+Este servicio es el **único que conoce las credenciales**: guarda la contraseña cifrada (BCrypt) y emite el token (JWT).
+Los demás servicios solo validan el token, sin llamar a identidad.
+
+### Roles
+`SOLICITANTE` (reporta incidentes), `TECNICO` (los atiende) y `ADMINISTRADOR` (gestiona usuarios y asignaciones).
+Los usuarios que tenían rol `ESTUDIANTE` o `USUARIO` pasan a `SOLICITANTE` solos al arrancar (migración de la
+restricción `usuarios_rol_check`).
+
+### Está apagada por defecto
+Con `AUTH_ENABLED=false` (lo normal) todo funciona como antes y no hace falta ningún token, así que cada persona puede
+levantar su servicio sola. Se enciende con variables de entorno:
+
+| Variable | Para qué | Notas |
+|---|---|---|
+| `AUTH_ENABLED` | `true` exige token en todos los endpoints (salvo `/auth/login` y `/actuator/health`) | por defecto `false` |
+| `JWT_SECRET` | Clave con la que se firma el token | **mínimo 32 caracteres. Nunca en el repositorio (es público)** |
+| `JWT_EXPIRACION_MIN` | Minutos de vida del token | por defecto `60` |
+| `ADMIN_USUARIO`, `ADMIN_CLAVE`, `ADMIN_NOMBRE` | Crean el administrador inicial si no existe | la clave de al menos 8 caracteres |
+
+Sin `JWT_SECRET`, `POST /auth/login` responde `503` con el motivo; no es un fallo del servicio.
+
+### Endpoints
+| Método y ruta | Quién | Qué hace |
+|---|---|---|
+| `POST /auth/login` | público | Recibe `{"username","clave"}` y devuelve `{token, tipo, expiraEn, usuario}` |
+| `GET /usuarios`, `GET /usuarios/{id}` | cualquier usuario autenticado | Lista y consulta (nunca devuelve el hash ni la clave) |
+| `POST`, `PUT`, `DELETE /usuarios` | `ADMINISTRADOR` | Crea, edita y elimina. Al crear se puede enviar `username` y `clave` para darle acceso |
+
+El usuario (`username`) va en minúsculas (3 a 60 caracteres: letras, números, `.`, `-`, `_`) y es único; la clave exige 8
+caracteres como mínimo. Un usuario sin `username` ni `clave` existe en el catálogo pero **no puede iniciar sesión**.
+
+### Contrato del token (lo que validan los otros servicios)
+JWT firmado con **HS256** y la clave `JWT_SECRET`, con estos datos:
+
+| Dato | Valor |
+|---|---|
+| `iss` (emisor) | `helpdesk-identidad` |
+| `sub` | el `username` |
+| `uid` | el id del usuario |
+| `nombre` | el nombre completo |
+| `roles` | lista con el rol, por ejemplo `["TECNICO"]` |
+| `exp` | vence a los `JWT_EXPIRACION_MIN` minutos (por defecto 60) |
+
+### Prueba rápida
+```bash
+curl.exe -X POST localhost:8083/auth/login -H "Content-Type: application/json" -d "{\"username\":\"admin\",\"clave\":\"<tu clave>\"}"
+curl.exe localhost:8083/usuarios -H "Authorization: Bearer <token>"
+```
 
 ---
 

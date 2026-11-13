@@ -11,6 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Subscription, interval } from 'rxjs';
 import { HelpdeskService } from '../services/helpdesk.service';
+import { AuthService } from '../auth/auth.service';
 import { ResumenTickets, ContadorEstado, Ticket, Usuario } from '../models/helpdesk.model';
 
 @Component({
@@ -32,6 +33,7 @@ import { ResumenTickets, ContadorEstado, Ticket, Usuario } from '../models/helpd
 })
 export class DashboardComponent implements OnInit, OnDestroy {
   private helpdeskService = inject(HelpdeskService);
+  readonly auth = inject(AuthService);
   private snackBar = inject(MatSnackBar);
   private cdr = inject(ChangeDetectorRef);
   private autoRefreshSub?: Subscription;

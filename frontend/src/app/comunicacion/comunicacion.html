@@ -5,7 +5,7 @@
       <p class="subtitulo">Bitacora, notificaciones, encuestas y adjuntos · <code>servicio-comunicacion :8084</code></p>
     </div>
     <div class="acciones-encabezado">
-      <mat-form-field appearance="outline" class="selector-usuario">
+      <mat-form-field appearance="outline" class="selector-usuario" *ngIf="!auth.logueado()">
         <mat-label>Actuar como</mat-label>
         <mat-select [ngModel]="usuarioActualId" (ngModelChange)="cambiarUsuario($event)">
           <mat-option *ngFor="let u of usuarios" [value]="u.id">
