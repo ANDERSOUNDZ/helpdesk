@@ -58,6 +58,12 @@ services:
     build: ./services/servicio-tickets
     ports:
       - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep -q UP"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
     environment:
       <<: *infra-env
       DB_URL: jdbc:postgresql://db:5432/tickets_db
@@ -73,6 +79,12 @@ services:
     build: ./services/servicio-identidad
     ports:
       - "8083:8083"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8083/actuator/health | grep -q UP"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
     environment:
       <<: *infra-env
       DB_URL: jdbc:postgresql://db:5432/identidad_db
@@ -88,6 +100,12 @@ services:
     build: ./services/servicio-comunicacion
     ports:
       - "8084:8084"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8084/actuator/health | grep -q UP"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
     environment:
       <<: *infra-env
       DB_URL: jdbc:postgresql://db:5432/comunicacion_db
@@ -106,6 +124,12 @@ services:
     build: ./services/servicio-estadisticas
     ports:
       - "8082:8082"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health | grep -q UP"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
     environment:
       <<: *infra-env
       DB_URL: jdbc:postgresql://db:5432/estadisticas_db
