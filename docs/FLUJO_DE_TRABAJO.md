@@ -94,10 +94,10 @@ Tu rama **no se borra**: sigues en ella. Las ramas `chore/` si se pueden borrar.
 | Aprobacion de otra persona y de los code owners | Proteccion de ramas |
 | Rama al dia con `dev` antes de fusionar | Proteccion de ramas (`strict`) |
 | Sin `push --force` ni borrar `dev`/`main` | Proteccion de ramas |
-| El orden de pasos y el resto | Esta guia, `CLAUDE.md` (los agentes la leen solos) y la plantilla de PR |
+| El orden de pasos y el resto | Esta guia y la plantilla de PR |
 
 ## Para agentes de IA
 
 Sigue estos 7 pasos **en este orden** y no te saltes ninguno. Antes de abrir el PR muestra la salida de
 `git diff --name-only origin/dev...HEAD`. No fusiones un PR que no hayas abierto en esta tarea, y no uses
-`--admin` salvo que el duenio del repositorio lo pida expresamente. Detalle de las reglas en `CLAUDE.md`.
+`--admin` salvo que el duenio del repositorio lo pida expresamente. Detalle de las reglas en [REGLAS_DE_ALCANCE.md](REGLAS_DE_ALCANCE.md).

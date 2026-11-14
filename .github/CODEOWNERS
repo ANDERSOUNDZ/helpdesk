@@ -38,7 +38,6 @@
 /docker/                                 @ANDERSOUNDZ
 /docker-compose.yml                      @ANDERSOUNDZ
 /pom.xml                                 @ANDERSOUNDZ
-/CLAUDE.md                               @ANDERSOUNDZ
 /frontend/proxy.conf.json                @ANDERSOUNDZ
 /frontend/src/environments/              @ANDERSOUNDZ
 /frontend/src/app/services/              @ANDERSOUNDZ

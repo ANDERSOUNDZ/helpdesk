@@ -69,7 +69,7 @@ jobs:
             case "$1" in
               docker-compose.yml|docker/*|.gitignore|.gitattributes|.editorconfig|pom.xml) return 0 ;;
               .github/*|docs/*) return 0 ;;
-              README.md|CONTRIBUTING.md|ORQUESTADOR_MAESTRO.md|CLAUDE.md) return 0 ;;
+              README.md|CONTRIBUTING.md|ORQUESTADOR_MAESTRO.md) return 0 ;;
               frontend/proxy.conf.json|frontend/src/environments/*) return 0 ;;
               frontend/src/app/services/*|frontend/src/app/models/*) return 0 ;;
             esac

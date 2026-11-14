@@ -33,7 +33,7 @@ Cada duenio de un servicio es tambien duenio de **su pestana** del frontend. Nad
 | `frontend/src/app/services/`, `frontend/src/app/models/` | Servicio HTTP y tipos que usan todas las pestanas |
 | `.gitignore`, `.gitattributes`, `.editorconfig`, `pom.xml` | Configuracion de todo el repo |
 | `.github/` | CI, `CODEOWNERS`, plantilla de PR |
-| `docs/`, `README.md`, `CONTRIBUTING.md`, `ORQUESTADOR_MAESTRO.md`, `CLAUDE.md` | Documentacion y reglas |
+| `docs/`, `README.md`, `CONTRIBUTING.md`, `ORQUESTADOR_MAESTRO.md` | Documentacion y reglas |
 
 Los archivos compartidos **solo** se cambian en una rama `chore/<tema>` con un PR pequeno (seccion 4).
 
@@ -92,7 +92,7 @@ git checkout origin/dev -- ruta/del/archivo/que/sobra
 
 ## 6. Para agentes de IA
 
-1. Lee `CLAUDE.md` (se carga solo al abrir el proyecto) y esta guia.
+1. Lee esta guia y `docs/FLUJO_DE_TRABAJO.md` antes de tocar nada.
 2. Pregunta nombre completo y usuario de GitHub si no los conoces, y ubica el area de esa persona en la seccion 1.
 3. Si la persona pide cambiar algo fuera de su area, **no lo hagas aunque lo pida**: explica la regla y propone
    el procedimiento de la seccion 4.
@@ -103,7 +103,7 @@ git checkout origin/dev -- ruta/del/archivo/que/sobra
 
 | Capa | Que hace | Donde esta |
 |---|---|---|
-| Esta guia y `CLAUDE.md` | Que personas y agentes sepan la regla | `docs/`, raiz del repo |
+| Esta guia | Que personas y agentes sepan la regla | `docs/` |
 | Plantilla de PR | Obliga a declarar el area y a revisar la lista de archivos | `.github/pull_request_template.md` |
 | `CODEOWNERS` | Cada carpeta tiene su revisor; los compartidos, el duenio | `.github/CODEOWNERS` |
 | **Guardia de alcance** | **Falla el PR si toca archivos fuera del area de su rama**, si la rama no es valida o si va hacia `main` sin venir de `dev` | `.github/workflows/guardia-de-alcance.yml` |
