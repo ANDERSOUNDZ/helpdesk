@@ -95,12 +95,12 @@ class SeguridadConfigTest {
     }
 
     @Test
-    void lasEstadisticasLasVenElTecnicoYElAdministradorPeroNoElSolicitante() throws Exception {
+    void lasEstadisticasLasVeSoloElAdministrador() throws Exception {
         preparar();
 
         for (String ruta : List.of("/resumen", "/estadisticas/estados", "/estadisticas/estados/ABIERTO")) {
             mvc.perform(get(ruta).with(como("SOLICITANTE"))).andExpect(status().isForbidden());
-            mvc.perform(get(ruta).with(como("TECNICO"))).andExpect(status().isOk());
+            mvc.perform(get(ruta).with(como("TECNICO"))).andExpect(status().isForbidden());
             mvc.perform(get(ruta).with(como("ADMINISTRADOR"))).andExpect(status().isOk());
         }
     }
@@ -133,10 +133,10 @@ class SeguridadConfigTest {
     void unTokenRealFirmadoConLaClaveEsAceptadoYRespetaElRol() throws Exception {
         preparar();
         String solicitante = token("SOLICITANTE", SECRETO, "helpdesk-identidad", 3600);
-        String tecnico = token("TECNICO", SECRETO, "helpdesk-identidad", 3600);
+        String admin = token("ADMINISTRADOR", SECRETO, "helpdesk-identidad", 3600);
 
         mvc.perform(get("/resumen").header("Authorization", "Bearer " + solicitante)).andExpect(status().isForbidden());
-        mvc.perform(get("/resumen").header("Authorization", "Bearer " + tecnico)).andExpect(status().isOk());
+        mvc.perform(get("/resumen").header("Authorization", "Bearer " + admin)).andExpect(status().isOk());
     }
 
     @Test

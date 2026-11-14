@@ -106,24 +106,34 @@ class SeguridadConfigTest {
     }
 
     @Test
-    void cualquierRolPuedeVerCrearYReabrirTickets() throws Exception {
+    void cualquierRolPuedeVerYReabrirTickets() throws Exception {
         preparar();
 
         for (String rol : List.of("SOLICITANTE", "TECNICO", "ADMINISTRADOR")) {
             mvc.perform(get("/tickets").with(como(rol))).andExpect(status().isOk());
             mvc.perform(get("/tickets/5").with(como(rol))).andExpect(status().isOk());
-            mvc.perform(post("/tickets").with(como(rol)).contentType(MediaType.APPLICATION_JSON).content(CUERPO))
-                    .andExpect(status().isCreated());
             mvc.perform(put("/tickets/5/reabrir").with(como(rol))).andExpect(status().isOk());
         }
     }
 
     @Test
-    void soloElAdministradorAsigna() throws Exception {
+    void soloElSolicitanteYElAdministradorCreanTicketsElTecnicoNo() throws Exception {
+        preparar();
+
+        for (String rol : List.of("SOLICITANTE", "ADMINISTRADOR")) {
+            mvc.perform(post("/tickets").with(como(rol)).contentType(MediaType.APPLICATION_JSON).content(CUERPO))
+                    .andExpect(status().isCreated());
+        }
+        mvc.perform(post("/tickets").with(como("TECNICO")).contentType(MediaType.APPLICATION_JSON).content(CUERPO))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void asignanElTecnicoYElAdministradorPeroNoElSolicitante() throws Exception {
         preparar();
 
         mvc.perform(put("/tickets/5/asignar/9").with(como("SOLICITANTE"))).andExpect(status().isForbidden());
-        mvc.perform(put("/tickets/5/asignar/9").with(como("TECNICO"))).andExpect(status().isForbidden());
+        mvc.perform(put("/tickets/5/asignar/9").with(como("TECNICO"))).andExpect(status().isOk());
         mvc.perform(put("/tickets/5/asignar/9").with(como("ADMINISTRADOR"))).andExpect(status().isOk());
     }
 
