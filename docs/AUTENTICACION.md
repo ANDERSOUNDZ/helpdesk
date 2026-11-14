@@ -70,6 +70,22 @@ Arriba a la derecha se ve el nombre, el rol y el boton **Salir**. Si el token ve
 y vuelve al login con el aviso "Tu sesion vencio". Con la autenticacion **apagada** la app no muestra login y se ve
 completa, como antes (detecta el modo sola: si `GET /usuarios` sin token da `401`, hay login).
 
+### Capturas
+
+**Pantalla de login** (aparece sola cuando el servidor tiene la autenticación encendida):
+
+![Pantalla de login](img/auth-login.jpg)
+
+**Solicitante:** solo las pestañas de tickets y comunicación; ve los tickets pero ningún botón de gestión (solo Notas, y Reabrir / Nuevo Ticket en los resueltos):
+
+![Vista del solicitante](img/auth-solicitante-tickets.jpg)
+
+**Administrador:** las 4 pestañas y todos los botones (Asignar, Finalizar, Editar, Eliminar):
+
+![Vista del administrador](img/auth-admin-tickets.jpg)
+
+> Las capturas son de una copia de prueba con datos de ejemplo. El técnico ve la pestaña de estadísticas, tickets y comunicación, y solo el botón Finalizar; el botón Reiniciar de las métricas es solo del administrador.
+
 ## Dar acceso a otras personas
 
 Como administrador, en la pestaña de identidad: **Registrar nuevo usuario** con nombre, rol, *usuario de acceso* y *clave*

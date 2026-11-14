@@ -214,7 +214,7 @@ Los tres: **Git 2.40 o superior** y **GitHub CLI (`gh`)** opcional pero recomend
 
 Cada servicio es simple: `model/` (entidades), `service/` (logica) y `controller/` (endpoints), como se explica en el
 [README](README.md#arquitectura-de-cada-servicio). No agregues carpetas ni capas nuevas sin acordarlo con
-el equipo ([ADR 0002](docs/adr/0002-servicios-simples.md)).
+el equipo (decisión de diseño del proyecto).
 
 Reglas minimas:
 

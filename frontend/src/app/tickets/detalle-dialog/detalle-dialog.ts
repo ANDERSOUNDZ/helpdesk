@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
@@ -10,6 +10,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HelpdeskService } from '../../services/helpdesk.service';
+import { AuthService } from '../../auth/auth.service';
 import { Ticket, Comentario } from '../../models/helpdesk.model';
 
 export interface DetalleDialogData {
@@ -39,6 +40,8 @@ export class DetalleDialog implements OnInit {
   readonly data: DetalleDialogData = inject(MAT_DIALOG_DATA);
   private helpdeskService = inject(HelpdeskService);
   private snackBar = inject(MatSnackBar);
+  private cdr = inject(ChangeDetectorRef);
+  private auth = inject(AuthService);
 
   comentarios: Comentario[] = [];
   nuevaNota = '';
@@ -50,22 +53,29 @@ export class DetalleDialog implements OnInit {
   cargarComentarios(): void {
     if (!this.data.ticket.id) return;
     this.helpdeskService.getComentarios(this.data.ticket.id).subscribe({
-      next: (res) => (this.comentarios = res),
+      next: (res) => {
+        this.comentarios = res;
+        this.cdr.markForCheck();
+      },
       error: () => console.warn('Error al cargar comentarios')
     });
   }
 
   agregarNota(): void {
     if (!this.nuevaNota.trim() || !this.data.ticket.id) return;
+    const actual = this.auth.usuario();
     const comentario: Comentario = {
       ticketId: this.data.ticket.id,
-      autorId: 1,
-      texto: this.nuevaNota
+      autorId: actual?.id ?? 1,
+      autorNombre: actual?.nombre,
+      ticketTitulo: this.data.ticket.titulo,
+      texto: this.nuevaNota.trim()
     };
     this.helpdeskService.crearComentario(comentario).subscribe({
       next: () => {
         this.snackBar.open('Nota tecnica agregada a la bitacora', 'OK', { duration: 2500 });
         this.nuevaNota = '';
+        this.cdr.markForCheck();
         this.cargarComentarios();
       },
       error: () => this.snackBar.open('Error al guardar nota', 'Cerrar', { duration: 3000 })

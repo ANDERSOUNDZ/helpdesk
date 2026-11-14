@@ -1,6 +1,6 @@
 ﻿#  Servicio de Identidad (HelpDesk)
 
-> **Estado:** ⏸️ **STANDBY (Fase Base Operativa — Módulo Común del Equipo)**  
+> **Estado:** **OPERATIVO** — usuarios con roles y login (JWT). Ver la sección de autenticación más abajo.  
 > **Rama asignada:** `feat/identidad`
 
 Microservicio de **gestión de usuarios, roles de TI y control de acceso** de la Mesa de Ayuda.
@@ -9,13 +9,13 @@ Microservicio de **gestión de usuarios, roles de TI y control de acceso** de la
 
 ## Para el Desarrollador (Anthony Marcel Orozco Junia)
 ### ¿Qué está hecho hasta ahora?
-- Entidad [`Usuario.java`](src/main/java/com/helpdesk/identidad/model/Usuario.java) con `id`, `nombre`, `email`, enum [`Rol.java`](src/main/java/com/helpdesk/identidad/model/Rol.java) (`SOLICITANTE`, `TECNICO`, `ADMINISTRADOR`) y `activo`.
-- Servicio [`UsuarioService.java`](src/main/java/com/helpdesk/identidad/service/UsuarioService.java) y Controlador REST [`UsuarioController.java`](src/main/java/com/helpdesk/identidad/controller/UsuarioController.java) con rutas completas para listar, crear y cambiar estado de activación.
+- Entidad [`Usuario.java`](src/main/java/com/helpdesk/identidad/model/Usuario.java) con `id`, `nombre`, enum [`Rol.java`](src/main/java/com/helpdesk/identidad/model/Rol.java) (`SOLICITANTE`, `TECNICO`, `ADMINISTRADOR`), `username` (único), clave cifrada con BCrypt (nunca se devuelve) y `activo`.
+- Servicio [`UsuarioService.java`](src/main/java/com/helpdesk/identidad/service/UsuarioService.java), `AuthService` y `JwtService`; controladores REST [`UsuarioController.java`](src/main/java/com/helpdesk/identidad/controller/UsuarioController.java) (CRUD de usuarios) y `AuthController` (`POST /auth/login`).
 - Base de datos PostgreSQL independiente y contenedor de **pgAdmin** listo en puerto `5053`.
 
-### Tareas en Standby:
+### Pendiente:
 - Servir de catálogo de referencia para los IDs numéricos (`solicitanteId`, `tecnicoId`, `autorId`) utilizados en Tickets y Comunicación.
-- Proveer los datos de usuarios cuando **Dylan** integre la vista de inicio de sesión o selección de usuario en el Frontend.
+- El inicio de sesión en pantalla ya está hecho en el frontend Angular. Falta renovar el token (hoy dura 60 minutos) y, si hiciera falta, poder revocar sesiones.
 
 ---
 

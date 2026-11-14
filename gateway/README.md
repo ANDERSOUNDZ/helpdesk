@@ -1,7 +1,7 @@
 ﻿#  API Gateway (HelpDesk) — [STANDBY]
 
 > **Desarrollador Responsable:** **Dylan Miguel Vargas Onofa**  
-> **Estado:** ⏳ **STANDBY / LISTO PARA INICIAR**  
+> **Estado:** ⏳ **PENDIENTE (aún no creado)** — ya existe lo que necesita: Eureka (`:8081`) y login con JWT.  
 > **Puerto asignado:** `8000`  
 > **Rama asignada:** `feat/gateway`
 
@@ -18,18 +18,18 @@ Cuando inicies el desarrollo de este módulo con el asistente, aquí está el pu
 1. **Creación del Proyecto:**
    - Crear una aplicación Spring Boot con **Spring Cloud Gateway** y dependencias de Reactive Gateway.
 2. **Configuración de Rutas (`application.yml`):**
-   - Mapear las rutas hacia los 4 microservicios backend:
-     - `/api/tickets/**`  `http://localhost:8080/tickets/**` (Ariel)
-     - `/api/usuarios/**`  `http://localhost:8083/usuarios/**` (Identidad)
-     - `/api/comentarios/**`  `http://localhost:8084/comentarios/**` (Gabriel)
-     - `/api/notificaciones/**`  `http://localhost:8084/notificaciones/**` (Gabriel)
-     - `/api/estadisticas/**`  `http://localhost:8082/resumen` (Miguel)
+   - Registrar el gateway en **Eureka** (`http://localhost:8081/eureka/`) y enrutar **por nombre de servicio**, sin escribir puertos:
+     - `/api/tickets/**` → `lb://servicio-tickets` (`/tickets/**`)
+     - `/api/usuarios/**` y `/api/auth/**` → `lb://servicio-identidad` (`/usuarios/**` y `/auth/**`)
+     - `/api/comentarios/**`, `/api/notificaciones/**`, `/api/adjuntos/**`, `/api/encuestas/**` → `lb://servicio-comunicacion`
+     - `/api/estadisticas/**` y `/api/resumen` → `lb://servicio-estadisticas`
+   - Con el login encendido, los 4 servicios ya validan el token por su cuenta; el gateway debe **reenviar** el encabezado `Authorization` sin tocarlo (validarlo también en el gateway es opcional).
 3. **CORS Global:**
-   - Habilitar CORS en el Gateway para permitir peticiones desde `http://localhost:3000` (Frontend) con métodos `GET, POST, PUT, DELETE, OPTIONS`.
+   - Habilitar CORS en el Gateway para permitir peticiones desde `http://localhost:4200` (Frontend) con métodos `GET, POST, PUT, DELETE, OPTIONS`.
 4. **Dockerización:**
    - Incluir `Dockerfile` y agregar el servicio en el `docker-compose.yml` de la raíz en puerto `8000`.
 
 ---
 
 ##  Estado Actual
-Este módulo se encuentra en **Standby estructurado**. Los microservicios de **Ariel, Gabriel y Miguel** ya tienen sus contratos REST y puertos listos para ser enrutados.
+Este módulo está **pendiente**: todavía no existe código. Los 4 microservicios ya tienen sus contratos REST, se registran en Eureka y validan el token; el frontend Angular (`:4200`) hoy usa un proxy de desarrollo (`frontend/proxy.conf.json`) que el gateway vendrá a reemplazar.

@@ -1,7 +1,7 @@
 ﻿#  Servicio de Tickets (HelpDesk)
 
 > **Desarrollador Responsable:** **Ariel Martín Guerrero Sandoval**  
-> **Estado:** ⏸️ **STANDBY (Fase Base Completada — Listo para Fase 2)**  
+> **Estado:** **OPERATIVO** — ciclo completo de tickets con permisos por rol. Pendiente: eventos hacia otros servicios (Fase 2).  
 > **Rama asignada:** `feat/tickets`
 
 Microservicio **núcleo del sistema** encargado del ciclo de vida y gestión de incidentes y solicitudes de soporte técnico de TI.
@@ -11,11 +11,11 @@ Microservicio **núcleo del sistema** encargado del ciclo de vida y gestión de 
 ## ‍ Para el Desarrollador (Ariel Martín Guerrero Sandoval)
 ### ¿Qué está hecho hasta ahora?
 - Entidad [`Ticket.java`](src/main/java/com/helpdesk/tickets/model/Ticket.java) con `id`, `titulo`, `descripcion`, `prioridad` (`BAJA`, `MEDIA`, `ALTA`), `estado` (`ABIERTO`, `EN_PROGRESO`, `RESUELTO`), `solicitanteId`, `tecnicoId`.
-- Servicio [`TicketService.java`](src/main/java/com/helpdesk/tickets/service/TicketService.java) con métodos para crear ticket, asignar técnico y resolver.
-- Controlador REST [`TicketController.java`](src/main/java/com/helpdesk/tickets/controller/TicketController.java) con rutas `GET /tickets`, `POST /tickets`, `PUT /tickets/{id}/asignar/{tecnicoId}`, `PUT /tickets/{id}/resolver`.
+- Servicio [`TicketService.java`](src/main/java/com/helpdesk/tickets/service/TicketService.java) con métodos para crear, asignar técnico, resolver, reabrir, editar y eliminar tickets.
+- Controlador REST [`TicketController.java`](src/main/java/com/helpdesk/tickets/controller/TicketController.java) con rutas `GET /tickets`, `GET /tickets/{id}`, `POST /tickets`, `PUT /tickets/{id}/asignar/{tecnicoId}`, `PUT /tickets/{id}/resolver`, `PUT /tickets/{id}/reabrir`, `PUT /tickets/{id}` y `DELETE /tickets/{id}`.
 - Base de datos PostgreSQL independiente y contenedor de **pgAdmin** listo en puerto `5050`.
 
-### Tareas en Standby (Tu trabajo cuando reanudes):
+### Pendiente (próximas tareas):
 1. **Validación de reglas de negocio:** Verificar que no se pueda resolver un ticket que no esté en progreso o que no tenga técnico asignado.
 2. **Emisión de Eventos (Fase 2):** Cuando un ticket se cree (`POST /tickets`), se asigne o se resuelva, publicar el evento (`TicketCreadoEvent`, `TicketEstadoCambiadoEvent`) para que **Gabriel** (Comunicación) y **Miguel** (Estadísticas) reciban la notificación automáticamente.
 3. **Contratos con Dylan (API Gateway / Frontend):** Asegurar que las respuestas JSON coincidan con las interfaces esperadas por el cliente web.

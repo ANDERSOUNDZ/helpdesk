@@ -19,8 +19,8 @@
   <!-- PESTAÑAS: VISTAS INDEPENDIENTES Y LIMPIAS (segun el rol de quien inicio sesion) -->
   <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start" class="contenedor-pestanas">
 
-    <!-- 1. SERVICIO ESTADÍSTICAS (:8082): tecnicos y administradores -->
-    @if (auth.puede('TECNICO', 'ADMINISTRADOR')) {
+    <!-- 1. SERVICIO ESTADÍSTICAS (:8082): solo administradores -->
+    @if (auth.puede('ADMINISTRADOR')) {
       <mat-tab label="servicio-estadisticas (:8082) — Miguel Chanchay">
         <div class="vista-contenedor">
           <app-dashboard></app-dashboard>
@@ -35,12 +35,14 @@
       </div>
     </mat-tab>
 
-    <!-- 3. SERVICIO COMUNICACIÓN (:8084) -->
-    <mat-tab label="servicio-comunicacion (:8084) — Gabriel Ponce">
-      <div class="vista-contenedor">
-        <app-comunicacion></app-comunicacion>
-      </div>
-    </mat-tab>
+    <!-- 3. SERVICIO COMUNICACIÓN (:8084): tecnicos y administradores (ellos envian las respuestas) -->
+    @if (auth.puede('TECNICO', 'ADMINISTRADOR')) {
+      <mat-tab label="servicio-comunicacion (:8084) — Gabriel Ponce">
+        <div class="vista-contenedor">
+          <app-comunicacion></app-comunicacion>
+        </div>
+      </mat-tab>
+    }
 
     <!-- 4. SERVICIO IDENTIDAD (:8083): solo administradores -->
     @if (auth.puede('ADMINISTRADOR')) {
