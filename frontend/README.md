@@ -1,7 +1,7 @@
 ﻿#  Frontend Web SPA (HelpDesk)
 
 > **Desarrollador Responsable:** **Dylan Miguel Vargas Onofa**  
-> **Framework:** Angular 19+ con **Angular Material Oficial** (Tema Azure/Material 3)  
+> **Framework:** Angular 22 con **Angular Material Oficial** (Tema Azure/Material 3)  
 > **Puerto de Desarrollo:** `http://localhost:4200`  
 > **Rama asignada:** `feat/frontend`
 
@@ -13,6 +13,7 @@ Es la interfaz web para los usuarios y técnicos de la Mesa de Ayuda de TI. Perm
 2. **Registrar incidentes de TI:** Formulario con título, descripción y prioridad (`BAJA`, `MEDIA`, `ALTA`).
 3. **Bandeja de incidentes:** Tabla de tickets con acciones directas para **Asignar** y **Resolver** casos.
 4. **Diseño Estándar Angular Material:** Implementado con componentes oficiales (`mat-toolbar`, `mat-card`, `mat-table`, `mat-form-field`, `mat-chip`, `mat-snack-bar`), **100% responsive** para móviles, tablets y escritorio.
+5. **Login y permisos por rol:** si el servidor tiene la autenticación encendida, muestra una pantalla de acceso y adapta pestañas y botones al rol (`SOLICITANTE`, `TECNICO`, `ADMINISTRADOR`). Con la autenticación apagada (lo normal) se ve completo y sin login. Detalle y capturas en [`docs/AUTENTICACION.md`](../docs/AUTENTICACION.md).
 
 ---
 
@@ -29,6 +30,7 @@ Es la interfaz web para los usuarios y técnicos de la Mesa de Ayuda de TI. Perm
 > - `/resumen`  `http://localhost:8082` (Estadísticas - Miguel)
 > - `/tickets`  `http://localhost:8080` (Tickets - Ariel)
 > - `/usuarios`  `http://localhost:8083` (Identidad)
+> - `/auth` → `http://localhost:8083` (Login - Identidad)
 > - `/comentarios`  `http://localhost:8084` (Comunicación - Gabriel)
 
 ---
@@ -43,6 +45,7 @@ El frontend está diseñado para no tocar una sola línea de lógica cuando Dyla
 ## ️ Roadmap para Dylan (Continuación del Frontend)
 - [x] **Fase Base UI:** Proyecto Angular configurado con Angular Material estándar y responsive.
 - [x] **Consumo desacoplado:** Configuración con proxy local y environments listos.
-- [ ] **Chat de Soporte (Gabriel):** Crear una vista modal (`MatDialog`) para ver y agregar comentarios por ticket (`/comentarios`).
-- [ ] **Campana de Notificaciones:** Agregar icono con `matBadge` en el toolbar para mostrar avisos al usuario (`/notificaciones`).
+- [x] **Chat de Soporte (Gabriel):** Crear una vista modal (`MatDialog`) para ver y agregar comentarios por ticket (`/comentarios`). *(hecho en la pestaña de comunicación)*
+- [x] **Campana de Notificaciones:** Agregar icono con `matBadge` en el toolbar para mostrar avisos al usuario (`/notificaciones`). *(hecho como "Bandeja de Alertas" en la pestaña de comunicación)*
+- [x] **Login y permisos por rol:** pantalla de acceso, interceptor del token y pestañas y botones según el rol.
 - [ ] **Integración con Gateway:** Conectar todo al puerto `:8000` cuando esté levantado el Gateway.
