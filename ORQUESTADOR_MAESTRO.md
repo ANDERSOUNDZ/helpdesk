@@ -19,7 +19,7 @@ El sistema **HelpDesk** es una **Plataforma Distribuida de Mesa de Ayuda de TI (
 | **Anthony Marcel Orozco Junia** | **Servicio de Identidad** (Usuarios, roles y catalogo) | `services/servicio-identidad` | `8083` | `5434` | `5053` |
 
 ---
-1. **Detección y Apertura:** Un empleado (`USUARIO`) detecta una anomalía y registra un ticket en el sistema con un nivel de prioridad asignado.
+1. **Detección y Apertura:** Un empleado (`SOLICITANTE`) detecta una anomalía y registra un ticket en el sistema con un nivel de prioridad asignado.
 2. **Triaje y Asignación:** El soporte técnico o administrador asigna el ticket a un especialista (`TECNICO`), moviendo el estado a `EN_PROGRESO`.
 3. **Diagnóstico y Retroalimentación:** El técnico agrega notas técnicas o solicita más datos mediante el módulo de comunicación; el usuario recibe notificaciones de cada avance.
 4. **Cierre y Solución:** El técnico marca el ticket como `RESUELTO`.
@@ -85,26 +85,30 @@ Para que cualquier desarrollador pueda clonar el proyecto, agregar código y pro
 
 ```mermaid
 flowchart LR
-    F0["Fase 0\nFundación\n(Monorepo & Git)"]:::done --> F1["Fase 1\nMicroservicios Base\n(4 Servicios + Postgres Indep.)"]:::done
-    F1 --> F2["Fase 2\nOrquestación & Eventos\n(Bus RabbitMQ + Contratos)"]:::next
-    F2 --> F3["Fase 3\nAPI Gateway\n(Puerto :8000)"]:::pending
-    F3 --> F4["Fase 4\nFrontend Web\n(Puerto :3000)"]:::pending
+    F0["Fase 0\nFundación\n(Monorepo, Git, reglas)"]:::done --> F1["Fase 1\nMicroservicios base\n(4 servicios + PostgreSQL)"]:::done
+    F1 --> F2["Fase 2\nEventos entre servicios\n(Broker + contratos)"]:::next
+    F2 --> F3["Fase 3\nInfraestructura común\n(Eureka, Config, salud)"]:::partial
+    F3 --> F4["Fase 4\nGateway y seguridad\n(JWT hecho, gateway pendiente)"]:::partial
+    F4 --> F5["Fase 5\nFrontend Angular\n(:4200, login y roles)"]:::done
 
     classDef done fill:#2ea44f,stroke:#22863a,stroke-width:2px,color:#fff;
+    classDef partial fill:#d29922,stroke:#9e6a03,stroke-width:2px,color:#fff;
     classDef next fill:#f97515,stroke:#d15700,stroke-width:2px,color:#fff;
-    classDef pending fill:#6a737d,stroke:#586069,stroke-width:2px,color:#fff,stroke-dasharray: 4 4;
 ```
 
 ### Estado de cada Fase:
-- [x] **Fase 0 (Completada):** Estructura monorepo, convenciones Git por integrante (`feat/<servicio>`  `dev`  `main`) y CI de cherry-pick.
-- [x] **Fase 1 (Completada y Operativa):** 4 microservicios funcionales con Spring Boot 4 y Spring Data JPA. Bases de datos PostgreSQL independientes por servicio y base general. 16 pruebas unitarias passing (100% éxito).
-- [ ] **Fase 2 (Siguiente):** Bus de Eventos global (RabbitMQ) y módulo común de contratos (`helpdesk-common`).
-- [ ] **Fase 3 (Especificada):** API Gateway en Spring Cloud Gateway (Puerto `8000`) para enrutamiento único y CORS centralizado.
-- [ ] **Fase 4 (Especificada):** Frontend Web SPA (Puerto `3000`) con contratos TypeScript listos.
+- [x] **Fase 0 (Completada):** monorepo, convenciones Git por integrante (`feat/<servicio>` → `dev` → `main`), cherry-pick, reglas de alcance con guardia automático en GitHub Actions y protección de ramas.
+- [x] **Fase 1 (Completada y Operativa):** 4 microservicios con Spring Boot 4 y Spring Data JPA, una base PostgreSQL por servicio y una conjunta. **83 pruebas** pasando (identidad 28, tickets 14, comunicación 29, estadísticas 10, Eureka 1, Config 1).
+- [ ] **Fase 2 (Siguiente):** bus de eventos entre servicios y módulo común de contratos (`helpdesk-common`). Hoy el aviso de cambio de estado se envía a mano.
+- [ ] **Fase 3 (Parcial):** hecho: Eureka (`:8081`), Config Server (`:8888`) y `GET /actuator/health` con *healthchecks*. Falta: migraciones con Flyway.
+- [ ] **Fase 4 (Parcial):** hecho: login con JWT, roles `SOLICITANTE` / `TECNICO` / `ADMINISTRADOR` y permisos en los 4 servicios, apagado por defecto (ver [docs/AUTENTICACION.md](docs/AUTENTICACION.md)). Falta: API Gateway en Spring Cloud Gateway (puerto `8000`) y que cada usuario vea solo *sus* tickets.
+- [x] **Fase 5 (Completada):** frontend Angular 22 + Material en `:4200` con pantalla de login, pestañas y botones según el rol.
 
 ---
 
 ## 3.  EL ORQUESTADOR: MALLA DE EVENTOS GLOBAL ENTRE LOS 4 SERVICIOS
+
+> **Estado: planificado (Fase 2).** Esta malla de eventos todavía no existe: hoy los servicios no se llaman entre sí y el aviso de cambio de estado se envía a mano con `POST /eventos/ticket-estado`.
 
 Para que todos los servicios sincronicen su información sin acoplarse, se utiliza un **Bus de Eventos Asíncrono (RabbitMQ)**. Cuando ocurre una acción importante en un microservicio, este publica un evento al bus y los demás servicios reaccionan automáticamente:
 
@@ -142,6 +146,8 @@ flowchart TD
 
 ## 4.  ESTANDARIZACIÓN DE DATOS (MÓDULO `helpdesk-common`)
 
+> **Estado: planificado (Fase 2).** El módulo `helpdesk-common` todavía no se creó.
+
 Para no duplicar clases ni compartir entidades de base de datos, se creará un módulo Java ligero con clases planas (`records` de Java, sin JPA):
 
 ```java
@@ -168,24 +174,25 @@ public record UsuarioResumenDTO(
 
 > **Desarrollador Responsable:** **Dylan Miguel Vargas Onofa**  
 > **Ramas asignadas:** `feat/gateway`, `feat/frontend`  
-> **Puertos:** Gateway (`8000`) | Frontend Web SPA (`3000`)
+> **Puertos:** Gateway (`8000`, pendiente) | Frontend Angular (`4200`, hecho)
 
 ### ‍ Para el Desarrollador (Dylan Miguel Vargas Onofa)
 #### ¿Qué está hecho hasta ahora?
-- Los 4 microservicios backend ya cuentan con endpoints REST funcionales probados en sus puertos individuales (`:8080`, `:8083`, `:8084`, `:8082`).
-- Las entidades base (`Ticket`, `Usuario`, `Comentario`, `Notificacion`, `ContadorEstado`) ya están definidas y probadas con pruebas unitarias.
+- Los 4 microservicios backend tienen endpoints REST funcionales en sus puertos (`:8080`, `:8083`, `:8084`, `:8082`), con login por roles (apagado por defecto).
+- **El frontend Angular ya está hecho** (`frontend/`, puerto `4200`): pantalla de login, pestañas y botones según el rol, y las vistas de estadísticas, tickets, comunicación e identidad. Detalle en [docs/AUTENTICACION.md](docs/AUTENTICACION.md).
+- **Eureka** (`:8081`) ya registra a los 4 servicios, lo que permitirá al gateway enrutar por nombre (`lb://servicio-tickets`).
 
 #### ¿Qué debes revisar y qué sigue en tu roadmap?
-1. **API Gateway (Spring Cloud Gateway en `:8000`):**
+1. **API Gateway (Spring Cloud Gateway en `:8000`) — pendiente:**
    - Centralizar todas las peticiones para que el frontend no tenga que conocer 4 puertos distintos.
-   - Habilitar CORS globalmente para permitir peticiones desde `http://localhost:3000`.
+   - Habilitar CORS globalmente para permitir peticiones desde `http://localhost:4200`.
    - Mapear las rutas limpias:
      - `/api/tickets/**`  `servicio-tickets:8080/tickets/**`
      - `/api/usuarios/**`  `servicio-identidad:8083/usuarios/**`
      - `/api/comentarios/**`  `servicio-comunicacion:8084/comentarios/**`
      - `/api/notificaciones/**`  `servicio-comunicacion:8084/notificaciones/**`
      - `/api/estadisticas/**`  `servicio-estadisticas:8082/resumen`
-2. **Frontend SPA (React / Vue / Angular en `:3000`):**
+2. **Frontend SPA (Angular, ya hecho, en `:4200`):** se conecta hoy por rutas relativas (`/tickets`, `/usuarios`...) con el proxy de desarrollo; con el gateway pasará a `http://localhost:8000/api`. Vistas:
    - **Vista de Tickets (Ariel):** Lista de tickets, filtro por estado (`ABIERTO`, `EN_PROGRESO`, `RESUELTO`), formulario de creación y botón de asignación.
    - **Panel de Comunicación (Gabriel):** Sección de notas/comentarios dentro del detalle de un ticket y campana de notificaciones del usuario.
    - **Dashboard de Métricas (Miguel):** Tarjetas con contadores de tickets abiertos vs resueltos consumiendo `/api/estadisticas`.
@@ -200,54 +207,49 @@ Punto de entrada único para el Frontend. Enruta de forma transparente:
 - `/api/notificaciones/**`  `http://servicio-comunicacion:8084/notificaciones/**`
 - `/api/estadisticas/**`  `http://servicio-estadisticas:8082/resumen`
 
-### B. Contratos TypeScript para el Frontend
-El Frontend se conecta únicamente a `http://localhost:8000/api` usando estos contratos:
+### B. Contratos TypeScript del Frontend
+Los contratos reales están en [`frontend/src/app/models/helpdesk.model.ts`](frontend/src/app/models/helpdesk.model.ts). Los principales:
 ```typescript
-export type Prioridad = 'BAJA' | 'MEDIA' | 'ALTA' | 'URGENTE';
-export type EstadoTicket = 'ABIERTO' | 'EN_PROCESO' | 'RESUELTO' | 'CERRADO';
+export type Prioridad = 'BAJA' | 'MEDIA' | 'ALTA';
+export type EstadoTicket = 'ABIERTO' | 'EN_PROGRESO' | 'RESUELTO';
+export type Rol = 'SOLICITANTE' | 'TECNICO' | 'ADMINISTRADOR';
 
 export interface Ticket {
-  id: number;
+  id?: number;
   titulo: string;
   descripcion?: string;
   prioridad: Prioridad;
-  estado: EstadoTicket;
+  estado?: EstadoTicket;
   solicitanteId: number;
   tecnicoId?: number | null;
 }
 
 export interface Usuario {
-  id: number;
+  id?: number;
   nombre: string;
-  rol: 'ESTUDIANTE' | 'DOCENTE' | 'TECNICO' | 'ADMIN';
+  rol: Rol;
+  username?: string;   // usuario de acceso (opcional)
+  clave?: string;      // solo se envía al crear o editar; el servidor nunca la devuelve
+  activo?: boolean;
 }
 
 export interface Comentario {
-  id: number;
+  id?: number;
   ticketId: number;
   autorId: number;
-  contenido: string;
+  texto: string;
+  autorNombre?: string | null;
+  destinatarioId?: number | null;
 }
 
-export interface ResumenEstadisticas {
+export interface ResumenTickets {
   abiertos: number;
-  enProceso: number;
+  enProgreso: number;
   resueltos: number;
-  cerrados: number;
   total: number;
 }
 ```
-
----
-
-## 6.  GUÍA PRÁCTICA DE EJECUCIÓN (CÓMO TRABAJAR)
-
-### Modo 1: Trabajar en TU servicio (Modo Aislado - Día a Día)
-No necesitas levantar los servicios de tus compañeros. Solo abre Docker Desktop:
-```powershell
-cd services/servicio-tickets
-docker compose up -d --build
-```
+El estado `CERRADO`, el rol `DOCENTE` y la prioridad `URGENTE` de versiones anteriores de este documento **no existen**.
 - Tu app correrá en: `http://localhost:8080`
 - Tu base PostgreSQL correrá en: `localhost:5433`
 - Para apagar sin perder datos: `docker compose down`
@@ -258,4 +260,7 @@ Desde la raíz del proyecto para demostraciones o pruebas de integración:
 cd HelpDesk
 docker compose up -d --build
 ```
-- Levanta una sola base PostgreSQL (puerto `5432`) con las 4 bases de datos inicializadas y los 4 microservicios en simultáneo.
+- Levanta una sola base PostgreSQL (puerto `5432`) con las 4 bases inicializadas, los 4 microservicios, **Eureka** (`:8081`), **Config Server** (`:8888`) y pgAdmin (`:5055`).
+- El frontend se levanta aparte: `cd frontend && npm install && npm start` (puerto `4200`).
+- El login con roles viene **apagado por defecto**. Para encenderlo, copia `.env.example` como `.env`, completa `AUTH_ENABLED=true`, `JWT_SECRET` y la clave del administrador, y vuelve a ejecutar `docker compose up -d --build`. Guía completa: [docs/AUTENTICACION.md](docs/AUTENTICACION.md).
+- Si quieres exponerlo en internet con un túnel de Cloudflare: [docs/TUNEL_CLOUDFLARE.md](docs/TUNEL_CLOUDFLARE.md) (enciende el login antes de compartir el enlace).
