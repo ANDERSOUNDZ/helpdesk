@@ -155,6 +155,10 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@admin.com
       PGADMIN_DEFAULT_PASSWORD: admin
+      # Deja registrado el servidor con las 4 bases al arrancar (sin crearlo a mano).
+      PGADMIN_SERVER_JSON_FILE: /pgadmin-config/servers.json
+    volumes:
+      - ./docker/pgadmin:/pgadmin-config:ro
     ports:
       - "5055:80"
     depends_on:
