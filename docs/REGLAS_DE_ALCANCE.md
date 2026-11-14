@@ -4,6 +4,8 @@
 > ayuda" o "algo que mi funcionalidad necesita".**
 > Si necesitas algo fuera de tu area, no lo hagas: pidelo (seccion 4).
 
+La fuente de verdad de la regla es el [ORQUESTADOR_MAESTRO.md](../ORQUESTADOR_MAESTRO.md) (REGLA CERO); esta guia la desarrolla.
+
 Aplica igual a **personas y a agentes de IA**. El unico con acceso global es el duenio del repositorio,
 Miguel Anderson Chanchay (`@ANDERSOUNDZ`).
 
