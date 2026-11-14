@@ -23,6 +23,16 @@ Es **100% compatible y funciona exactamente igual** en ambas modalidades:
 
 ---
 
+### C. Con el login encendido (`AUTH_ENABLED=true`)
+Si los servicios exigen iniciar sesión, las peticiones sin token responden `401`. Las dos colecciones de esta carpeta traen una petición **Login** (`0. Autenticacion` en la general y `0. Login` en la de estadísticas):
+1. En las variables de la colección, completa `usuario` y `clave` (por ejemplo, el administrador de tu `.env`; **no guardes la clave en un archivo versionado**).
+2. Envía **Login**: guarda el token en la variable `token`.
+3. El resto de peticiones lo mandan solas (`Authorization: Bearer {{token}}` a nivel de colección). El token dura 60 minutos; al vencer, vuelve a enviar **Login**.
+
+Con el login apagado (lo normal) no hace falta nada de esto. Guía completa: [`docs/AUTENTICACION.md`](../AUTENTICACION.md).
+
+---
+
 ## 2.  Cómo Levantar PostgreSQL
 
 El proyecto ofrece dos opciones para levantar PostgreSQL: **modo individual (por servicio)** o **modo conjunto (todos los servicios)**.
