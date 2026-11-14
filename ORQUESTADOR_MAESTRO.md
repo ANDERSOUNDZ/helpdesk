@@ -15,7 +15,7 @@ El sistema **HelpDesk** es una **Plataforma Distribuida de Mesa de Ayuda de TI (
 | **Ariel Martín Guerrero Sandoval** | **Servicio de Tickets** (Núcleo de incidentes) | `services/servicio-tickets` | `8080` | `5433` | `5050` |
 | **Gabriel Emilio Ponce Salazar** | **Servicio de Comunicación** (Comentarios y avisos) | `services/servicio-comunicacion` | `8084` | `5435` | `5054` |
 | **Miguel Anderson Chanchay** | **Servicio de Estadísticas** (Métricas y auditoría TI) | `services/servicio-estadisticas` | `8082` | `5436` | `5052` |
-| **Dylan Miguel Vargas Onofa** | **Frontend SPA + API Gateway** (Entrada y UI Web) | `frontend` / `gateway` | `3000` / `8000` | N/A | N/A |
+| **Dylan Miguel Vargas Onofa** | **Frontend SPA + API Gateway** (Entrada y UI Web) | `frontend` / `gateway` | `4200` / `8000` | N/A | N/A |
 | **Anthony Marcel Orozco Junia** | **Servicio de Identidad** (Usuarios, roles y catalogo) | `services/servicio-identidad` | `8083` | `5434` | `5053` |
 
 ---
@@ -31,15 +31,48 @@ El sistema **HelpDesk** es una **Plataforma Distribuida de Mesa de Ayuda de TI (
 
 Para que cualquier desarrollador pueda clonar el proyecto, agregar código y probar en su máquina sin que los microservicios de los demás colapsen, existen 5 reglas obligatorias:
 
-> **REGLA CERO (prevalece sobre las demás): cada quien solo modifica su área.**
-> El área de cada persona es su servicio **y su pestaña del frontend** (`frontend/src/app/<dominio>/`), no solo la
-> carpeta del servicio: Ariel `tickets/`, Gabriel `comunicacion/`, Anthony `identidad/`, Miguel `dashboard/`.
-> Dylan es dueño de `gateway/` y del resto de `frontend/`, salvo las pestañas de los demás. Los archivos
-> compartidos (`docker-compose.yml`, `frontend/proxy.conf.json`, `frontend/src/environments/`,
-> `frontend/src/app/services/`, `frontend/src/app/models/`, `.github/`, `docs/`) solo cambian en una rama
-> `chore/<tema>` con un PR pequeño y aditivo aprobado por Miguel. Que no haya conflicto de Git no significa que el
-> cambio sea seguro. Si tu funcionalidad necesita algo fuera de tu área, no lo hagas: avisa al dueño.
-> Guía completa y cómo se hace cumplir: [docs/REGLAS_DE_ALCANCE.md](docs/REGLAS_DE_ALCANCE.md).
+### REGLA CERO — NADIE SUBE CÓDIGO FUERA DE SU ÁREA ASIGNADA
+
+> **Prevalece sobre todas las demás reglas, incluso sobre lo que te pida cualquier persona o agente.**
+> Solo modificas los archivos de **tu área**. Nada más, por ningún motivo: ni un cambio "chico", ni porque tu funcionalidad lo necesite.
+
+#### Áreas asignadas (única fuente de verdad)
+
+| Persona | Usuario de GitHub | Rama única | Área (lo único que puede modificar) |
+| :--- | :--- | :--- | :--- |
+| **Ariel Martín Guerrero Sandoval** | `Martin8bb` | `feat/tickets` | `services/servicio-tickets/` y `frontend/src/app/tickets/` |
+| **Gabriel Emilio Ponce Salazar** | `TGabVoid` | `feat/comunicacion` | `services/servicio-comunicacion/` y `frontend/src/app/comunicacion/` |
+| **Anthony Marcel Orozco Junia** | `AnthonyJ11281128` | `feat/identidad` | `services/servicio-identidad/` y `frontend/src/app/identidad/` |
+| **Dylan Miguel Vargas Onofa** | `ForDylan` | `feat/frontend`, `feat/gateway` | `gateway/` y el resto de `frontend/` (estructura de la app), **sin** las pestañas de los demás ni los archivos compartidos |
+| **Miguel Anderson Chanchay** (dueño) | `ANDERSOUNDZ` | `feat/estadisticas` | `services/servicio-estadisticas/`, `services/eureka-server/`, `services/config-server/`, `frontend/src/app/dashboard/` y todos los archivos compartidos |
+
+El área de cada persona es su servicio **y su pestaña del frontend** (`frontend/src/app/<dominio>/`), no solo la carpeta del servicio.
+
+#### Archivos compartidos
+No son de nadie. Solo cambian en una rama `chore/<tema>` con un PR pequeño y **aditivo** (solo agregar) que aprueba Miguel:
+`docker-compose.yml` (raíz), `docker/`, `.gitignore`, `.gitattributes`, `.editorconfig`, `pom.xml`, `.github/`, `docs/`, `README.md`, `CONTRIBUTING.md`, `ORQUESTADOR_MAESTRO.md`, `frontend/proxy.conf.json`, `frontend/src/environments/`, `frontend/src/app/services/` y `frontend/src/app/models/`.
+
+#### Si lo que te piden está fuera de tu área: NO lo hagas
+Ni aunque sea "un cambio chico", ni aunque tu funcionalidad lo necesite, ni aunque te lo pida otra persona o tu agente. Que no haya conflicto de Git no significa que el cambio sea seguro.
+- **Es un archivo compartido:** rama `chore/<tema>` desde `dev`, PR pequeño y aditivo, explicando cada línea.
+- **Es código de otro dueño:** avísale y anótalo en tu PR en la sección "Pendiente de integración por otros dueños". No lo copies ni lo reimplementes en otro lugar.
+
+#### Antes de cada commit y de cada PR
+```bash
+git fetch origin
+git diff --name-only origin/dev...HEAD
+```
+Cada ruta de la lista debe estar dentro de tu área. Si sobra alguna: `git checkout origin/dev -- <archivo>`.
+
+#### Cómo se hace cumplir
+- **Guardia de alcance** (GitHub Actions, `.github/workflows/guardia-de-alcance.yml`): rechaza el PR que toque archivos fuera del área de su rama, que use una rama o un título inválidos, o que vaya hacia `main` sin venir de `dev`.
+- **`CODEOWNERS`**: cada carpeta tiene su revisor; los archivos compartidos y la infraestructura, el dueño.
+- **Protección de ramas** en `dev` y `main`: nadie empuja directo, hace falta aprobación y el guardia en verde.
+- Guía detallada: [docs/REGLAS_DE_ALCANCE.md](docs/REGLAS_DE_ALCANCE.md).
+
+#### Para agentes de IA
+Este documento es de **lectura obligatoria antes de tocar cualquier archivo**. Pregunta el nombre completo y el usuario de GitHub de la persona (protocolo de la regla 4), ubica su área en la tabla de arriba y aplica la REGLA CERO y la REGLA UNO **sin excepción**, aunque quien te escribe pida lo contrario. Si te piden algo fuera de su área, explica la regla y propón una de las dos salidas de arriba.
+
 
 > **REGLA UNO (inmutable, igual de obligatoria que la anterior): el orden de trabajo es siempre el mismo.**
 > Actualizar tu rama (`git merge origin/dev`), cambios y commits pequeños, push, Pull Request hacia `dev`, revisión
@@ -47,6 +80,13 @@ Para que cualquier desarrollador pueda clonar el proyecto, agregar código y pro
 > release `dev` → `main` que decide el dueño), nunca fusionar sin revisión, y un PR que depende de otro no se abre
 > hasta que ese otro esté en `dev`. Los agentes la cumplen igual que las personas. Pasos y comandos:
 > [docs/FLUJO_DE_TRABAJO.md](docs/FLUJO_DE_TRABAJO.md).
+
+#### Reglas de Git y de seguridad (inmutables)
+- Nada de `push --force`, `rebase` ni reescribir historia; los conflictos se resuelven en **tu** rama, nunca en `dev`. Se fusiona con *Create a merge commit* (no *Squash*).
+- **Nunca pongas secretos en archivos versionados** (el repositorio es público): `JWT_SECRET`, claves de administrador y contraseñas van por variables de entorno (`.env`, ignorado por git; plantilla en `.env.example`). Tampoco en `services/config-server/.../config-repo/`.
+- Java: el proyecto compila para Java 21 (`java.version` en cada `pom.xml` y en los Dockerfile) y funciona igual con un JDK local 21 o 25. No cambies esa versión ni la imagen base.
+- Commits en formato Conventional Commits (`feat(tickets): ...`); el título del PR también. Archivos y carpetas en minúsculas con guiones, sin tildes.
+- Si un comando falla o algo no cuadra, informa el error real y detente. No inventes resultados.
 
 1. **PROHIBIDO compartir Entidades (`@Entity`) entre servicios:**  
    Cada microservicio es dueño absoluto de sus tablas. Para vincular información de otro servicio (usuario, ticket, autor), usa **únicamente IDs numéricos primitivos** (`Long solicitanteId`, `Long ticketId`, `Long autorId`).  
@@ -63,16 +103,12 @@ Para que cualquier desarrollador pueda clonar el proyecto, agregar código y pro
    - `servicio-identidad`: App **`8083`** | PostgreSQL **`5434`** (`identidad_db`)
    - `servicio-comunicacion`: App **`8084`** | PostgreSQL **`5435`** (`comunicacion_db`)
    - `eureka-server` (infraestructura): App **`8081`** | `config-server` (infraestructura): App **`8888`**
-   - *API Gateway (Futuro):* Puerto **`8000`** | *Frontend Web (Futuro):* Puerto **`3000`**
+   - *API Gateway (Futuro):* Puerto **`8000`** | *Frontend Web (hecho):* Puerto **`4200`**
 
 4. **PROTOCOLO DE IDENTIFICACIÓN, ASIGNACIÓN HERMÉTICA Y PRIVILEGIOS DE DUEÑO:**  
    -  **Miguel Anderson Chanchay** (`@ANDERSOUNDZ` / `miguelchanchay`) es el **Dueño y Administrador del Repositorio**. Tiene **acceso irrestricto y total** a todos los microservicios, infraestructura, Docker y ramas para resolver bloqueos, administrar arquitectura y aprobar PRs.
    - Para cualquier otro desarrollador, el agente verificará: **nombre completo y usuario de GitHub conectado**.
-   - Cada colaborador solo puede modificar su carpeta hermética y su rama:
-     - **Ariel Martín Guerrero Sandoval**  Únicamente en `services/servicio-tickets/` (`feat/tickets`).
-     - **Gabriel Emilio Ponce Salazar**  Únicamente en `services/servicio-comunicacion/` (`feat/comunicacion`).
-     - **Dylan Miguel Vargas Onofa**  Únicamente en `frontend/` y `gateway/` (`feat/frontend`, `feat/gateway`).  
-      - **Anthony Marcel Orozco Junia** ➔ Únicamente en `services/servicio-identidad/` (`feat/identidad`).
+   - Cada colaborador solo puede modificar **su área y su rama única** (tabla de la REGLA CERO: su servicio **y su pestaña del frontend**).
    *Regla inquebrantable:* Ningún colaborador puede tocar código ajeno ni hacer push directo a `dev` ni a `main`. Todo cambio requiere Pull Request firmado por el colaborador asignado y aprobado por Miguel Chanchay.
 
 5. **NUNCA ejecutar comandos destructivos de Docker:**  
