@@ -1,6 +1,6 @@
 ﻿# HelpDesk: Plataforma Distribuida de Mesa de Ayuda de TI
 
-Plataforma de **gestión de incidentes y requerimientos tecnológicos** construida como **microservicios distribuidos e independientes** con Spring Boot 4 y PostgreSQL; preparada para integración con Bus de Eventos, API Gateway y Frontend SPA.
+Plataforma de **gestión de incidentes y requerimientos tecnológicos** construida como **microservicios distribuidos e independientes** con Spring Boot 4 y PostgreSQL. Incluye **login con roles (JWT)**, descubrimiento de servicios (Eureka), configuración centralizada y un **frontend Angular**; los eventos entre servicios y el API Gateway siguen pendientes.
 
 >  **DOCUMENTO MAESTRO PARA DESARROLLADORES:**  
 > Consulta la [**Guía Maestra y Reglas Inmutables (ORQUESTADOR_MAESTRO.md)**](ORQUESTADOR_MAESTRO.md) antes de escribir código para conocer las reglas que evitan que los microservicios colapsen entre sí.
@@ -24,7 +24,7 @@ flowchart TD
     A[" 1. Usuario Solicitante\nReporta un problema de TI\n(Crea un Ticket con título, descrip. y prioridad)"] -->|"Genera Ticket #ID\n(Estado: ABIERTO)"| B[" 2. Mesa de Ayuda / Cola de Soporte\nEl caso entra a la cola general de TI"]
     B -->|"Asignación\n(Se asocia a un tecnicoId)"| C["️ 3. Técnico de TI\n(Estado: EN_PROGRESO)"]
     C -->|"Diagnóstico y comentarios\n(Servicio Comunicación)"| D[" 4. Comunicación con el Usuario\n(Notas, notificaciones y avisos)"]
-    D -->|"El técnico arregla la falla"| E[" 5. Resolución\n(Estado: RESUELTO / CERRADO)"]
+    D -->|"El técnico arregla la falla"| E[" 5. Resolución\n(Estado: RESUELTO)"]
     E -->|"Métricas actualizadas"| F[" 6. Métricas y KPIs de TI\n(Servicio Estadísticas)"]
 ```
 
@@ -34,30 +34,33 @@ flowchart TD
 |---|---|---|:---:|
 | **Ariel Martín Guerrero Sandoval** | **`servicio-tickets`** | **Corazón del incidente:** Genera folios de tickets, máquina de estados (`ABIERTO`  `EN_PROGRESO`  `RESUELTO`) y asignación de técnicos. | App: `8080`<br>BD: `5433`<br>pgAdmin: `5050` |
 | **Gabriel Emilio Ponce Salazar** | **`servicio-comunicacion`** | **Canal de soporte:** Registro de notas y comentarios sobre tickets, y notificaciones automáticas al usuario. | App: `8084`<br>BD: `5435`<br>pgAdmin: `5054` |
-| **Miguel Anderson Chanchay** | **`servicio-estadisticas`** | **Auditoría y KPIs:** Métricas en tiempo real de tickets abiertos, en progreso y resueltos para el tablero gerencial. | App: `8082`<br>BD: `5436`<br>pgAdmin: `5052` |
-| **Dylan Miguel Vargas Onofa** | **Frontend Web + API Gateway** | **Experiencia de Usuario y Enrutamiento:** Puerta de enlace unificada (`:8000`), CORS central y aplicación SPA (`:3000`). | Gateway: `8000`<br>SPA: `3000` |
-| **Anthony Marcel Orozco Junia** | **`servicio-identidad`** | **Control de Identidad:** Catálogo de roles corporativos (`USUARIO`, `TECNICO`, `ADMINISTRADOR`). | App: `8083`<br>BD: `5434`<br>pgAdmin: `5053` |
+| **Miguel Anderson Chanchay** | **`servicio-estadisticas`** + infraestructura | **Auditoría y KPIs:** Métricas de tickets abiertos, en progreso y resueltos para el tablero gerencial. Dueño del repositorio y de la infraestructura (`eureka-server`, `config-server`). | App: `8082`<br>BD: `5436`<br>pgAdmin: `5052`<br>Eureka: `8081`<br>Config: `8888` |
+| **Dylan Miguel Vargas Onofa** | **Frontend Web + API Gateway** | **Experiencia de Usuario y Enrutamiento:** Aplicación SPA en Angular (login y pestañas según el rol, `:4200`) y, pendiente, la puerta de enlace unificada (`:8000`). | SPA: `4200`<br>Gateway (pendiente): `8000` |
+| **Anthony Marcel Orozco Junia** | **`servicio-identidad`** | **Control de Identidad:** Login (JWT) y catálogo de usuarios con roles `SOLICITANTE`, `TECNICO` y `ADMINISTRADOR`. | App: `8083`<br>BD: `5434`<br>pgAdmin: `5053` |
 
 ---
 
 ## ️ Roadmap del Proyecto & Estado Actual
 
-Este roadmap describe el orden cronológico de los procesos implementados, los que están operativos y los que están planificados:
+Este roadmap describe el orden cronológico de los procesos: los completados, los parciales y los pendientes.
 
 ```mermaid
 flowchart LR
-    F0["Fase 0\nFundación\n(Git, Ramas, Reglas)"]:::completed
-    F1["Fase 1\nMicroservicios Base\n(4 Servicios + Postgres Indep.)"]:::completed
-    F2["Fase 2\nSincronización\n(Broker / Event-Driven)"]:::planned
-    F3["Fase 3\nAPI Gateway\n(Punto único :8000)"]:::planned
-    F4["Fase 4\nFrontend SPA\n(Cliente Web :3000)"]:::planned
+    F0["Fase 0\nFundación\n(Git, ramas, reglas)"]:::completed
+    F1["Fase 1\nMicroservicios base\n(4 servicios + PostgreSQL)"]:::completed
+    F2["Fase 2\nEventos entre servicios\n(Broker)"]:::planned
+    F3["Fase 3\nInfraestructura común\n(Eureka, Config, salud)"]:::partial
+    F4["Fase 4\nGateway y seguridad\n(JWT hecho, gateway :8000 pendiente)"]:::partial
+    F5["Fase 5\nFrontend Angular\n(:4200, login y roles)"]:::completed
 
     F0 --> F1
     F1 --> F2
     F2 --> F3
     F3 --> F4
+    F4 --> F5
 
     classDef completed fill:#2ea44f,stroke:#22863a,stroke-width:2px,color:#fff;
+    classDef partial fill:#d29922,stroke:#9e6a03,stroke-width:2px,color:#fff;
     classDef planned fill:#0366d6,stroke:#005cc5,stroke-width:2px,color:#fff,stroke-dasharray: 4 4;
 ```
 
@@ -66,10 +69,11 @@ flowchart LR
 | Fase | Proceso / Hito | Estado | Qué está levantado / Qué falta |
 | :---: | :--- | :---: | :--- |
 | **0** | **Fundación del Repositorio** |  **Completado** | Estructura en un solo repo Git, convenciones, plantillas de PR, workflow de cherry-pick. |
-| **1** | **Microservicios Independientes** |  **Completado & Levantable** | **4 microservicios funcionales** con Spring Boot y Spring Data JPA.<br>• `servicio-tickets` (8080)<br>• `servicio-identidad` (8083)<br>• `servicio-comunicacion` (8084)<br>• `servicio-estadisticas` (8082)<br>• **Persistencia:** Bases de datos PostgreSQL individuales (5433-5436) y base conjunta (5432).<br>• **Herramientas:** Wrappers de Maven (`mvnw`) y pruebas pasando al 100%. |
-| **2** | **Orquestación & Sincronización Global** | ⏳ *Planificado* | Módulo de contratos comunes (`helpdesk-common`) y Bus de eventos global (RabbitMQ/Broker) que interconecta a **los 4 servicios** sin llamadas HTTP bloqueantes (detallado en [ORQUESTADOR_MAESTRO.md](ORQUESTADOR_MAESTRO.md)). |
-| **3** | **API Gateway** | ⏳ *Especificado* | Enrutamiento inverso unificado en puerto `8000`, CORS centralizado y seguridad (detallado en [ORQUESTADOR_MAESTRO.md](ORQUESTADOR_MAESTRO.md)). |
-| **4** | **Frontend SPA** | ⏳ *Especificado* | Cliente web para usuarios y técnicos. Contratos de TypeScript listos (detallado en [ORQUESTADOR_MAESTRO.md](ORQUESTADOR_MAESTRO.md)). |
+| **1** | **Microservicios independientes** | Completado | **4 microservicios** con Spring Boot y Spring Data JPA: `servicio-tickets` (8080), `servicio-identidad` (8083), `servicio-comunicacion` (8084) y `servicio-estadisticas` (8082).<br>• **Persistencia:** una base PostgreSQL por servicio (5433-5436) y una conjunta (5432).<br>• **Pruebas:** unitarias y de seguridad en cada servicio; Maven Wrapper incluido. |
+| **2** | **Eventos entre servicios** | Pendiente | Bus de eventos / broker que interconecte a los 4 servicios sin llamadas HTTP bloqueantes. Hoy el aviso de cambio de estado se envía a mano (ver [ORQUESTADOR_MAESTRO.md](ORQUESTADOR_MAESTRO.md)). |
+| **3** | **Infraestructura común** | Parcial | **Hecho:** Eureka (`:8081`), Config Server (`:8888`) y `GET /actuator/health` con *healthchecks* en Docker. **Falta:** migraciones con Flyway. Ver [Infraestructura](#infraestructura-eureka-y-config-server). |
+| **4** | **Gateway y seguridad** | Parcial | **Hecho:** login con JWT, roles `SOLICITANTE` / `TECNICO` / `ADMINISTRADOR` y permisos en los 4 servicios (apagado por defecto). **Falta:** API Gateway en el puerto `8000` y que cada usuario vea solo *sus* tickets. Ver [docs/AUTENTICACION.md](docs/AUTENTICACION.md). |
+| **5** | **Frontend SPA** | Completado | Aplicación **Angular 22 + Material** en `:4200`: pantalla de login, pestañas y botones según el rol, y las 4 vistas (estadísticas, tickets, comunicación e identidad). |
 
 ---
 
@@ -151,7 +155,7 @@ curl -s -X POST localhost:8080/tickets -H 'Content-Type: application/json' \
 # servicio-identidad (8083)
 curl -s localhost:8083/usuarios                                           # []
 curl -s -X POST localhost:8083/usuarios -H 'Content-Type: application/json' \
-  -d '{"nombre":"Ana","rol":"ESTUDIANTE"}'                                # {"id":1,"nombre":"Ana","rol":"ESTUDIANTE"}
+  -d '{"nombre":"Ana","rol":"SOLICITANTE"}'                                # {"id":1,"nombre":"Ana","rol":"SOLICITANTE"}
 
 # servicio-comunicacion (8084)
 curl -s localhost:8084/comentarios                                        # []
@@ -196,7 +200,7 @@ El agente debe contar, con sus propias palabras y usando los datos reales del pa
    Actions) se usa solo para copiar un commit suelto. Detalle en [Flujo de trabajo del equipo](#flujo-de-trabajo-del-equipo)
    y [CONTRIBUTING.md](CONTRIBUTING.md).
 8. **Limites actuales, sin adornos:** los servicios todavia **no se llaman entre si** (el aviso de cambio de
-   estado se envia a mano), no hay inicio de sesion y las claves son de desarrollo.
+   estado se envia a mano), el login con roles viene **apagado por defecto** (ver [docs/AUTENTICACION.md](docs/AUTENTICACION.md)) y las claves son de desarrollo.
 
 ### Paso 7: apagar
 
@@ -241,45 +245,51 @@ Para trabajar con **todos los servicios juntos** o con solo la base, mira [Levan
 
 | Capa | Tecnologia | Notas |
 |---|---|---|
-| Lenguaje | Java 21 | Igual que `espacios-service` |
-| Framework | Spring Boot 4.x | Misma base que el proyecto de referencia |
+| Lenguaje | Java 21 | Compila para Java 21; funciona igual con un JDK local 21 o 25 |
+| Framework | Spring Boot 4.1 + Spring Cloud 2025.1 | Eureka (descubrimiento) y Config Server |
+| Seguridad | Spring Security + JWT (HS256) | Roles `SOLICITANTE`, `TECNICO`, `ADMINISTRADOR`; apagada por defecto |
+| Frontend | Angular 22 + Material | SPA en el puerto 4200 con login y pestañas por rol |
 | Build | Maven (multi-modulo) | POM padre en la raiz *(planificado)* |
 | Base de datos | PostgreSQL 17 + Spring Data JPA | Una base por servicio. Las tablas se crean solas (`ddl-auto=update`); migraciones con Flyway *(planificado)* |
 | Contenedores | Docker + Docker Compose | Entorno unico para el equipo; un `docker-compose.yml` por servicio y otro en la raiz |
-| CI | GitHub Actions | Ejecutable en local con `act` *(planificado)* |
+| CI | GitHub Actions | Guardia de alcance en cada PR y cherry-pick. Todavia no ejecuta los tests *(planificado)* |
 
 ## Arquitectura general
 
 Cada servicio es **independiente**: su propio codigo, su propia base de datos, su propia imagen
 Docker y su propio ciclo de despliegue. Viven juntos en un monorepo solo para facilitar la
-coordinacion del equipo ([ADR 0001](docs/adr/0001-monorepo-clean-microservicios.md)).
+coordinacion del equipo.
 
 ```
-            Clientes (frontend, mas adelante)
+        Navegador: frontend Angular :4200 (login con roles)
                          |
-                         v
-   +-----------------------------------------------+
-   |  API Gateway   (fuera de alcance por ahora)   |
-   +-----------------------------------------------+
-        |            |            |            |
-        v            v            v            v
+       proxy de desarrollo hoy  /  API Gateway :8000 (pendiente)
+                         |
+        +-------------+--+-----------+--------------+
+        v             v              v              v
   +-----------+ +-----------+ +--------------+ +---------------+
   |  servicio | |  servicio | |   servicio   | |    servicio   |
   |  tickets  | | identidad | | estadisticas | | comunicacion  |
+  |   :8080   | |   :8083   | |    :8082     | |     :8084     |
   +-----+-----+ +-----+-----+ +------+-------+ +-------+-------+
         |             |              |                 |
         v             v              v                 v
    tickets_db   identidad_db   estadisticas_db   comunicacion_db
+
+   Eureka :8081 (registro de servicios)      Config Server :8888 (configuracion)
+   identidad emite el token (JWT); los demas servicios lo validan solos, sin llamarla
 ```
 
 ### Servicios
 
 | Servicio | Responsabilidad | Puerto local | Estado | Responsable |
 |---|---|---|---|---|
-| `servicio-tickets` | Nucleo: crear tickets, prioridad, asignacion, estados (falta: categoria e historial de cambios) | 8080 | Entidades + endpoints basicos + su PostgreSQL | por asignar |
-| `servicio-estadisticas` | Estadisticas por estado (falta: categoria, prioridad, tiempo promedio, carga de tecnicos) | 8082 | Entidades + endpoints basicos + su PostgreSQL | por asignar |
-| `servicio-identidad` | Usuarios y roles (gestion de personal y tecnicos) | 8083 | Entidades + endpoints basicos + su PostgreSQL | Anthony Marcel Orozco Junia |
-| `servicio-comunicacion` | Comentarios y notificaciones de cambio de estado, avisos pendientes o leidos | 8084 | Entidades + endpoints basicos + su PostgreSQL | por asignar |
+| `servicio-tickets` | Nucleo: crear, asignar, resolver, reabrir, editar y eliminar tickets; prioridad y estados (falta: categoria e historial de cambios) | 8080 | Operativo, con permisos por rol | Ariel Martin Guerrero Sandoval |
+| `servicio-estadisticas` | Contadores por estado (falta: categoria, prioridad, tiempo promedio, carga de tecnicos) | 8082 | Operativo, con permisos por rol | Miguel Anderson Chanchay |
+| `servicio-identidad` | Usuarios, roles y login (emite el JWT) | 8083 | Operativo | Anthony Marcel Orozco Junia |
+| `servicio-comunicacion` | Comentarios con adjuntos, notificaciones y encuestas de satisfaccion (CSAT) | 8084 | Operativo, con permisos por rol | Gabriel Emilio Ponce Salazar |
+| `eureka-server` | Infraestructura: descubrimiento de servicios | 8081 | Operativo | Miguel Anderson Chanchay |
+| `config-server` | Infraestructura: configuracion centralizada | 8888 | Operativo | Miguel Anderson Chanchay |
 
 Quien es dueno de que dato (para no pisarse):
 
@@ -315,10 +325,12 @@ Entidades minimas, una clase por concepto (en la carpeta `model/` de cada servic
 
 | Servicio | Entidad | Campos |
 |---|---|---|
-| identidad | `Usuario` | `id`, `nombre`, `rol` (`ESTUDIANTE`, `TECNICO`, `ADMINISTRADOR`) |
+| identidad | `Usuario` | `id`, `nombre`, `rol` (`SOLICITANTE`, `TECNICO`, `ADMINISTRADOR`), `username`, clave cifrada (nunca se devuelve), `activo` |
 | tickets | `Ticket` | `id`, `titulo`, `descripcion`, `prioridad`, `estado`, `solicitanteId`, `tecnicoId` |
 | comunicacion | `Comentario` | `id`, `ticketId`, `autorId`, `texto` |
 | comunicacion | `Notificacion` | `id`, `usuarioId`, `mensaje`, `leida` |
+| comunicacion | `Adjunto` | `id`, `comentarioId`, `nombreOriginal`, `contentType`, `tamanoBytes` (png, jpg o pdf; hasta 3 por comentario y 5 MB) |
+| comunicacion | `EncuestaSatisfaccion` | `ticketId`, `solicitanteId`, `puntuacion` (1 a 5), `comentario`; se crea al resolver un ticket |
 | estadisticas | `ResumenTickets` | `abiertos`, `enProgreso`, `resueltos` (se calcula, no se guarda) |
 
 Estados del ticket: `ABIERTO` -> `EN_PROGRESO` (al asignarlo) -> `RESUELTO`.
@@ -377,7 +389,7 @@ com.helpdesk.tickets
 **Por que tan simple:** el objetivo ahora es que todo el equipo pueda levantar el servicio y probarlo con
 Postman. Cuando un servicio crezca (reglas de negocio, muchos endpoints) se separa en capas,
 por ejemplo `domain` / `application` / `infrastructure`, sin cambiar la API ni a los demas servicios
-([ADR 0002](docs/adr/0002-servicios-simples.md)).
+(decision de diseno del proyecto).
 
 ## Organizacion de carpetas
 
@@ -385,6 +397,8 @@ por ejemplo `domain` / `application` / `infrastructure`, sin cambiar la API ni a
 helpdesk/
 ├─ README.md                      Este documento
 ├─ CONTRIBUTING.md                Ramas, commits, PR, cherry-pick, multiplataforma
+├─ ORQUESTADOR_MAESTRO.md         Arquitectura y reglas inmutables
+├─ .env.example                   Plantilla de variables (JWT_SECRET, administrador); el .env real NO se versiona
 ├─ .gitignore                     Ignora target/, .env, datos locales, IDEs
 ├─ .gitattributes                 Fuerza LF: mismo resultado en Windows, Mac y Linux
 ├─ .editorconfig                  Indentacion y charset iguales en cualquier IDE
@@ -392,11 +406,13 @@ helpdesk/
 │  ├─ CODEOWNERS                  Quien revisa cada carpeta
 │  ├─ pull_request_template.md    Plantilla de PR
 │  └─ workflows/
+│     ├─ guardia-de-alcance.yml   Rechaza PR que salgan del area de su rama o con titulo sin formato
 │     └─ cherry-pick.yml          Cherry-pick automatizado hacia otra rama
-├─ docker-compose.yml             Levanta TODOS los servicios juntos con un solo PostgreSQL (4 bases)
+├─ docker-compose.yml             Levanta TODO junto: 4 servicios, Eureka, Config Server, PostgreSQL y pgAdmin
 ├─ docker/postgres/               Script que crea las 4 bases y sus usuarios
-├─ docs/
-│  └─ adr/                        Decisiones de arquitectura (ADR)
+├─ docs/                          Guias: autenticacion, flujo, reglas de alcance, E2E, tunel, Postman
+├─ frontend/                      Aplicacion Angular (puerto 4200)
+├─ gateway/                       API Gateway (pendiente, puerto 8000)
 └─ services/                      Un subdirectorio por microservicio (cada uno independiente)
    ├─ servicio-tickets/           App en el puerto 8080
    ├─ servicio-identidad/         App en el puerto 8083
@@ -424,8 +440,8 @@ Dentro de cada servicio:
    └─ test/java/                  Tests del servicio (sin base de datos)
 ```
 
-Se agregara en las siguientes fases *(planificado)*: POM padre, `.env.example`, `scripts/` y los
-workflows de CI (`ci.yml`, `docker.yml`).
+Pendiente *(planificado)*: POM padre, `scripts/` y workflows de CI que ejecuten los tests (`ci.yml`, `docker.yml`). Hoy el CI solo corre el guardia de
+alcance y el cherry-pick.
 
 Convenciones de nombres:
 
@@ -527,7 +543,7 @@ cuando termines; en Windows/macOS limita la memoria de Docker Desktop (Ajustes >
 - Para **integrar**: `git pull origin dev` y opcion 3 en una maquina, y se recorre el guion de la seccion
   siguiente. Conviene hacerlo al final de cada semana.
 - **Estado actual:** los servicios todavia no se llaman entre si; el aviso de cambio de estado se envia a mano
-  con Postman *(llamadas reales entre servicios y entre maquinas: planificado)*.
+  con Postman *(Fase 2: eventos reales entre servicios, pendiente)*. El login con roles viene apagado por defecto.
 
 ## Probar con Postman
 
@@ -539,13 +555,22 @@ Con el servicio levantado (cualquiera de las opciones anteriores), estos son los
 | | | `GET /tickets`, `GET /tickets/{id}` | Lista / consulta |
 | | | `PUT /tickets/{id}/asignar/{tecnicoId}` | Asigna un tecnico y pasa a `EN_PROGRESO` |
 | | | `PUT /tickets/{id}/resolver` | Pasa a `RESUELTO` |
-| identidad | 8083 | `POST /usuarios`, `GET /usuarios`, `GET /usuarios/{id}` | Crea y consulta usuarios |
+| | | `PUT /tickets/{id}/reabrir` | Vuelve a `EN_PROGRESO` (solo si estaba `RESUELTO`) |
+| | | `PUT /tickets/{id}`, `DELETE /tickets/{id}` | Edita / elimina un ticket |
+| identidad | 8083 | `POST /auth/login` | Devuelve el token (JWT); solo hace falta con el login encendido |
+| | | `POST /usuarios`, `GET /usuarios`, `GET /usuarios/{id}` | Crea y consulta usuarios |
+| | | `PUT /usuarios/{id}`, `DELETE /usuarios/{id}` | Edita / elimina (solo `ADMINISTRADOR` con el login encendido) |
 | comunicacion | 8084 | `POST /comentarios`, `GET /comentarios?ticketId=1` | Comentarios de un ticket |
 | | | `GET /notificaciones?usuarioId=3&leida=false` | Avisos de un usuario |
 | | | `PUT /notificaciones/{id}/leida` | Marca un aviso como leido |
 | | | `POST /eventos/ticket-estado` | Recibe el evento y crea el aviso |
+| | | Adjuntos, encuestas (CSAT), contador de avisos y busqueda paginada de comentarios | Ver [`services/servicio-comunicacion/README.md`](services/servicio-comunicacion/README.md) |
 | estadisticas | 8082 | `GET /resumen` | Abiertos / en progreso / resueltos |
 | | | `POST /eventos/ticket-estado` | Recibe el evento y actualiza los contadores |
+
+Con el login **encendido** (`AUTH_ENABLED=true`), primero haz `POST /auth/login` y envia el token en cada peticion como
+`Authorization: Bearer <token>`. Las colecciones de `docs/postman/` ya traen una peticion *Login* que lo guarda y lo envia solas.
+Con el login apagado (lo normal) no hace falta nada de eso.
 
 Cuerpos JSON de ejemplo (en Postman: *Body > raw > JSON*):
 
@@ -553,8 +578,11 @@ Cuerpos JSON de ejemplo (en Postman: *Body > raw > JSON*):
 // POST localhost:8080/tickets
 { "titulo": "Wifi caido", "descripcion": "Sala 2", "prioridad": "ALTA", "solicitanteId": 3 }
 
-// POST localhost:8083/usuarios            (rol: ESTUDIANTE | TECNICO | ADMINISTRADOR)
-{ "nombre": "Ana", "rol": "ESTUDIANTE" }
+// POST localhost:8083/usuarios            (rol: SOLICITANTE | TECNICO | ADMINISTRADOR; username y clave son opcionales)
+{ "nombre": "Ana", "rol": "SOLICITANTE", "username": "ana", "clave": "unaclave123" }
+
+// POST localhost:8083/auth/login            (solo con el login encendido)
+{ "username": "ana", "clave": "unaclave123" }
 
 // POST localhost:8084/comentarios
 { "ticketId": 1, "autorId": 9, "texto": "Ya lo revise" }
@@ -575,8 +603,8 @@ mismo evento a comunicacion (aparece un aviso para el solicitante) y a estadisti
   test de arranque.
 - **Referencias entre servicios:** solo por id (`solicitanteId`, `ticketId`...), sin llave foranea, porque la
   tabla referenciada esta en la base de otro servicio.
-- **Comunicacion:** REST sincrono al principio. Cuando haga falta desacoplar (por ejemplo,
-  notificar al crear un ticket), se agregara mensajeria por eventos.
+- **Comunicacion:** hoy no hay llamadas entre servicios: el aviso de cambio de estado se envia a mano. Cuando haga falta desacoplar (por ejemplo,
+  notificar al crear un ticket), se agregara mensajeria por eventos (Fase 2).
 - **Salud:** cada servicio expone `GET /actuator/health` (solo ese endpoint, sin detalles). `docker-compose.yml`
   lo usa como *healthcheck* y Eureka lo usa para reflejar la salud real (`docker compose ps` muestra `healthy`).
 
@@ -626,9 +654,9 @@ Todo el detalle, los comandos y las reglas estan en [CONTRIBUTING.md](CONTRIBUTI
 
 ##  Hoja de ruta detallada
 
-- [x] **Fase 0: Fundación:** repositorio, monorepo, convenciones de Git, cherry-pick automatizado.
+- [x] **Fase 0: Fundación:** repositorio, monorepo, convenciones de Git, cherry-pick, reglas de alcance con guardia automático y protección de ramas.
 - [x] **Fase 1: Microservicios base:** cuatro microservicios (`tickets`, `identidad`, `comunicacion`, `estadisticas`) con capas simples, PostgreSQL independiente por servicio y conjunto, y Maven Wrappers integrados.
-- [ ] **Fase 2: Orquestación & Sincronización Global:** bus de eventos / broker asíncrono para interconectar los 4 microservicios (Tickets, Identidad, Comunicación, Estadísticas) sin bloqueos ni caídas en cascada (ver [ORQUESTADOR_MAESTRO.md](ORQUESTADOR_MAESTRO.md)).
-- [ ] **Fase 3: Infraestructura común:** ~~comprobaciones de salud (`/actuator/health`)~~ (hecho) y migraciones Flyway (pendiente).
-- [ ] **Fase 4: API Gateway y Seguridad:** punto único de entrada (puerto `8000`), proxy inverso, resolución de CORS y autenticación JWT (ver [ORQUESTADOR_MAESTRO.md](ORQUESTADOR_MAESTRO.md)).
-- [ ] **Fase 5: Frontend SPA:** cliente web (React/Vue/Angular), tablero Kanban de tickets, interacción de comentarios y métricas (ver [ORQUESTADOR_MAESTRO.md](ORQUESTADOR_MAESTRO.md)).
+- [ ] **Fase 2: Orquestación & Sincronización Global:** bus de eventos / broker asíncrono para interconectar los 4 microservicios sin bloqueos ni caídas en cascada (ver [ORQUESTADOR_MAESTRO.md](ORQUESTADOR_MAESTRO.md)).
+- [ ] **Fase 3: Infraestructura común** *(parcial)*: [x] Eureka y Config Server, [x] `GET /actuator/health` y *healthchecks*, [ ] migraciones con Flyway.
+- [ ] **Fase 4: API Gateway y Seguridad** *(parcial)*: [x] login con JWT y roles `SOLICITANTE` / `TECNICO` / `ADMINISTRADOR` ([docs/AUTENTICACION.md](docs/AUTENTICACION.md)), [ ] API Gateway en el puerto `8000`, [ ] que cada usuario vea solo *sus* tickets.
+- [x] **Fase 5: Frontend SPA:** aplicación Angular 22 + Material en `:4200` con login, pestañas y botones según el rol, y las vistas de estadísticas, tickets, comunicación e identidad.
