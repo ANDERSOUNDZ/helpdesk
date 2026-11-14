@@ -49,7 +49,7 @@ public class SeguridadConfig {
         http.authorizeHttpRequests(reglas -> reglas
                         .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/resumen", "/estadisticas/estados", "/estadisticas/estados/*")
-                                .hasAnyRole("TECNICO", "ADMINISTRADOR")
+                                .hasRole("ADMINISTRADOR")
                         .requestMatchers(HttpMethod.PUT, "/estadisticas/estados/*").hasRole("ADMINISTRADOR")
                         .requestMatchers(HttpMethod.DELETE, "/estadisticas/reset").hasRole("ADMINISTRADOR")
                         .anyRequest().authenticated())

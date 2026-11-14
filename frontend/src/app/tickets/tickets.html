@@ -7,7 +7,8 @@
     <button mat-stroked-button (click)="cargarDatos()">Actualizar</button>
   </div>
 
-  <!-- Formulario para Crear Ticket -->
+  <!-- Formulario para Crear Ticket: lo ven solicitantes y administradores (el tecnico no crea tickets) -->
+  @if (auth.puede('SOLICITANTE', 'ADMINISTRADOR')) {
   <mat-card class="tarjeta-formulario">
     <mat-card-header>
       <mat-card-title>Registrar Nuevo Incidente</mat-card-title>
@@ -50,6 +51,7 @@
       </div>
     </mat-card-content>
   </mat-card>
+  }
 
   <!-- Tabla de Tickets con Ciclo de Vida -->
   <mat-card class="tarjeta-tabla">
@@ -110,7 +112,7 @@
             <td mat-cell *matCellDef="let t" class="col-acciones">
               <div class="grupo-acciones">
                 <!-- Fase 1: Abierto -> Abrir Modal para Asignar Tecnico -->
-                <button mat-stroked-button color="primary" class="btn-accion" *ngIf="t.estado === 'ABIERTO' && auth.puede('ADMINISTRADOR')" (click)="abrirModalAsignar(t)">Asignar</button>
+                <button mat-stroked-button color="primary" class="btn-accion" *ngIf="t.estado === 'ABIERTO' && auth.puede('TECNICO', 'ADMINISTRADOR')" (click)="abrirModalAsignar(t)">Asignar</button>
 
                 <!-- Fase 2: En Progreso -> Tecnico termina tarea y marca como Resuelto -->
                 <button mat-flat-button color="accent" class="btn-accion" *ngIf="t.estado === 'EN_PROGRESO' && auth.puede('TECNICO', 'ADMINISTRADOR')" (click)="resolverTicket(t)">Finalizar</button>
