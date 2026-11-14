@@ -396,7 +396,6 @@ por ejemplo `domain` / `application` / `infrastructure`, sin cambiar la API ni a
 ```
 helpdesk/
 ├─ README.md                      Este documento
-├─ CLAUDE.md                      Reglas para agentes de IA (se cargan solas al abrir el proyecto)
 ├─ CONTRIBUTING.md                Ramas, commits, PR, cherry-pick, multiplataforma
 ├─ ORQUESTADOR_MAESTRO.md         Arquitectura y reglas inmutables
 ├─ .env.example                   Plantilla de variables (JWT_SECRET, administrador); el .env real NO se versiona
