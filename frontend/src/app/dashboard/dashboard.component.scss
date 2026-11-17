@@ -1,7 +1,7 @@
 .grid-container {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
 }
 
 .dashboard-header {
@@ -28,6 +28,74 @@
   }
 }
 
+.aviso-sin-datos {
+  border-radius: 8px;
+  background: #fff8e1;
+  color: #8d6e00;
+}
+
+/* SECCIONES SEPARADAS (cada bloque de metricas vive en su propio div) */
+.seccion {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  .seccion-titulo {
+    margin: 0;
+    padding-left: 10px;
+    border-left: 3px solid #1a237e;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1a237e;
+  }
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+
+  @media (max-width: 1100px) {
+    grid-template-columns: 1fr 1fr;
+  }
+  @media (max-width: 700px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 16px;
+
+  @media (max-width: 960px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.panel {
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+
+  mat-card-content {
+    padding-top: 12px;
+  }
+
+  .sin-datos {
+    margin: 8px 0 0;
+    color: #888;
+    font-style: italic;
+    font-size: 0.88rem;
+  }
+
+  .nota {
+    margin: 10px 0 0;
+    color: #777;
+    font-size: 0.78rem;
+  }
+}
+
+/* KPIs */
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
@@ -47,6 +115,8 @@
       &.color-abierto { color: #1565c0; }
       &.color-progreso { color: #e65100; }
       &.color-resuelto { color: #2e7d32; }
+      &.color-alerta { color: #f9a825; }
+      &.color-critico { color: #c62828; }
     }
 
     .kpi-desc {
@@ -56,7 +126,148 @@
   }
 }
 
-.tarjeta-resumen-estados,
+/* BARRAS HORIZONTALES (distribuciones y CSAT) */
+.fila-barra {
+  margin-bottom: 12px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  .fila-barra-texto {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: #444;
+    margin-bottom: 4px;
+  }
+}
+
+.barra-pista {
+  height: 10px;
+  border-radius: 5px;
+  background: #eceff1;
+  overflow: hidden;
+}
+
+.barra-relleno {
+  height: 100%;
+  border-radius: 5px;
+  min-width: 2px;
+  transition: width 0.3s ease;
+
+  &.barra-abierto { background: #1565c0; }
+  &.barra-progreso { background: #e65100; }
+  &.barra-resuelto { background: #2e7d32; }
+  &.barra-alta { background: #c62828; }
+  &.barra-media { background: #1565c0; }
+  &.barra-baja { background: #2e7d32; }
+  &.barra-categoria { background: #5c6bc0; }
+  &.barra-csat { background: #f9a825; }
+}
+
+/* CSAT */
+.csat-cabecera {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #eee;
+
+  .csat-promedio {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+  }
+  .csat-numero {
+    font-size: 2.8rem;
+    font-weight: 700;
+    color: #f9a825;
+    line-height: 1;
+  }
+  .csat-sobre {
+    color: #777;
+    font-size: 1rem;
+  }
+  .csat-datos {
+    font-size: 0.88rem;
+    color: #444;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .csat-tasa {
+    color: #777;
+    font-size: 0.8rem;
+  }
+}
+
+/* TENDENCIA */
+.leyenda {
+  display: flex;
+  gap: 18px;
+  font-size: 0.82rem;
+  color: #555;
+  margin-bottom: 10px;
+
+  .punto {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    margin-right: 6px;
+  }
+  .punto-creado { background: #1565c0; }
+  .punto-resuelto { background: #2e7d32; }
+}
+
+.columnas {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 170px;
+
+  .columna-dia {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+  }
+
+  .columna-barras {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 2px;
+    border-bottom: 1px solid #cfd8dc;
+  }
+
+  .col-barra {
+    width: 42%;
+    max-width: 14px;
+    min-height: 2px;
+    border-radius: 2px 2px 0 0;
+    transition: height 0.3s ease;
+  }
+  .col-creado { background: #1565c0; }
+  .col-resuelto { background: #2e7d32; }
+
+  .columna-etiqueta {
+    margin-top: 4px;
+    font-size: 0.62rem;
+    color: #777;
+    white-space: nowrap;
+  }
+}
+
+/* TABLAS */
 .tarjeta-reportes {
   border-radius: 8px;
 
@@ -67,39 +278,30 @@
   }
 }
 
-.tabla-metricas {
+.panel .tabla-scroll {
+  overflow-x: auto;
   width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-
-  th, td {
-    padding: 10px 14px;
-    text-align: left;
-    border-bottom: 1px solid #e0e0e0;
-  }
-
-  th {
-    background-color: #f8f9fa;
-    font-weight: 600;
-    color: #444;
-    white-space: nowrap;
-  }
 }
 
 /* FILTROS DE REPORTES */
 .filtros-reporte {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
-  margin: 12px 0 16px;
+  margin: 8px 0 16px;
+
+  .filtro-texto {
+    flex: 1 1 220px;
+    max-width: 320px;
+  }
 
   .filtro-campo {
-    min-width: 200px;
+    flex: 0 1 150px;
   }
 
   .contador-filtrados {
-    font-size: 0.88rem;
+    font-size: 0.85rem;
     color: #555;
     margin-left: auto;
   }
@@ -108,13 +310,18 @@
 /* TABLA DE REPORTE MATERIAL */
 .tabla-reporte-mat {
   width: 100%;
-  min-width: 680px;
+  min-width: 900px;
+
+  &.tabla-carga {
+    min-width: 480px;
+  }
 
   th {
     background: #f8f9fa;
     font-weight: 600;
     color: #333;
     padding: 12px 14px;
+    white-space: nowrap;
   }
 
   td {
@@ -133,6 +340,10 @@
     display: block;
     margin-top: 3px;
     font-size: 0.8rem;
+    max-width: 320px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .badge-estado {
@@ -153,6 +364,27 @@
     &.estado-resuelto {
       background-color: #e8f5e9;
       color: #2e7d32;
+    }
+  }
+
+  .badge-sla {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    font-weight: 600;
+
+    &.sla-vencido {
+      background-color: #ffebee;
+      color: #c62828;
+    }
+    &.sla-plazo {
+      background-color: #e3f2fd;
+      color: #1565c0;
+    }
+    &.sla-resuelto {
+      background-color: #eceff1;
+      color: #546e7a;
     }
   }
 
