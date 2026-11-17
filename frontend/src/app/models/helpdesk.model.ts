@@ -9,6 +9,7 @@ export interface Ticket {
   estado?: EstadoTicket;
   solicitanteId: number;
   tecnicoId?: number | null;
+  categoriaId?: number | null;
 }
 
 export interface Categoria {

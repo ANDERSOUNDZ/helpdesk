@@ -1,5 +1,5 @@
 <h2 mat-dialog-title>
-  Modificar Incidente #{{ data.id }}
+  Modificar Incidente #{{ data.ticket.id }}
 </h2>
 
 <mat-dialog-content class="contenido-modal">
@@ -15,6 +15,13 @@
         <mat-option value="BAJA">Baja</mat-option>
         <mat-option value="MEDIA">Media</mat-option>
         <mat-option value="ALTA">Alta</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="campo-full">
+      <mat-label>Categoria</mat-label>
+      <mat-select [(ngModel)]="categoriaId">
+        <mat-option *ngFor="let c of data.categorias" [value]="c.id">{{ c.nombre }}</mat-option>
       </mat-select>
     </mat-form-field>
 

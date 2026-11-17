@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {
-  Ticket, ResumenTickets, ContadorEstado, Usuario, Comentario, Notificacion,
+  Ticket, Categoria, ResumenTickets, ContadorEstado, Usuario, Comentario, Notificacion,
   EncuestaSatisfaccion, ResumenEncuestas, Adjunto, PaginaComentarios,
   ContadorNotificaciones, FiltrosComentarios, FiltrosNotificaciones
 } from '../models/helpdesk.model';
@@ -44,6 +44,23 @@ export class HelpdeskService {
 
   eliminarTicket(id: number): Observable<void> {
     return this.http.delete<void>(`${environment.endpoints.tickets}/${id}`);
+  }
+
+  // Categorias de los tickets (las gestiona el administrador; todos pueden listarlas)
+  getCategorias(): Observable<Categoria[]> {
+    return this.http.get<Categoria[]>('/categorias');
+  }
+
+  crearCategoria(categoria: Categoria): Observable<Categoria> {
+    return this.http.post<Categoria>('/categorias', categoria);
+  }
+
+  actualizarCategoria(id: number, categoria: Partial<Categoria>): Observable<Categoria> {
+    return this.http.put<Categoria>(`/categorias/${id}`, categoria);
+  }
+
+  eliminarCategoria(id: number): Observable<void> {
+    return this.http.delete<void>(`/categorias/${id}`);
   }
 
   // ==========================================
