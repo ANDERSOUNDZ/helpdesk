@@ -1,7 +1,7 @@
 ﻿#  Servicio de Tickets (HelpDesk)
 
 > **Desarrollador Responsable:** **Ariel Martín Guerrero Sandoval**  
-> **Estado:** **OPERATIVO** — ciclo completo de tickets con permisos por rol. Pendiente: eventos hacia otros servicios (Fase 2).  
+> **Estado:** **OPERATIVO** — ciclo completo de tickets, SLA, historial, categorías, horas y reportes. Pendiente: broker RabbitMQ en el entorno integrado.  
 > **Rama asignada:** `feat/tickets`
 
 Microservicio **núcleo del sistema** encargado del ciclo de vida y gestión de incidentes y solicitudes de soporte técnico de TI.
@@ -10,24 +10,74 @@ Microservicio **núcleo del sistema** encargado del ciclo de vida y gestión de 
 
 ## ‍ Para el Desarrollador (Ariel Martín Guerrero Sandoval)
 ### ¿Qué está hecho hasta ahora?
-- Entidad [`Ticket.java`](src/main/java/com/helpdesk/tickets/model/Ticket.java) con `id`, `titulo`, `descripcion`, `prioridad` (`BAJA`, `MEDIA`, `ALTA`), `estado` (`ABIERTO`, `EN_PROGRESO`, `RESUELTO`), `solicitanteId`, `tecnicoId`.
-- Servicio [`TicketService.java`](src/main/java/com/helpdesk/tickets/service/TicketService.java) con métodos para crear, asignar técnico, resolver, reabrir, editar y eliminar tickets.
-- Controlador REST [`TicketController.java`](src/main/java/com/helpdesk/tickets/controller/TicketController.java) con rutas `GET /tickets`, `GET /tickets/{id}`, `POST /tickets`, `PUT /tickets/{id}/asignar/{tecnicoId}`, `PUT /tickets/{id}/resolver`, `PUT /tickets/{id}/reabrir`, `PUT /tickets/{id}` y `DELETE /tickets/{id}`.
+- Entidad [`Ticket.java`](src/main/java/com/helpdesk/tickets/model/Ticket.java) con `id`, `titulo`, `descripcion`, `prioridad` (`BAJA`, `MEDIA`, `ALTA`), `estado` (`ABIERTO`, `EN_PROGRESO`, `RESUELTO`), `solicitanteId`, `tecnicoId`, `categoriaId` y fechas de ciclo de vida (`creadoEn`, `asignadoEn`, `resueltoEn`, `fechaLimite`, `recordatorioEnviadoEn`). El campo calculado `vencido` no se guarda.
+- Servicio [`TicketService.java`](src/main/java/com/helpdesk/tickets/service/TicketService.java) con métodos para crear, asignar técnico, resolver, reabrir, editar y eliminar tickets, con **reglas de negocio validadas**:
+  - No se resuelve un ticket que no esté `EN_PROGRESO` o que no tenga técnico.
+  - No se asigna ni se resuelve dos veces un ticket ya `RESUELTO`.
+  - Solo se reabre un ticket `RESUELTO`.
+  - Título obligatorio (máx. 200) y descripción (máx. 1000); IDs de solicitante y técnico positivos.
+  - Asignar al mismo técnico es idempotente.
+  - La categoría debe existir; al cambiar la prioridad se recalcula el SLA.
+- **SLA y fechas:** al crear un ticket se calcula `fechaLimite` según la prioridad (ALTA 8 h, MEDIA 24 h, BAJA 72 h, configurables). `GET /tickets/vencidos` y el filtro `vencidos=true` listan los tickets abiertos con la fecha límite pasada.
+- **Recordatorios por SLA:** [`SlaService.java`](src/main/java/com/helpdesk/tickets/service/SlaService.java) revisa cada 15 minutos (cron configurable) los tickets por vencer o vencidos y publica `ticket.sla-por-vencer` / `ticket.sla-vencido`. Marca `recordatorioEnviadoEn` para no repetir el aviso.
+- **Filtros, búsqueda y paginación:** `GET /tickets` acepta `estado`, `prioridad`, `tecnicoId`, `solicitanteId`, `categoriaId`, `q` (texto en título/descripción) y `vencidos`. `GET /tickets/paginado` agrega `page` y `size` (máx. 100).
+- **Historial de cambios:** [`HistorialService.java`](src/main/java/com/helpdesk/tickets/service/HistorialService.java) guarda en `historial_tickets` cada cambio de estado, técnico, título, descripción, prioridad, categoría y horas, con fecha y usuario (claim `uid` del JWT).
+- **Categorías:** [`CategoriaService.java`](src/main/java/com/helpdesk/tickets/service/CategoriaService.java) con CRUD en `/categorias`. No se puede eliminar una categoría con tickets asociados.
+- **Registro de horas:** [`HorasService.java`](src/main/java/com/helpdesk/tickets/service/HorasService.java) guarda minutos dedicados por técnico en `registros_horas` y devuelve el total en minutos y horas.
+- **Acciones en lote:** `POST /tickets/lote/asignar` y `POST /tickets/lote/resolver` procesan hasta 100 tickets y reportan cuáles fallaron sin detener el resto.
+- **Exportación CSV:** `GET /tickets/export.csv` exporta los tickets filtrados (UTF-8 con BOM, comas y comillas escapadas).
+- **Emisión de eventos (Fase 2, lado tickets):** al crear, asignar, resolver o reabrir se publican `TicketCreadoEvent`, `TicketAsignadoEvent` y `TicketEstadoCambiadoEvent` mediante [`PublicadorEventos`](src/main/java/com/helpdesk/tickets/evento/PublicadorEventos.java). Por defecto `EVENTOS_PUBLICADOR=log` (no necesita broker); con `EVENTOS_PUBLICADOR=rabbit` publica en el exchange `helpdesk.eventos` con las routing keys `ticket.creado`, `ticket.asignado`, `ticket.estado-cambiado`, `ticket.sla-por-vencer` y `ticket.sla-vencido`.
+- Controladores REST [`TicketController.java`](src/main/java/com/helpdesk/tickets/controller/TicketController.java) y [`CategoriaController.java`](src/main/java/com/helpdesk/tickets/controller/CategoriaController.java) con las rutas de la tabla de endpoints.
 - Base de datos PostgreSQL independiente y contenedor de **pgAdmin** listo en puerto `5050`.
 
+### Endpoints principales
+
+| Método y ruta | Descripción |
+|---|---|
+| `GET /tickets` | Lista con filtros (`estado`, `prioridad`, `tecnicoId`, `solicitanteId`, `categoriaId`, `q`, `vencidos`) |
+| `GET /tickets/paginado` | Igual que el anterior más `page` y `size` |
+| `GET /tickets/vencidos` | Tickets abiertos con SLA vencido |
+| `GET /tickets/export.csv` | Exportación CSV de los filtros aplicados |
+| `GET /tickets/{id}` | Detalle de un ticket |
+| `GET /tickets/{id}/historial` | Bitácora de cambios del ticket |
+| `POST /tickets` | Crear ticket (calcula estado inicial y SLA) |
+| `PUT /tickets/{id}/asignar/{tecnicoId}` | Asignar técnico |
+| `PUT /tickets/{id}/resolver` | Resolver ticket |
+| `PUT /tickets/{id}/reabrir` | Reabrir ticket resuelto |
+| `PUT /tickets/{id}` | Editar ticket |
+| `DELETE /tickets/{id}` | Eliminar ticket |
+| `POST /tickets/lote/asignar` | Asignar un técnico a varios tickets |
+| `POST /tickets/lote/resolver` | Resolver varios tickets |
+| `GET /tickets/{id}/horas` | Resumen y detalle de horas |
+| `POST /tickets/{id}/horas` | Registrar horas (`tecnicoId`, `minutos`, `descripcion`) |
+| `DELETE /tickets/{id}/horas/{registroId}` | Eliminar un registro de horas |
+| `GET /categorias`, `GET /categorias/{id}` | Listar y consultar categorías |
+| `POST /categorias`, `PUT /categorias/{id}`, `DELETE /categorias/{id}` | Administrar categorías |
+
+### Configuración de SLA y eventos
+| Variable | Por defecto | Uso |
+|---|---|---|
+| `SLA_HORAS_ALTA` / `SLA_HORAS_MEDIA` / `SLA_HORAS_BAJA` | `8` / `24` / `72` | Horas de SLA por prioridad |
+| `SLA_ANTICIPACION_MINUTOS` | `60` | Antelación del recordatorio "por vencer" |
+| `SLA_RECORDATORIOS_ENABLED` | `true` | Apaga el job de recordatorios |
+| `SLA_RECORDATORIOS_CRON` | `0 */15 * * * *` | Frecuencia del job (cada 15 min) |
+| `EVENTOS_PUBLICADOR` | `log` | `log` o `rabbit` |
+
 ### Pendiente (próximas tareas):
-1. **Validación de reglas de negocio:** Verificar que no se pueda resolver un ticket que no esté en progreso o que no tenga técnico asignado.
-2. **Emisión de Eventos (Fase 2):** Cuando un ticket se cree (`POST /tickets`), se asigne o se resuelva, publicar el evento (`TicketCreadoEvent`, `TicketEstadoCambiadoEvent`) para que **Gabriel** (Comunicación) y **Miguel** (Estadísticas) reciban la notificación automáticamente.
-3. **Contratos con Dylan (API Gateway / Frontend):** Asegurar que las respuestas JSON coincidan con las interfaces esperadas por el cliente web.
+1. **Broker en el entorno integrado:** agregar RabbitMQ al `docker-compose.yml` de la raíz (archivo compartido: rama `chore/<tema>` con PR aprobado por Miguel) y acordar colas y consumidores con **Gabriel** (comunicación) y **Miguel** (estadísticas). Mientras tanto el publicador por defecto es `log`.
+2. **Contratos con Dylan (API Gateway / Frontend):** asegurar que las respuestas JSON (incluidos los nuevos filtros, paginación, historial, horas y CSV) coincidan con las interfaces del cliente web.
+3. **Mejoras futuras:** notificaciones en tiempo real desde el frontend y métricas agregadas de SLA para el servicio de estadísticas.
 
 ---
 
 ##  ¿Qué hace este servicio? (Propósito de Negocio)
 Es el corazón operativo del HelpDesk. Sus responsabilidades son:
 - **Registrar y generar folios únicos** para incidentes de TI con niveles de prioridad (`BAJA`, `MEDIA`, `ALTA`).
-- **Gestionar la máquina de estados del incidente:** `ABIERTO`  `EN_PROGRESO`  `RESUELTO`.
+- **Gestionar la máquina de estados del incidente:** `ABIERTO` → `EN_PROGRESO` → `RESUELTO`.
 - **Asignar técnicos de soporte** a cada caso (`PUT /tickets/{id}/asignar/{tecnicoId}`).
 - **Garantizar la resolución formal** del problema antes del cierre.
+- **Medir tiempos:** SLA por prioridad, avisos de vencimiento, historial de cambios y horas dedicadas por técnico.
+- **Facilitar la operación:** filtros, búsqueda, paginación, acciones en lote y exportación CSV.
 
 ---
 
@@ -85,7 +135,7 @@ Abre en tu navegador:
      - **Username:** `tickets`
      - **Password:** `tickets`
      - Marca *Save password* y clic en **Save**.
-3. Ve a `Schemas  public  Tables` para ver las tablas **`tickets`** y **`categorias`**.
+3. Ve a `Schemas  public  Tables` para ver las tablas **`tickets`**, **`categorias`**, **`historial_tickets`** y **`registros_horas`**.
 
 ---
 
@@ -106,11 +156,17 @@ con el interruptor apagado todo funciona como antes y no hace falta ningún toke
 
 | Endpoint | Quién puede |
 |---|---|
-| `GET /tickets`, `GET /tickets/{id}`, `POST /tickets` | cualquier usuario autenticado |
+| `GET /tickets`, `GET /tickets/{id}`, `POST /tickets` | autenticado (`POST /tickets`: `SOLICITANTE`, `ADMINISTRADOR`) |
+| `GET /tickets/paginado`, `GET /tickets/vencidos`, `GET /tickets/{id}/historial`, `GET /tickets/{id}/horas` | cualquier usuario autenticado |
+| `GET /tickets/export.csv` | `ADMINISTRADOR` |
 | `PUT /tickets/{id}/reabrir` | cualquier usuario autenticado |
-| `PUT /tickets/{id}/resolver` | `TECNICO`, `ADMINISTRADOR` |
-| `PUT /tickets/{id}/asignar/{tecnicoId}` | `ADMINISTRADOR` |
+| `PUT /tickets/{id}/resolver`, `PUT /tickets/{id}/asignar/{tecnicoId}` | `TECNICO`, `ADMINISTRADOR` |
 | `PUT /tickets/{id}` (editar), `DELETE /tickets/{id}` | `ADMINISTRADOR` |
+| `POST /tickets/lote/asignar`, `POST /tickets/lote/resolver` | `TECNICO`, `ADMINISTRADOR` |
+| `POST /tickets/{id}/horas` | `TECNICO`, `ADMINISTRADOR` |
+| `DELETE /tickets/{id}/horas/{registroId}` | `ADMINISTRADOR` |
+| `GET /categorias`, `GET /categorias/{id}` | cualquier usuario autenticado |
+| `POST /categorias`, `PUT /categorias/{id}`, `DELETE /categorias/{id}` | `ADMINISTRADOR` |
 | `GET /actuator/health` | público |
 
 Sin token o con un token inválido, vencido o de otro emisor responde `401`; con un rol sin permiso, `403`.

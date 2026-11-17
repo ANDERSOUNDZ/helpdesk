@@ -48,6 +48,13 @@ public class SeguridadConfig {
 
         http.authorizeHttpRequests(reglas -> reglas
                         .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/tickets/export.csv").hasRole("ADMINISTRADOR")
+                        .requestMatchers(HttpMethod.POST, "/tickets/lote/**").hasAnyRole("TECNICO", "ADMINISTRADOR")
+                        .requestMatchers(HttpMethod.POST, "/tickets/*/horas").hasAnyRole("TECNICO", "ADMINISTRADOR")
+                        .requestMatchers(HttpMethod.DELETE, "/tickets/*/horas/*").hasRole("ADMINISTRADOR")
+                        .requestMatchers(HttpMethod.POST, "/categorias").hasRole("ADMINISTRADOR")
+                        .requestMatchers(HttpMethod.PUT, "/categorias/*").hasRole("ADMINISTRADOR")
+                        .requestMatchers(HttpMethod.DELETE, "/categorias/*").hasRole("ADMINISTRADOR")
                         .requestMatchers(HttpMethod.POST, "/tickets").hasAnyRole("SOLICITANTE", "ADMINISTRADOR")
                         .requestMatchers(HttpMethod.PUT, "/tickets/*/asignar/*").hasAnyRole("TECNICO", "ADMINISTRADOR")
                         .requestMatchers(HttpMethod.PUT, "/tickets/*/resolver").hasAnyRole("TECNICO", "ADMINISTRADOR")
