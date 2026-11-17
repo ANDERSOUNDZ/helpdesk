@@ -20,12 +20,14 @@ import org.springframework.web.server.ResponseStatusException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -52,6 +54,14 @@ class UsuarioServiceTest {
         when(repositorio.findByUsername(anyString())).thenAnswer(llamada -> baseDeDatos.values().stream()
                 .filter(u -> llamada.<String>getArgument(0).equals(u.getUsername()))
                 .findFirst());
+        when(repositorio.countByRol(any(Rol.class))).thenAnswer(llamada -> baseDeDatos.values().stream()
+                .filter(u -> u.getRol() == llamada.<Rol>getArgument(0))
+                .count());
+        doAnswer(llamada -> {
+            Usuario borrado = llamada.getArgument(0);
+            baseDeDatos.remove(borrado.getId());
+            return null;
+        }).when(repositorio).delete(any(Usuario.class));
         service = new UsuarioService(repositorio, codificador);
     }
 
@@ -174,5 +184,52 @@ class UsuarioServiceTest {
 
         assertEquals("Ana Maria", actualizado.getNombre());
         assertEquals("ana", actualizado.getUsername());
+    }
+
+    @Test
+    void crearRegistraLaFechaDeIngreso() {
+        Usuario creado = service.crear(usuario("Ana", Rol.SOLICITANTE));
+
+        assertNotNull(creado.getFechaIngreso());
+    }
+
+    @Test
+    void eliminarBorraAlUsuarioYNoPermiteEliminarseASiMismo() {
+        service.crear(usuario("Admin", Rol.ADMINISTRADOR));
+        service.crear(usuario("Admin dos", Rol.ADMINISTRADOR));
+        Usuario tecnico = service.crear(usuario("Tec", Rol.TECNICO));
+
+        ResponseStatusException propio = assertThrows(ResponseStatusException.class,
+                () -> service.eliminar(tecnico.getId(), tecnico.getId()));
+        assertEquals(HttpStatus.CONFLICT, estadoDe(propio));
+
+        service.eliminar(tecnico.getId(), 1L);
+        assertFalse(baseDeDatos.containsKey(tecnico.getId()));
+    }
+
+    @Test
+    void noSePuedeEliminarNiQuitarElRolAlUnicoAdministrador() {
+        Usuario admin = service.crear(usuario("Admin", Rol.ADMINISTRADOR));
+
+        ResponseStatusException alEliminar = assertThrows(ResponseStatusException.class,
+                () -> service.eliminar(admin.getId(), null));
+        assertEquals(HttpStatus.CONFLICT, estadoDe(alEliminar));
+
+        Usuario datos = new Usuario();
+        datos.setRol(Rol.TECNICO);
+        ResponseStatusException alDegradar = assertThrows(ResponseStatusException.class,
+                () -> service.actualizar(admin.getId(), datos));
+        assertEquals(HttpStatus.CONFLICT, estadoDe(alDegradar));
+        assertEquals(Rol.ADMINISTRADOR, service.obtenerPorId(admin.getId()).getRol());
+    }
+
+    @Test
+    void conVariosAdministradoresSiSePuedeEliminarUnoDeEllos() {
+        service.crear(usuario("Admin", Rol.ADMINISTRADOR));
+        Usuario otro = service.crear(usuario("Otro admin", Rol.ADMINISTRADOR));
+
+        service.eliminar(otro.getId(), 1L);
+
+        assertFalse(baseDeDatos.containsKey(otro.getId()));
     }
 }

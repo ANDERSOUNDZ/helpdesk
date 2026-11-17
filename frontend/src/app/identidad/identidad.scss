@@ -85,3 +85,32 @@
     font-style: italic;
   }
 }
+
+.acciones-encabezado {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.barra-filtros {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 8px 0 14px;
+
+  .filtro-texto {
+    flex: 1 1 240px;
+    max-width: 360px;
+  }
+
+  .filtro-select {
+    flex: 0 1 220px;
+  }
+
+  .contador-filtros {
+    margin-left: auto;
+    color: #666;
+    font-size: 0.85rem;
+  }
+}

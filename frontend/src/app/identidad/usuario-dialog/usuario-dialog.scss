@@ -1,0 +1,33 @@
+.contenido-modal {
+  min-width: 380px;
+  max-width: 480px;
+  padding-top: 8px;
+}
+
+.formulario-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  .campo-full {
+    width: 100%;
+  }
+
+  .seccion-acceso {
+    margin: 4px 0 0;
+    font-weight: 500;
+    color: #1a237e;
+
+    span {
+      font-weight: 400;
+      color: #666;
+      font-size: 0.85rem;
+    }
+  }
+
+  .error-formulario {
+    margin: 0;
+    color: #b00020;
+    font-size: 0.85rem;
+  }
+}
