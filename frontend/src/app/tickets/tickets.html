@@ -164,11 +164,14 @@
                 <!-- Fase 1: Abierto -> Abrir Modal para Asignar Tecnico -->
                 <button mat-stroked-button color="primary" class="btn-accion" *ngIf="t.estado === 'ABIERTO' && auth.puede('TECNICO', 'ADMINISTRADOR')" (click)="abrirModalAsignar(t)">Asignar</button>
 
-                <!-- Fase 2: En Progreso -> Tecnico termina tarea y marca como Resuelto -->
-                <button mat-flat-button color="accent" class="btn-accion" *ngIf="t.estado === 'EN_PROGRESO' && auth.puede('TECNICO', 'ADMINISTRADOR')" (click)="resolverTicket(t)">Finalizar</button>
+                <!-- Fase 2: En Progreso -> solo el tecnico que lo tiene (o el administrador) lo finaliza -->
+                <button mat-flat-button color="accent" class="btn-accion" *ngIf="t.estado === 'EN_PROGRESO' && puedeAtender(t) && auth.puede('TECNICO', 'ADMINISTRADOR')" (click)="resolverTicket(t)">Finalizar</button>
 
-                <!-- Fase 3: Resuelto -> el solicitante puede Reabrir si la falla persiste -->
-                <button mat-stroked-button color="warn" class="btn-accion" *ngIf="t.estado === 'RESUELTO'" (click)="reabrirTicket(t)" title="La falla persiste en el mismo tema">Reabrir</button>
+                <!-- Un ticket tomado por otro tecnico: solo lectura -->
+                <span class="solo-lectura" *ngIf="esSoloLectura(t)" [title]="'Lo atiende ' + getNombreTecnico(t.tecnicoId)">Solo lectura</span>
+
+                <!-- Fase 3: Resuelto -> el solicitante (o el administrador) puede Reabrir si la falla persiste -->
+                <button mat-stroked-button color="warn" class="btn-accion" *ngIf="t.estado === 'RESUELTO' && auth.puede('SOLICITANTE', 'ADMINISTRADOR')" (click)="reabrirTicket(t)" title="La falla persiste en el mismo tema">Reabrir</button>
 
                 <button mat-stroked-button color="primary" class="btn-accion" *ngIf="auth.puede('ADMINISTRADOR')" (click)="abrirModalEditarTicket(t)" title="Editar ticket en modal">Editar</button>
 

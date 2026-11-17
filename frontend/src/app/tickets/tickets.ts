@@ -59,6 +59,23 @@ export class Tickets implements OnInit, OnDestroy {
   private autoRefreshSub?: Subscription;
   readonly auth = inject(AuthService);
 
+  /** Id del usuario con sesion (null si el login esta apagado). */
+  get miId(): number | null {
+    return this.auth.usuario()?.id ?? null;
+  }
+
+  /** Administrador todo; tecnico solo los tickets que tiene (o los que nadie ha tomado). */
+  puedeAtender(t: Ticket): boolean {
+    if (!this.auth.usuario()) return true;
+    if (this.auth.puede("ADMINISTRADOR")) return true;
+    return this.auth.puede("TECNICO") && (!t.tecnicoId || t.tecnicoId === this.miId);
+  }
+
+  /** El tecnico puede ver, pero no escribir, en un ticket que tiene otro tecnico. */
+  esSoloLectura(t: Ticket): boolean {
+    return !!this.auth.usuario() && this.auth.puede("TECNICO") && !this.puedeAtender(t);
+  }
+
   @ViewChild(FormGroupDirective) private formDirective?: FormGroupDirective;
 
   readonly tickets = signal<Ticket[]>([]);
@@ -296,7 +313,8 @@ export class Tickets implements OnInit, OnDestroy {
       width: '550px',
       data: {
         ticket,
-        nombreTecnico: this.getNombreTecnico(ticket.tecnicoId)
+        nombreTecnico: this.getNombreTecnico(ticket.tecnicoId),
+        soloLectura: this.esSoloLectura(ticket)
       }
     });
   }

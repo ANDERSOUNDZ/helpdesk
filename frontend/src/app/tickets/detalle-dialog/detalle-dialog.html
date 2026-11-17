@@ -18,17 +18,22 @@
 
   <mat-divider></mat-divider>
 
-  <!-- FORMULARIO PARA AGREGAR NOTA -->
+  <!-- FORMULARIO PARA AGREGAR NOTA (no aparece si el ticket lo tiene otro tecnico) -->
+  @if (data.soloLectura) {
+    <div class="aviso-solo-lectura">Este ticket lo atiende otro tecnico ({{ data.nombreTecnico }}): solo puedes ver sus notas.</div>
+  } @else {
   <div class="formulario-nota">
     <mat-form-field appearance="outline" class="campo-nota">
       <mat-label>Nueva intervencion o nota tecnica</mat-label>
-      <textarea matInput [(ngModel)]="nuevaNota" rows="2" placeholder="Detalle tecnico del avance o resolucion..."></textarea>
+      <textarea matInput [(ngModel)]="nuevaNota" rows="2" maxlength="1000" placeholder="Detalle tecnico del avance o resolucion..."></textarea>
+      <mat-hint align="end">{{ nuevaNota.length }}/1000</mat-hint>
     </mat-form-field>
-    
+
     <div class="acciones-nota">
       <button mat-flat-button color="primary" [disabled]="!nuevaNota.trim()" (click)="agregarNota()">Publicar Nota</button>
     </div>
   </div>
+  }
 
   <!-- TABLA ESTANDAR MATERIAL PARA LA BITÁCORA -->
   <div class="bitacora-seccion">

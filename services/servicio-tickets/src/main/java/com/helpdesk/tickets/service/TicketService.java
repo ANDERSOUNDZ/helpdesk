@@ -1,5 +1,6 @@
 package com.helpdesk.tickets.service;
 
+import com.helpdesk.tickets.config.AccesoTickets;
 import com.helpdesk.tickets.config.SlaProperties;
 import com.helpdesk.tickets.dto.PaginaTickets;
 import com.helpdesk.tickets.dto.ResultadoLote;
@@ -32,6 +33,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.persistence.criteria.Predicate;
@@ -48,14 +50,16 @@ public class TicketService {
     private final HistorialService historial;
     private final CategoriaRepository categorias;
     private final SlaProperties sla;
+    private final AccesoTickets acceso;
 
     public TicketService(TicketRepository tickets, PublicadorEventos eventos, HistorialService historial,
-                         CategoriaRepository categorias, SlaProperties sla) {
+                         CategoriaRepository categorias, SlaProperties sla, AccesoTickets acceso) {
         this.tickets = tickets;
         this.eventos = eventos;
         this.historial = historial;
         this.categorias = categorias;
         this.sla = sla;
+        this.acceso = acceso;
     }
 
     public List<Ticket> obtenerTodos() {
@@ -63,13 +67,13 @@ public class TicketService {
     }
 
     public List<Ticket> buscar(TicketFiltros filtros) {
-        return tickets.findAll(especificacion(filtros), Sort.by("id"));
+        return tickets.findAll(especificacion(acceso.restringir(filtros)), Sort.by("id"));
     }
 
     public PaginaTickets buscarPaginado(TicketFiltros filtros, int pagina, int tamano) {
         int paginaSegura = Math.max(pagina, 0);
         int tamanoSeguro = Math.min(Math.max(tamano, 1), 100);
-        Page<Ticket> resultado = tickets.findAll(especificacion(filtros),
+        Page<Ticket> resultado = tickets.findAll(especificacion(acceso.restringir(filtros)),
                 PageRequest.of(paginaSegura, tamanoSeguro, Sort.by("id")));
         return new PaginaTickets(resultado.getContent(), resultado.getNumber(), resultado.getSize(),
                 resultado.getTotalElements(), resultado.getTotalPages());
@@ -84,7 +88,16 @@ public class TicketService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No existe el ticket con id " + id));
     }
 
+    /** Para consultas de un solo ticket: un solicitante solo puede ver los suyos. */
+    public Ticket obtenerParaVer(Long id) {
+        Ticket ticket = obtenerPorId(id);
+        acceso.exigirVer(ticket);
+        return ticket;
+    }
+
+    @Transactional
     public Ticket crear(Ticket nuevo) {
+        nuevo.setSolicitanteId(acceso.solicitanteParaCrear(nuevo.getSolicitanteId()));
         nuevo.setTitulo(validarTitulo(nuevo.getTitulo()));
         validarDescripcion(nuevo.getDescripcion());
         if (nuevo.getPrioridad() == null) {
@@ -117,9 +130,11 @@ public class TicketService {
         return guardado;
     }
 
+    @Transactional
     public Ticket asignar(Long id, Long tecnicoId) {
         validarIdPositivo(tecnicoId, "El tecnico es obligatorio");
         Ticket ticket = obtenerPorId(id);
+        acceso.exigirAsignar(ticket);
         if (ticket.getEstado() == EstadoTicket.RESUELTO) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "No se puede asignar un ticket ya resuelto");
         }
@@ -161,8 +176,10 @@ public class TicketService {
         return guardado;
     }
 
+    @Transactional
     public Ticket resolver(Long id) {
         Ticket ticket = obtenerPorId(id);
+        acceso.exigirResolver(ticket);
         if (ticket.getEstado() == EstadoTicket.RESUELTO) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "El ticket ya esta resuelto");
         }
@@ -193,8 +210,10 @@ public class TicketService {
         return guardado;
     }
 
+    @Transactional
     public Ticket reabrir(Long id) {
         Ticket ticket = obtenerPorId(id);
+        acceso.exigirReabrir(ticket);
         if (ticket.getEstado() != EstadoTicket.RESUELTO) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Solo se puede reabrir un ticket resuelto");
         }
@@ -217,6 +236,7 @@ public class TicketService {
         return guardado;
     }
 
+    @Transactional
     public Ticket actualizar(Long id, Ticket datos) {
         Ticket ticket = obtenerPorId(id);
 
@@ -253,6 +273,7 @@ public class TicketService {
         return tickets.save(ticket);
     }
 
+    @Transactional
     public void eliminar(Long id) {
         Ticket ticket = obtenerPorId(id);
         historial.registrar(id, "ticket", null, "ELIMINADO");
@@ -420,6 +441,10 @@ public class TicketService {
             return "";
         }
         String limpio = valor.replace('\r', ' ').replace('\n', ' ');
+        // Evita la inyeccion de formulas: Excel ejecuta las celdas que empiezan con = + - @ (o tabulador).
+        if (!limpio.isEmpty() && "=+-@\t".indexOf(limpio.charAt(0)) >= 0) {
+            limpio = "'" + limpio;
+        }
         if (limpio.contains(",") || limpio.contains("\"")) {
             return "\"" + limpio.replace("\"", "\"\"") + "\"";
         }
