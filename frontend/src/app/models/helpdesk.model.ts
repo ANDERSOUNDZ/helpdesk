@@ -36,6 +36,7 @@ export interface Usuario {
   username?: string;
   clave?: string;
   activo?: boolean;
+  fechaIngreso?: string | null;
 }
 
 export interface Comentario {
