@@ -14,41 +14,61 @@
       <mat-card-title>Registrar Nuevo Incidente</mat-card-title>
     </mat-card-header>
     <mat-card-content>
-      <div class="formulario-grid">
-        <mat-form-field appearance="outline">
-          <mat-label>Nombre del Solicitante</mat-label>
-          <input matInput [(ngModel)]="solicitanteNombre" placeholder="Ej. Ana Morales" required>
-        </mat-form-field>
+      <form [formGroup]="formulario" (ngSubmit)="crearTicket()" novalidate>
+        <div class="formulario-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Nombre del Solicitante</mat-label>
+            <input matInput formControlName="solicitante" placeholder="Ej. Ana Morales" maxlength="100"
+                   [readonly]="!nombreEditable" required autocomplete="off">
+            @if (f.solicitante.hasError('required') || f.solicitante.hasError('vacio')) {
+              <mat-error>El nombre del solicitante es obligatorio</mat-error>
+            } @else if (f.solicitante.hasError('minlength')) {
+              <mat-error>Escribe al menos 3 caracteres</mat-error>
+            }
+          </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Departamento / Area</mat-label>
-          <mat-select [(ngModel)]="departamentoSeleccionado">
-            <mat-option *ngFor="let dep of departamentos" [value]="dep">{{ dep }}</mat-option>
-          </mat-select>
-        </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Departamento / Area</mat-label>
+            <mat-select formControlName="departamento" required>
+              <mat-option *ngFor="let dep of departamentos" [value]="dep">{{ dep }}</mat-option>
+            </mat-select>
+            @if (f.departamento.hasError('required')) {
+              <mat-error>Elige un departamento</mat-error>
+            }
+          </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Prioridad</mat-label>
-          <mat-select [(ngModel)]="nuevaPrioridad">
-            <mat-option value="BAJA">Baja</mat-option>
-            <mat-option value="MEDIA">Media</mat-option>
-            <mat-option value="ALTA">Alta</mat-option>
-          </mat-select>
-        </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Prioridad</mat-label>
+            <mat-select formControlName="prioridad" required>
+              <mat-option value="BAJA">Baja</mat-option>
+              <mat-option value="MEDIA">Media</mat-option>
+              <mat-option value="ALTA">Alta</mat-option>
+            </mat-select>
+          </mat-form-field>
 
-        <mat-form-field appearance="outline" class="campo-full">
-          <mat-label>Titulo de la Falla</mat-label>
-          <input matInput [(ngModel)]="nuevoTitulo" placeholder="Ej. Impresora no responde en piso 3" required>
-        </mat-form-field>
+          <mat-form-field appearance="outline" class="campo-full">
+            <mat-label>Titulo de la Falla</mat-label>
+            <input matInput formControlName="titulo" placeholder="Ej. Impresora no responde en piso 3" maxlength="200" required autocomplete="off">
+            <mat-hint align="end">{{ f.titulo.value.length }}/200</mat-hint>
+            @if (f.titulo.hasError('required') || f.titulo.hasError('vacio')) {
+              <mat-error>El titulo del incidente es obligatorio</mat-error>
+            } @else if (f.titulo.hasError('minlength')) {
+              <mat-error>Describe la falla en al menos 5 caracteres</mat-error>
+            }
+          </mat-form-field>
 
-        <mat-form-field appearance="outline" class="campo-full">
-          <mat-label>Detalle adicional de la falla</mat-label>
-          <input matInput [(ngModel)]="nuevaDescripcion" placeholder="Describe brevemente el comportamiento">
-        </mat-form-field>
-      </div>
-      <div class="fila-botones">
-        <button mat-flat-button color="primary" (click)="crearTicket()">Crear Incidente</button>
-      </div>
+          <mat-form-field appearance="outline" class="campo-full">
+            <mat-label>Detalle adicional de la falla</mat-label>
+            <input matInput formControlName="detalle" placeholder="Describe brevemente el comportamiento" [maxLength]="maxDetalle" autocomplete="off">
+            <mat-hint align="end">{{ f.detalle.value.length }}/{{ maxDetalle }}</mat-hint>
+          </mat-form-field>
+        </div>
+        <div class="fila-botones">
+          <button mat-flat-button color="primary" type="submit" [disabled]="enviando()">
+            {{ enviando() ? 'Registrando...' : 'Crear Incidente' }}
+          </button>
+        </div>
+      </form>
     </mat-card-content>
   </mat-card>
   }
@@ -59,8 +79,38 @@
       <mat-card-title>Cola de Casos Activos</mat-card-title>
     </mat-card-header>
     <mat-card-content>
+      <div class="barra-filtros">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="filtro-texto">
+          <mat-label>Buscar por numero, asunto o detalle</mat-label>
+          <input matInput [ngModel]="texto()" (ngModelChange)="cambiarTexto($event)" autocomplete="off">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="filtro-select">
+          <mat-label>Estado</mat-label>
+          <mat-select [ngModel]="filtroEstado()" (ngModelChange)="cambiarEstado($event)">
+            <mat-option value="">Todos</mat-option>
+            <mat-option value="ABIERTO">Abierto</mat-option>
+            <mat-option value="EN_PROGRESO">En progreso</mat-option>
+            <mat-option value="RESUELTO">Resuelto</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="filtro-select">
+          <mat-label>Prioridad</mat-label>
+          <mat-select [ngModel]="filtroPrioridad()" (ngModelChange)="cambiarPrioridad($event)">
+            <mat-option value="">Todas</mat-option>
+            <mat-option value="BAJA">Baja</mat-option>
+            <mat-option value="MEDIA">Media</mat-option>
+            <mat-option value="ALTA">Alta</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-button (click)="limpiarFiltros()" [disabled]="!texto() && !filtroEstado() && !filtroPrioridad()">Limpiar filtros</button>
+        <span class="contador-filtros">Mostrando {{ visibles().length }} de {{ filtrados().length }}</span>
+      </div>
+
       <div class="tabla-scroll">
-        <table mat-table [dataSource]="tickets" class="tabla-material">
+        <table mat-table [dataSource]="visibles()" [trackBy]="trackPorId" class="tabla-material">
 
           <ng-container matColumnDef="id">
             <th mat-header-cell *matHeaderCellDef class="col-id"> # ID </th>
@@ -117,9 +167,8 @@
                 <!-- Fase 2: En Progreso -> Tecnico termina tarea y marca como Resuelto -->
                 <button mat-flat-button color="accent" class="btn-accion" *ngIf="t.estado === 'EN_PROGRESO' && auth.puede('TECNICO', 'ADMINISTRADOR')" (click)="resolverTicket(t)">Finalizar</button>
 
-                <!-- Fase 3: Resuelto -> Opciones del Solicitante: Reabrir o Pedir otro derivado -->
+                <!-- Fase 3: Resuelto -> el solicitante puede Reabrir si la falla persiste -->
                 <button mat-stroked-button color="warn" class="btn-accion" *ngIf="t.estado === 'RESUELTO'" (click)="reabrirTicket(t)" title="La falla persiste en el mismo tema">Reabrir</button>
-                <button mat-stroked-button color="primary" class="btn-accion" *ngIf="t.estado === 'RESUELTO'" (click)="pedirOtroTicketRelacionado(t)" title="Solicitar ticket derivado">Nuevo Ticket</button>
 
                 <button mat-stroked-button color="primary" class="btn-accion" *ngIf="auth.puede('ADMINISTRADOR')" (click)="abrirModalEditarTicket(t)" title="Editar ticket en modal">Editar</button>
 
@@ -133,11 +182,21 @@
 
           <tr class="mat-row" *matNoDataRow>
             <td class="mat-cell sin-datos" colspan="7">
-              No hay incidentes registrados en la base de datos.
+              {{ tickets().length ? 'Ningun incidente coincide con los filtros.' : 'No hay incidentes registrados en la base de datos.' }}
             </td>
           </tr>
         </table>
       </div>
+
+      <mat-paginator
+        [length]="filtrados().length"
+        [pageSize]="tamano()"
+        [pageIndex]="paginaActual()"
+        [pageSizeOptions]="opcionesPagina"
+        (page)="cambiarPagina($event)"
+        showFirstLastButtons
+        aria-label="Paginacion de incidentes">
+      </mat-paginator>
     </mat-card-content>
   </mat-card>
 </div>
