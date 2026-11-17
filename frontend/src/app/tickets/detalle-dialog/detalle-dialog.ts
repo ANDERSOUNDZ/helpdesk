@@ -16,6 +16,8 @@ import { Ticket, Comentario } from '../../models/helpdesk.model';
 export interface DetalleDialogData {
   ticket: Ticket;
   nombreTecnico: string;
+  /** true cuando el ticket lo tiene otro tecnico: se puede leer pero no escribir notas. */
+  soloLectura?: boolean;
 }
 
 @Component({

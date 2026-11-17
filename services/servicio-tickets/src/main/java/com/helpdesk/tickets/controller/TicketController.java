@@ -98,11 +98,12 @@ public class TicketController {
 
     @GetMapping("/tickets/{id}")
     public Ticket obtenerTicketPorId(@PathVariable Long id) {
-        return ticketService.obtenerPorId(id);
+        return ticketService.obtenerParaVer(id);
     }
 
     @GetMapping("/tickets/{id}/historial")
     public List<HistorialTicket> obtenerHistorial(@PathVariable Long id) {
+        ticketService.obtenerParaVer(id);
         return historialService.obtener(id);
     }
 

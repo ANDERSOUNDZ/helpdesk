@@ -1,5 +1,6 @@
 package com.helpdesk.tickets.service;
 
+import com.helpdesk.tickets.config.AccesoTickets;
 import com.helpdesk.tickets.config.SlaProperties;
 import com.helpdesk.tickets.dto.ResultadoLote;
 import com.helpdesk.tickets.dto.SolicitudLoteAsignar;
@@ -67,7 +68,7 @@ class TicketServiceTest {
         when(repositorio.findAll(any(Sort.class))).thenAnswer(llamada -> new ArrayList<>(baseDeDatos.values()));
         when(repositorio.findAll(any(Specification.class), any(Sort.class)))
                 .thenAnswer(llamada -> new ArrayList<>(baseDeDatos.values()));
-        service = new TicketService(repositorio, new RegistroEventos(), historial, categorias, sla);
+        service = new TicketService(repositorio, new RegistroEventos(), historial, categorias, sla, new AccesoTickets());
     }
 
     private final class RegistroEventos implements PublicadorEventos {
@@ -318,5 +319,18 @@ class TicketServiceTest {
     @Test
     void obtenerUnIdInexistenteDa404() {
         assertThrows(ResponseStatusException.class, () -> service.obtenerPorId(999L));
+    }
+
+    @Test
+    void elCsvNeutralizaLasCeldasQueEmpiezanConFormula() {
+        service.crear(ticket("=HYPERLINK(\"http://x\",\"clic\")", 3L));
+        service.crear(ticket("+SUMA(1;2)", 3L));
+        service.crear(ticket("Titulo normal", 3L));
+
+        String csv = new String(service.exportarCsv(null), java.nio.charset.StandardCharsets.UTF_8);
+
+        assertTrue(csv.contains("\"'=HYPERLINK(\"\"http://x\"\",\"\"clic\"\")\""));
+        assertTrue(csv.contains(",'+SUMA(1;2),"));
+        assertTrue(csv.contains(",Titulo normal,"));
     }
 }

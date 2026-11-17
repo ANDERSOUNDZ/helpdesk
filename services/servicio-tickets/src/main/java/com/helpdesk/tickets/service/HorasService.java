@@ -1,6 +1,8 @@
 package com.helpdesk.tickets.service;
 
+import com.helpdesk.tickets.config.AccesoTickets;
 import com.helpdesk.tickets.dto.ResumenHoras;
+import com.helpdesk.tickets.model.Ticket;
 import com.helpdesk.tickets.dto.SolicitudHoras;
 import com.helpdesk.tickets.model.RegistroHoras;
 import com.helpdesk.tickets.repository.RegistroHorasRepository;
@@ -19,18 +21,22 @@ public class HorasService {
     private final RegistroHorasRepository horas;
     private final TicketRepository tickets;
     private final HistorialService historial;
+    private final AccesoTickets acceso;
 
-    public HorasService(RegistroHorasRepository horas, TicketRepository tickets, HistorialService historial) {
+    public HorasService(RegistroHorasRepository horas, TicketRepository tickets, HistorialService historial,
+                        AccesoTickets acceso) {
         this.horas = horas;
         this.tickets = tickets;
         this.historial = historial;
+        this.acceso = acceso;
     }
 
     public ResumenHoras registrar(Long ticketId, SolicitudHoras solicitud) {
-        validarTicket(ticketId);
+        Ticket ticket = obtenerTicket(ticketId);
         if (solicitud == null || solicitud.tecnicoId() == null || solicitud.tecnicoId() <= 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El tecnico es obligatorio");
         }
+        acceso.exigirRegistrarHoras(ticket, solicitud.tecnicoId());
         if (solicitud.minutos() < 1 || solicitud.minutos() > 1440) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Los minutos deben estar entre 1 y 1440");
@@ -50,7 +56,7 @@ public class HorasService {
     }
 
     public ResumenHoras obtener(Long ticketId) {
-        validarTicket(ticketId);
+        acceso.exigirVer(obtenerTicket(ticketId));
         return resumen(ticketId);
     }
 
@@ -74,9 +80,14 @@ public class HorasService {
     }
 
     private void validarTicket(Long ticketId) {
-        if (ticketId == null || !tickets.existsById(ticketId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-                    "No existe el ticket con id " + ticketId);
+        obtenerTicket(ticketId);
+    }
+
+    private Ticket obtenerTicket(Long ticketId) {
+        if (ticketId == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No existe el ticket con id " + ticketId);
         }
+        return tickets.findById(ticketId).orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "No existe el ticket con id " + ticketId));
     }
 }
