@@ -1,0 +1,19 @@
+<h2 mat-dialog-title>Eliminar usuario #{{ data.usuario.id }}</h2>
+
+<mat-dialog-content class="contenido-modal">
+  <p>
+    Vas a eliminar a <strong>{{ data.usuario.nombre }}</strong> ({{ data.usuario.rol }}).
+    Esta accion no se puede deshacer.
+  </p>
+  @if (data.ticketsAsociados) {
+    <p class="aviso">
+      Tiene {{ data.ticketsAsociados }} ticket(s) asociado(s). Los tickets se conservan, pero apareceran
+      con el numero del usuario en lugar de su nombre.
+    </p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancelar()">Cancelar</button>
+  <button mat-flat-button color="warn" (click)="confirmar()">Eliminar</button>
+</mat-dialog-actions>

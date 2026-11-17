@@ -7,6 +7,9 @@ import java.net.URI;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -44,9 +47,18 @@ public class UsuarioController {
         return usuarioService.actualizar(id, datos);
     }
 
-    @org.springframework.web.bind.annotation.DeleteMapping("/usuarios/{id}")
-    public ResponseEntity<Void> eliminarUsuario(@PathVariable Long id) {
-        usuarioService.eliminar(id);
+    @DeleteMapping("/usuarios/{id}")
+    public ResponseEntity<Void> eliminarUsuario(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
+        usuarioService.eliminar(id, idDe(jwt));
         return ResponseEntity.noContent().build();
+    }
+
+    /** Id del usuario autenticado (claim "uid"); null si el login esta apagado o el token no lo trae. */
+    private static Long idDe(Jwt jwt) {
+        if (jwt == null) {
+            return null;
+        }
+        Object uid = jwt.getClaims().get("uid");
+        return uid instanceof Number numero ? Long.valueOf(numero.longValue()) : null;
     }
 }

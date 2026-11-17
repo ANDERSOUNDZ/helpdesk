@@ -4,56 +4,41 @@
       <h2>Equipo de Tecnicos de TI</h2>
       <p class="subtitulo">Gestion de especialistas disponible en <code>servicio-identidad :8083</code> — Responsable: Anthony Marcel Orozco Junia</p>
     </div>
-    <button mat-stroked-button (click)="cargarUsuarios()">Actualizar</button>
+    <div class="acciones-encabezado">
+      <button mat-stroked-button (click)="cargarUsuarios()">Actualizar</button>
+      <button mat-flat-button color="primary" (click)="abrirModalNuevo()">Nuevo Tecnico</button>
+    </div>
   </div>
 
-  <!-- Formulario para Registrar Tecnico -->
-  <mat-card class="tarjeta-formulario">
-    <mat-card-header>
-      <mat-card-title>Registrar Nuevo Tecnico de Soporte</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <div class="formulario-grid-usuarios">
-        <mat-form-field appearance="outline">
-          <mat-label>Nombre del Tecnico</mat-label>
-          <input matInput [(ngModel)]="nuevoUsuarioNombre" placeholder="Ej. Carlos Mendoza" required>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Rol Tecnico</mat-label>
-          <mat-select [(ngModel)]="nuevoUsuarioRol">
-            <mat-option value="SOLICITANTE">Solicitante</mat-option>
-            <mat-option value="TECNICO">Tecnico de Soporte</mat-option>
-            <mat-option value="ADMINISTRADOR">Administrador de Mesa</mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Usuario de acceso (opcional)</mat-label>
-          <input matInput [(ngModel)]="nuevoUsuarioUsername" placeholder="Ej. cmendoza" autocomplete="off">
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Clave (opcional, minimo 8)</mat-label>
-          <input matInput type="password" [(ngModel)]="nuevoUsuarioClave" autocomplete="new-password">
-        </mat-form-field>
-
-        <div class="btn-usuario-contenedor">
-          <button mat-flat-button color="primary" (click)="crearUsuario()">Guardar Tecnico</button>
-        </div>
-      </div>
-    </mat-card-content>
-  </mat-card>
-
-  <!-- Tabla de Técnicos (READ, UPDATE EN MODAL, DELETE) -->
+  <!-- Tabla de Técnicos (READ, ALTA Y UPDATE EN MODAL, DELETE CON CONFIRMACION) -->
   <mat-card class="tarjeta-tabla">
     <mat-card-header>
       <mat-card-title>Plantilla de Tecnicos Habilitados</mat-card-title>
       <mat-card-subtitle>Disponibles para asignacion de tickets</mat-card-subtitle>
     </mat-card-header>
     <mat-card-content>
+      <div class="barra-filtros">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="filtro-texto">
+          <mat-label>Buscar por nombre o usuario</mat-label>
+          <input matInput [ngModel]="texto()" (ngModelChange)="cambiarTexto($event)" autocomplete="off">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="filtro-select">
+          <mat-label>Rol</mat-label>
+          <mat-select [ngModel]="filtroRol()" (ngModelChange)="cambiarRol($event)">
+            <mat-option value="">Todos los roles</mat-option>
+            <mat-option value="SOLICITANTE">Solicitante</mat-option>
+            <mat-option value="TECNICO">Tecnico de Soporte</mat-option>
+            <mat-option value="ADMINISTRADOR">Administrador de Mesa</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-button (click)="limpiarFiltros()" [disabled]="!texto() && !filtroRol()">Limpiar filtros</button>
+        <span class="contador-filtros">Mostrando {{ visibles().length }} de {{ filtrados().length }}</span>
+      </div>
+
       <div class="tabla-scroll">
-        <table mat-table [dataSource]="usuarios" class="tabla-material">
+        <table mat-table [dataSource]="visibles()" [trackBy]="trackPorId" class="tabla-material">
 
           <ng-container matColumnDef="id">
             <th mat-header-cell *matHeaderCellDef style="width: 70px;"> ID </th>
@@ -77,11 +62,16 @@
             </td>
           </ng-container>
 
+          <ng-container matColumnDef="ingreso">
+            <th mat-header-cell *matHeaderCellDef style="width: 150px;"> Ingreso </th>
+            <td mat-cell *matCellDef="let u"> {{ u.fechaIngreso ? (u.fechaIngreso | date:'dd/MM/yyyy HH:mm') : '—' }} </td>
+          </ng-container>
+
           <ng-container matColumnDef="acciones">
             <th mat-header-cell *matHeaderCellDef style="width: 140px;"> Acciones </th>
             <td mat-cell *matCellDef="let u">
               <button mat-stroked-button color="primary" (click)="abrirModalEditar(u)" style="margin-right: 6px;">Editar</button>
-              <button mat-stroked-button color="warn" (click)="eliminarUsuario(u.id)">Eliminar</button>
+              <button mat-stroked-button color="warn" (click)="eliminarUsuario(u)" [disabled]="!puedeEliminar(u)" [title]="motivoSinEliminar(u)">Eliminar</button>
             </td>
           </ng-container>
 
@@ -89,12 +79,22 @@
           <tr mat-row *matRowDef="let row; columns: columnasUsuarios;"></tr>
 
           <tr class="mat-row" *matNoDataRow>
-            <td class="mat-cell sin-datos" colspan="5">
-              No hay tecnicos registrados.
+            <td class="mat-cell sin-datos" colspan="6">
+              {{ usuarios().length ? 'Ningun usuario coincide con los filtros.' : 'No hay tecnicos registrados.' }}
             </td>
           </tr>
         </table>
       </div>
+
+      <mat-paginator
+        [length]="filtrados().length"
+        [pageSize]="tamano()"
+        [pageIndex]="paginaActual()"
+        [pageSizeOptions]="opcionesPagina"
+        (page)="cambiarPagina($event)"
+        showFirstLastButtons
+        aria-label="Paginacion de usuarios">
+      </mat-paginator>
     </mat-card-content>
   </mat-card>
 </div>

@@ -1,8 +1,10 @@
 package com.helpdesk.identidad.service;
 
+import com.helpdesk.identidad.model.Rol;
 import com.helpdesk.identidad.model.Usuario;
 import com.helpdesk.identidad.repository.UsuarioRepository;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
@@ -46,6 +48,7 @@ public class UsuarioService {
         nuevo.setId(null);
         nuevo.setPasswordHash(null);
         nuevo.setActivo(true);
+        nuevo.setFechaIngreso(Instant.now());
         aplicarCredenciales(nuevo, nuevo.getUsername(), nuevo.getClave(), null);
         return usuarios.save(nuevo);
     }
@@ -56,6 +59,9 @@ public class UsuarioService {
             usuario.setNombre(datos.getNombre());
         }
         if (datos.getRol() != null) {
+            if (usuario.getRol() == Rol.ADMINISTRADOR && datos.getRol() != Rol.ADMINISTRADOR) {
+                exigirOtroAdministrador("No se puede quitar el rol de administrador al unico administrador");
+            }
             usuario.setRol(datos.getRol());
         }
         if (datos.getActivo() != null) {
@@ -65,9 +71,22 @@ public class UsuarioService {
         return usuarios.save(usuario);
     }
 
-    public void eliminar(Long id) {
+    /** Elimina un usuario. {@code idSolicitante} es quien lo pide (null si el login esta apagado). */
+    public void eliminar(Long id, Long idSolicitante) {
         Usuario usuario = obtenerPorId(id);
+        if (idSolicitante != null && idSolicitante.equals(id)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "No puedes eliminar tu propio usuario");
+        }
+        if (usuario.getRol() == Rol.ADMINISTRADOR) {
+            exigirOtroAdministrador("No se puede eliminar al unico administrador");
+        }
         usuarios.delete(usuario);
+    }
+
+    private void exigirOtroAdministrador(String mensaje) {
+        if (usuarios.countByRol(Rol.ADMINISTRADOR) <= 1) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, mensaje);
+        }
     }
 
     private void aplicarCredenciales(Usuario destino, String username, String clave, Long idActual) {

@@ -3,6 +3,8 @@ package com.helpdesk.identidad.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.time.Instant;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -38,6 +40,9 @@ public class Usuario {
     @Column
     private Boolean activo = true;
 
+    @Column(name = "fecha_ingreso")
+    private Instant fechaIngreso;
+
     @Transient
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String clave;
@@ -65,6 +70,9 @@ public class Usuario {
     public void setActivo(Boolean activo) { this.activo = activo; }
 
     public boolean estaActivo() { return activo == null || activo; }
+
+    public Instant getFechaIngreso() { return fechaIngreso; }
+    public void setFechaIngreso(Instant fechaIngreso) { this.fechaIngreso = fechaIngreso; }
 
     public String getClave() { return clave; }
     public void setClave(String clave) { this.clave = clave; }

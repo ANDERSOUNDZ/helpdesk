@@ -1,0 +1,81 @@
+<h2 mat-dialog-title>
+  {{ editando ? 'Modificar Datos del Tecnico #' + data.usuario!.id : 'Registrar Nuevo Tecnico de Soporte' }}
+</h2>
+
+<form [formGroup]="form" (ngSubmit)="guardar()" novalidate>
+  <mat-dialog-content class="contenido-modal">
+    <div class="formulario-modal">
+      <mat-form-field appearance="outline" class="campo-full">
+        <mat-label>Nombre del Tecnico</mat-label>
+        <input matInput formControlName="nombre" placeholder="Ej. Carlos Mendoza" maxlength="150" required autocomplete="off">
+        <mat-hint align="end">{{ f.nombre.value.length }}/150</mat-hint>
+        @if (f.nombre.hasError('required') || f.nombre.hasError('vacio')) {
+          <mat-error>El nombre es obligatorio</mat-error>
+        } @else if (f.nombre.hasError('minlength')) {
+          <mat-error>Escribe al menos 3 caracteres</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="campo-full">
+        <mat-label>Rol Asignado</mat-label>
+        <mat-select formControlName="rol" required>
+          <mat-option value="SOLICITANTE">Solicitante</mat-option>
+          <mat-option value="TECNICO">Tecnico de Soporte</mat-option>
+          <mat-option value="ADMINISTRADOR">Administrador de Mesa</mat-option>
+        </mat-select>
+        @if (f.rol.hasError('required')) {
+          <mat-error>Elige un rol</mat-error>
+        }
+      </mat-form-field>
+
+      <p class="seccion-acceso">Acceso al sistema <span>(opcional: sin usuario no puede iniciar sesion)</span></p>
+
+      <mat-form-field appearance="outline" class="campo-full">
+        <mat-label>Usuario de acceso</mat-label>
+        <input matInput formControlName="username" placeholder="Ej. cmendoza" maxlength="60" autocomplete="off">
+        <mat-hint>3 a 60 caracteres: minusculas, numeros, punto, guion o guion bajo</mat-hint>
+        @if (f.username.hasError('pattern')) {
+          <mat-error>Solo minusculas, numeros, punto, guion o guion bajo (3 a 60)</mat-error>
+        } @else if (f.username.hasError('repetido')) {
+          <mat-error>Ya existe un usuario con ese nombre de acceso</mat-error>
+        } @else if (f.username.hasError('usuarioObligatorio')) {
+          <mat-error>Indica el usuario de acceso para esa clave</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="campo-full">
+        <mat-label>{{ editando ? 'Nueva clave (vacio = no cambiarla)' : 'Clave' }}</mat-label>
+        <input matInput [type]="verClave() ? 'text' : 'password'" formControlName="clave" maxlength="72" autocomplete="new-password">
+        <button mat-icon-button matSuffix type="button" (click)="verClave.set(!verClave())"
+                [attr.aria-label]="verClave() ? 'Ocultar clave' : 'Mostrar clave'">
+          <mat-icon>{{ verClave() ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+        <mat-hint>Minimo 8 caracteres</mat-hint>
+        @if (f.clave.hasError('minlength')) {
+          <mat-error>La clave debe tener al menos 8 caracteres</mat-error>
+        } @else if (f.clave.hasError('claveObligatoria')) {
+          <mat-error>Escribe una clave para el usuario de acceso</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="campo-full">
+        <mat-label>Confirmar clave</mat-label>
+        <input matInput [type]="verClave() ? 'text' : 'password'" formControlName="confirmar" maxlength="72" autocomplete="new-password">
+        @if (f.confirmar.hasError('noCoinciden')) {
+          <mat-error>Las claves no coinciden</mat-error>
+        }
+      </mat-form-field>
+
+      @if (errorServidor()) {
+        <p class="error-formulario">{{ errorServidor() }}</p>
+      }
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="cancelar()">Cancelar</button>
+    <button mat-flat-button color="primary" type="submit" [disabled]="guardando()">
+      {{ guardando() ? 'Guardando...' : (editando ? 'Guardar Cambios' : 'Guardar Tecnico') }}
+    </button>
+  </mat-dialog-actions>
+</form>
