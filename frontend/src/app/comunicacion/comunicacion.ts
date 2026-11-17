@@ -8,16 +8,17 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { Subject, Subscription, forkJoin, interval, of } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { Subject, Subscription, interval } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { HelpdeskService } from '../services/helpdesk.service';
 import { AuthService } from '../auth/auth.service';
 import {
-  Ticket, Comentario, Notificacion, Usuario, EncuestaSatisfaccion,
-  ResumenEncuestas, Adjunto, ContadorNotificaciones, TipoNotificacion
+  Ticket, Comentario, Notificacion, Usuario, EstadoTicket,
+  ContadorNotificaciones, TipoNotificacion
 } from '../models/helpdesk.model';
+
+type SeccionBitacora = 'EN_CURSO' | 'RESUELTOS';
 
 @Component({
   selector: 'app-comunicacion',
@@ -32,7 +33,6 @@ import {
     MatInputModule,
     MatSelectModule,
     MatDividerModule,
-    MatChipsModule,
     MatSnackBarModule
   ],
   templateUrl: './comunicacion.html',
@@ -51,49 +51,30 @@ export class Comunicacion implements OnInit, OnDestroy {
   usuarios: Usuario[] = [];
   comentarios: Comentario[] = [];
   notificaciones: Notificacion[] = [];
-  adjuntosPorComentario: Record<number, Adjunto[]> = {};
 
   contador: ContadorNotificaciones = { total: 0, noLeidas: 0 };
-  resumenEncuestas: ResumenEncuestas = {
-    totalEncuestas: 0,
-    respondidas: 0,
-    pendientes: 0,
-    promedio: 0,
-    distribucion: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
-  };
-  encuestaSeleccionada?: EncuestaSatisfaccion;
-  encuestaPuntuacion = 0;
-  encuestaComentario = '';
 
   usuarioActualId?: number;
   nuevoComentarioTicketId?: number;
   nuevoComentarioTexto = '';
-  archivosSeleccionados: File[] = [];
 
   filtroTicketId: number | null = null;
+  seccion: SeccionBitacora = 'EN_CURSO';
   busqueda = '';
   pagina = 0;
   tamanoPagina = 10;
   totalComentarios = 0;
   totalPaginas = 0;
 
-  filtroNotifTipo: TipoNotificacion | '' = '';
-  filtroNotifTicketId: number | null = null;
-  filtroNotifLeida: '' | 'true' | 'false' = '';
-
   cargandoComentarios = false;
   enviandoComentario = false;
-  enviandoEncuesta = false;
-  estrellas = [1, 2, 3, 4, 5];
 
   ngOnInit(): void {
     this.usuarioActualId = this.leerUsuarioGuardado();
     this.cargarUsuarios();
     this.cargarTickets();
-    this.cargarComentarios();
     this.cargarNotificaciones();
     this.cargarContador();
-    this.cargarResumenEncuestas();
 
     this.busquedaSub = this.busqueda$.pipe(
       debounceTime(300),
@@ -105,10 +86,9 @@ export class Comunicacion implements OnInit, OnDestroy {
     });
 
     this.autoRefreshSub = interval(8000).subscribe(() => {
-      this.cargarComentarios();
+      this.cargarTickets();
       this.cargarNotificaciones();
       this.cargarContador();
-      this.cargarResumenEncuestas();
     });
   }
 
@@ -130,12 +110,22 @@ export class Comunicacion implements OnInit, OnDestroy {
     return this.tickets.find(t => t.id === this.nuevoComentarioTicketId);
   }
 
-  get ticketParaEncuesta(): Ticket | undefined {
-    return this.tickets.find(t => t.id === this.filtroTicketId);
+  get ticketsActivos(): Ticket[] {
+    return this.tickets.filter(t => t.estado !== 'RESUELTO');
   }
 
-  get puedeResponderEncuesta(): boolean {
-    return !!this.encuestaSeleccionada && !this.encuestaSeleccionada.respondida;
+  get ticketsResueltos(): Ticket[] {
+    return this.tickets.filter(t => t.estado === 'RESUELTO');
+  }
+
+  get ticketsSeccion(): Ticket[] {
+    return this.seccion === 'RESUELTOS' ? this.ticketsResueltos : this.ticketsActivos;
+  }
+
+  get idsTicketsSeccion(): number[] {
+    return this.ticketsSeccion
+      .map(t => t.id)
+      .filter((id): id is number => id !== undefined);
   }
 
   leerUsuarioGuardado(): number | undefined {
@@ -170,13 +160,20 @@ export class Comunicacion implements OnInit, OnDestroy {
     this.helpdeskService.getTickets().subscribe({
       next: (res) => {
         this.tickets = [...res];
-        if (res.length > 0 && !this.nuevoComentarioTicketId) {
-          this.nuevoComentarioTicketId = res[0].id;
+
+        const activos = res.filter(t => t.estado !== 'RESUELTO');
+        if (this.nuevoComentarioTicketId && !activos.some(t => t.id === this.nuevoComentarioTicketId)) {
+          this.nuevoComentarioTicketId = undefined;
         }
+        if (!this.nuevoComentarioTicketId && activos.length > 0) {
+          this.nuevoComentarioTicketId = activos[0].id;
+        }
+
         if (this.filtroTicketId && !res.some(t => t.id === this.filtroTicketId)) {
           this.filtroTicketId = null;
         }
-        this.cargarEncuesta(this.filtroTicketId);
+
+        this.cargarComentarios();
         this.cdr.markForCheck();
       },
       error: () => console.warn('Tickets no disponibles para comentarios')
@@ -185,8 +182,10 @@ export class Comunicacion implements OnInit, OnDestroy {
 
   cargarComentarios(): void {
     this.cargandoComentarios = true;
+    const ids = this.idsTicketsSeccion;
     this.helpdeskService.getComentariosPaginados({
       ticketId: this.filtroTicketId,
+      ticketIds: this.filtroTicketId ? undefined : (ids.length ? ids : [-1]),
       q: this.busqueda,
       page: this.pagina,
       size: this.tamanoPagina
@@ -197,7 +196,6 @@ export class Comunicacion implements OnInit, OnDestroy {
         this.totalPaginas = res.totalPages;
         this.pagina = res.page;
         this.cargandoComentarios = false;
-        this.cargarAdjuntosVisibles();
         this.cdr.markForCheck();
       },
       error: () => {
@@ -207,34 +205,17 @@ export class Comunicacion implements OnInit, OnDestroy {
     });
   }
 
-  cargarAdjuntosVisibles(): void {
-    const conId = this.comentarios.filter(c => !!c.id);
-    if (conId.length === 0) {
-      this.adjuntosPorComentario = {};
+  cargarNotificaciones(): void {
+    if (!this.usuarioActualId) {
+      this.notificaciones = [];
       return;
     }
-    const peticiones = conId.map(c => this.helpdeskService.getAdjuntos(c.id!)
-      .pipe(catchError(() => of([] as Adjunto[]))));
-    forkJoin(peticiones).subscribe({
-      next: (respuestas) => {
-        const mapa: Record<number, Adjunto[]> = {};
-        conId.forEach((c, indice) => mapa[c.id!] = respuestas[indice] ?? []);
-        this.adjuntosPorComentario = mapa;
-        this.cdr.markForCheck();
-      }
-    });
-  }
-
-  cargarNotificaciones(): void {
-    const filtros = {
-      usuarioId: this.usuarioActualId ?? null,
-      tipo: this.filtroNotifTipo || null,
-      ticketId: this.filtroNotifTicketId,
-      leida: this.filtroNotifLeida === '' ? null : this.filtroNotifLeida === 'true'
-    };
-    this.helpdeskService.getNotificaciones(filtros).subscribe({
+    this.helpdeskService.getNotificaciones(this.usuarioActualId).subscribe({
       next: (res) => {
-        this.notificaciones = [...res];
+        this.notificaciones = [...res].sort((a, b) => {
+          const pendientes = Number(a.leida) - Number(b.leida);
+          return pendientes !== 0 ? pendientes : (b.id ?? 0) - (a.id ?? 0);
+        });
         this.cdr.markForCheck();
       },
       error: () => console.warn('Notificaciones no disponibles')
@@ -252,37 +233,6 @@ export class Comunicacion implements OnInit, OnDestroy {
     });
   }
 
-  cargarResumenEncuestas(): void {
-    this.helpdeskService.getResumenEncuestas().subscribe({
-      next: (res) => {
-        this.resumenEncuestas = res;
-        this.cdr.markForCheck();
-      },
-      error: () => console.warn('Resumen de encuestas no disponible')
-    });
-  }
-
-  cargarEncuesta(ticketId: number | null | undefined): void {
-    if (!ticketId) {
-      this.encuestaSeleccionada = undefined;
-      return;
-    }
-    this.helpdeskService.getEncuesta(ticketId).subscribe({
-      next: (res) => {
-        this.encuestaSeleccionada = res;
-        this.encuestaPuntuacion = res.puntuacion ?? 0;
-        this.encuestaComentario = res.comentario ?? '';
-        this.cdr.markForCheck();
-      },
-      error: () => {
-        this.encuestaSeleccionada = undefined;
-        this.encuestaPuntuacion = 0;
-        this.encuestaComentario = '';
-        this.cdr.markForCheck();
-      }
-    });
-  }
-
   cambiarUsuario(usuarioId: number): void {
     this.usuarioActualId = usuarioId;
     const usuario = this.usuarios.find(u => u.id === usuarioId);
@@ -292,11 +242,18 @@ export class Comunicacion implements OnInit, OnDestroy {
     this.cargarContador();
   }
 
-  onFiltroTicketChange(ticketId: number | null): void {
-    this.filtroTicketId = ticketId;
+  cambiarSeccion(seccion: SeccionBitacora): void {
+    if (this.seccion === seccion && !this.filtroTicketId) return;
+    this.seccion = seccion;
+    this.filtroTicketId = null;
     this.pagina = 0;
     this.cargarComentarios();
-    this.cargarEncuesta(ticketId);
+  }
+
+  limpiarFiltroTicket(): void {
+    this.filtroTicketId = null;
+    this.pagina = 0;
+    this.cargarComentarios();
   }
 
   onBusquedaChange(valor: string): void {
@@ -317,10 +274,8 @@ export class Comunicacion implements OnInit, OnDestroy {
 
   cargarDatos(): void {
     this.cargarTickets();
-    this.cargarComentarios();
     this.cargarNotificaciones();
     this.cargarContador();
-    this.cargarResumenEncuestas();
   }
 
   determinarDestinatario(ticket: Ticket | undefined, autorId: number): number | null {
@@ -354,26 +309,16 @@ export class Comunicacion implements OnInit, OnDestroy {
 
     this.enviandoComentario = true;
     this.helpdeskService.crearComentario(nuevo).subscribe({
-      next: (creado) => {
-        const finalizar = (mensaje: string) => {
-          this.enviandoComentario = false;
-          this.nuevoComentarioTexto = '';
-          this.archivosSeleccionados = [];
-          this.snackBar.open(mensaje, 'OK', { duration: 3000 });
-          this.pagina = 0;
-          this.cargarComentarios();
-          this.cargarNotificaciones();
-          this.cargarContador();
-        };
-
-        if (creado.id && this.archivosSeleccionados.length > 0) {
-          this.helpdeskService.subirAdjuntos(creado.id, this.archivosSeleccionados).subscribe({
-            next: () => finalizar('Comentario y adjuntos registrados'),
-            error: () => finalizar('Comentario guardado, pero no se pudieron subir los adjuntos')
-          });
-        } else {
-          finalizar('Comentario registrado con exito');
-        }
+      next: () => {
+        this.enviandoComentario = false;
+        this.nuevoComentarioTexto = '';
+        this.seccion = ticket?.estado === 'RESUELTO' ? 'RESUELTOS' : 'EN_CURSO';
+        this.filtroTicketId = null;
+        this.pagina = 0;
+        this.snackBar.open('Comentario registrado con exito', 'OK', { duration: 3000 });
+        this.cargarComentarios();
+        this.cargarNotificaciones();
+        this.cargarContador();
       },
       error: (err) => {
         this.enviandoComentario = false;
@@ -381,32 +326,6 @@ export class Comunicacion implements OnInit, OnDestroy {
         this.snackBar.open(detalle, 'Cerrar', { duration: 4000 });
       }
     });
-  }
-
-  seleccionarArchivos(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const archivos = Array.from(input.files ?? []);
-    if (archivos.length === 0) return;
-
-    const permitidos = ['image/png', 'image/jpeg', 'application/pdf'];
-    const maximo = 5 * 1024 * 1024;
-    if (archivos.length > 3) {
-      this.snackBar.open('Maximo 3 archivos por comentario', 'Cerrar', { duration: 3000 });
-      input.value = '';
-      return;
-    }
-    const invalido = archivos.find(a => !permitidos.includes(a.type) || a.size > maximo);
-    if (invalido) {
-      this.snackBar.open('Solo PNG/JPG/PDF de hasta 5 MB', 'Cerrar', { duration: 3000 });
-      input.value = '';
-      return;
-    }
-    this.archivosSeleccionados = archivos;
-    input.value = '';
-  }
-
-  quitarArchivo(indice: number): void {
-    this.archivosSeleccionados = this.archivosSeleccionados.filter((_, i) => i !== indice);
   }
 
   eliminarComentario(id?: number): void {
@@ -445,72 +364,23 @@ export class Comunicacion implements OnInit, OnDestroy {
 
   abrirNotificacion(n: Notificacion): void {
     if (!n.leida && n.id) {
-      this.helpdeskService.marcarNotificacionLeida(n.id).subscribe({
-        next: () => {
-          this.cargarContador();
-          this.cargarNotificaciones();
-        }
-      });
+      this.marcarNotificacionLeida(n.id);
     }
-    if (n.ticketId) {
-      this.filtroTicketId = n.ticketId;
-      this.pagina = 0;
-      this.cargarComentarios();
-      this.cargarEncuesta(n.ticketId);
-      setTimeout(() => document.getElementById('bitacora')?.scrollIntoView({ behavior: 'smooth' }), 120);
-    }
+    if (!n.ticketId) return;
+
+    const ticket = this.tickets.find(t => t.id === n.ticketId);
+    this.seccion = ticket?.estado === 'RESUELTO' ? 'RESUELTOS' : 'EN_CURSO';
+    this.filtroTicketId = n.ticketId;
+    this.pagina = 0;
+    this.cargarComentarios();
+    setTimeout(() => document.getElementById('bitacora')?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    }), 120);
   }
 
-  responderEncuesta(): void {
-    if (!this.encuestaSeleccionada || !this.filtroTicketId) return;
-    if (this.encuestaPuntuacion < 1 || this.encuestaPuntuacion > 5) {
-      this.snackBar.open('Selecciona una puntuacion de 1 a 5', 'Cerrar', { duration: 3000 });
-      return;
-    }
-    this.enviandoEncuesta = true;
-    this.helpdeskService.responderEncuesta(
-      this.filtroTicketId, this.encuestaPuntuacion, this.encuestaComentario
-    ).subscribe({
-      next: (res) => {
-        this.enviandoEncuesta = false;
-        this.encuestaSeleccionada = res;
-        this.encuestaPuntuacion = res.puntuacion ?? 0;
-        this.encuestaComentario = res.comentario ?? '';
-        this.snackBar.open('Gracias por calificar la atencion', 'OK', { duration: 3000 });
-        this.cargarResumenEncuestas();
-        this.cargarNotificaciones();
-        this.cargarContador();
-      },
-      error: (err) => {
-        this.enviandoEncuesta = false;
-        const detalle = err?.error?.detail ?? 'No se pudo guardar la encuesta';
-        this.snackBar.open(detalle, 'Cerrar', { duration: 4000 });
-      }
-    });
-  }
-
-  abrirAdjunto(adjunto: Adjunto, descargar = false): void {
-    // Se pide con HttpClient (lleva el token) y se abre como blob: un enlace directo no enviaria el token.
-    const url = descargar ? adjunto.urlDescarga : adjunto.urlVista;
-    this.helpdeskService.getArchivo(url).subscribe({
-      next: (blob) => {
-        const temporal = URL.createObjectURL(blob);
-        if (descargar) {
-          const enlace = document.createElement('a');
-          enlace.href = temporal;
-          enlace.download = adjunto.nombreOriginal;
-          enlace.click();
-        } else {
-          window.open(temporal, '_blank');
-        }
-        setTimeout(() => URL.revokeObjectURL(temporal), 60000);
-      },
-      error: () => this.snackBar.open('No se pudo abrir el adjunto', 'Cerrar', { duration: 3000 })
-    });
-  }
-
-  adjuntosDe(comentarioId?: number): Adjunto[] {
-    return comentarioId ? (this.adjuntosPorComentario[comentarioId] ?? []) : [];
+  getEstadoTicket(comentario: Comentario): EstadoTicket | undefined {
+    return this.tickets.find(t => t.id === comentario.ticketId)?.estado;
   }
 
   getNombreAutor(comentario: Comentario): string {
@@ -539,7 +409,6 @@ export class Comunicacion implements OnInit, OnDestroy {
     switch (tipo) {
       case 'TICKET_ESTADO': return 'Estado';
       case 'COMENTARIO_NUEVO': return 'Comentario';
-      case 'ENCUESTA_SATISFACCION': return 'Encuesta';
       default: return 'Sistema';
     }
   }
@@ -548,29 +417,12 @@ export class Comunicacion implements OnInit, OnDestroy {
     switch (tipo) {
       case 'TICKET_ESTADO': return 'sync';
       case 'COMENTARIO_NUEVO': return 'chat';
-      case 'ENCUESTA_SATISFACCION': return 'star';
       default: return 'notifications';
     }
   }
 
   claseTipo(tipo?: TipoNotificacion | null): string {
     return `tipo-${(tipo ?? 'SISTEMA').toLowerCase()}`;
-  }
-
-  formatearTamano(bytes: number): string {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
-  }
-
-  esImagen(adjunto: Adjunto): boolean {
-    return adjunto.contentType.startsWith('image/');
-  }
-
-  porcentajeDistribucion(puntuacion: number): number {
-    const total = this.resumenEncuestas.respondidas;
-    if (!total) return 0;
-    return Math.round(((this.resumenEncuestas.distribucion[puntuacion] ?? 0) / total) * 100);
   }
 
   trackByComentario(_: number, c: Comentario): number | undefined {

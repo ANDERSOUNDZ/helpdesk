@@ -53,7 +53,6 @@ export interface Comentario {
 export type TipoNotificacion =
   | 'TICKET_ESTADO'
   | 'COMENTARIO_NUEVO'
-  | 'ENCUESTA_SATISFACCION'
   | 'SISTEMA';
 
 export interface Notificacion {
@@ -66,36 +65,6 @@ export interface Notificacion {
   referenciaId?: number | null;
   creadaEn?: string | null;
   leidaEn?: string | null;
-}
-
-export interface EncuestaSatisfaccion {
-  id: number;
-  ticketId: number;
-  solicitanteId: number;
-  puntuacion: number | null;
-  comentario: string | null;
-  creadaEn: string;
-  respondidaEn: string | null;
-  respondida: boolean;
-}
-
-export interface ResumenEncuestas {
-  totalEncuestas: number;
-  respondidas: number;
-  pendientes: number;
-  promedio: number;
-  distribucion: Record<number, number>;
-}
-
-export interface Adjunto {
-  id: number;
-  comentarioId: number;
-  nombreOriginal: string;
-  contentType: string;
-  tamanoBytes: number;
-  creadoEn: string;
-  urlVista: string;
-  urlDescarga: string;
 }
 
 export interface PaginaComentarios<T> {
@@ -115,15 +84,9 @@ export interface ContadorNotificaciones {
 
 export interface FiltrosComentarios {
   ticketId?: number | null;
+  ticketIds?: number[];
   q?: string;
   page?: number;
   size?: number;
   sort?: string;
-}
-
-export interface FiltrosNotificaciones {
-  usuarioId?: number | null;
-  leida?: boolean | null;
-  tipo?: TipoNotificacion | null;
-  ticketId?: number | null;
 }

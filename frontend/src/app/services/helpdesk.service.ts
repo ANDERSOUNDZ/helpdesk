@@ -3,8 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {
   Ticket, ResumenTickets, ContadorEstado, Usuario, Comentario, Notificacion,
-  EncuestaSatisfaccion, ResumenEncuestas, Adjunto, PaginaComentarios,
-  ContadorNotificaciones, FiltrosComentarios, FiltrosNotificaciones
+  PaginaComentarios, ContadorNotificaciones, FiltrosComentarios
 } from '../models/helpdesk.model';
 import { environment } from '../../environments/environment';
 
@@ -99,6 +98,7 @@ export class HelpdeskService {
       sort: filtros.sort ?? 'creadoEn,desc'
     };
     if (filtros.ticketId) params['ticketId'] = filtros.ticketId;
+    if (filtros.ticketIds?.length) params['ticketIds'] = filtros.ticketIds.join(',');
     if (filtros.q?.trim()) params['q'] = filtros.q.trim();
     return this.http.get<PaginaComentarios<Comentario>>(
       `${environment.endpoints.comentarios}/paginados`, { params });
@@ -112,12 +112,9 @@ export class HelpdeskService {
     return this.http.delete<void>(`${environment.endpoints.comentarios}/${id}`);
   }
 
-  getNotificaciones(filtros: FiltrosNotificaciones = {}): Observable<Notificacion[]> {
-    const params: Record<string, string | number | boolean> = {};
-    if (filtros.usuarioId) params['usuarioId'] = filtros.usuarioId;
-    if (filtros.leida !== null && filtros.leida !== undefined) params['leida'] = filtros.leida;
-    if (filtros.tipo) params['tipo'] = filtros.tipo;
-    if (filtros.ticketId) params['ticketId'] = filtros.ticketId;
+  getNotificaciones(usuarioId?: number): Observable<Notificacion[]> {
+    const params: Record<string, string | number> = {};
+    if (usuarioId) params['usuarioId'] = usuarioId;
     return this.http.get<Notificacion[]>(environment.endpoints.notificaciones, { params });
   }
 
@@ -133,39 +130,5 @@ export class HelpdeskService {
 
   marcarNotificacionLeida(id: number): Observable<Notificacion> {
     return this.http.put<Notificacion>(`${environment.endpoints.notificaciones}/${id}/leida`, {});
-  }
-
-  getEncuesta(ticketId: number): Observable<EncuestaSatisfaccion> {
-    return this.http.get<EncuestaSatisfaccion>(`${environment.endpoints.encuestas}/${ticketId}`);
-  }
-
-  responderEncuesta(ticketId: number, puntuacion: number, comentario: string): Observable<EncuestaSatisfaccion> {
-    return this.http.post<EncuestaSatisfaccion>(
-      `${environment.endpoints.encuestas}/${ticketId}/respuesta`,
-      { puntuacion, comentario: comentario.trim() || null });
-  }
-
-  getResumenEncuestas(): Observable<ResumenEncuestas> {
-    return this.http.get<ResumenEncuestas>(`${environment.endpoints.encuestas}/resumen`);
-  }
-
-  subirAdjuntos(comentarioId: number, archivos: File[]): Observable<Adjunto[]> {
-    const formData = new FormData();
-    archivos.forEach(archivo => formData.append('archivos', archivo, archivo.name));
-    return this.http.post<Adjunto[]>(
-      `${environment.endpoints.comentarios}/${comentarioId}/adjuntos`, formData);
-  }
-
-  getAdjuntos(comentarioId: number): Observable<Adjunto[]> {
-    return this.http.get<Adjunto[]>(
-      `${environment.endpoints.comentarios}/${comentarioId}/adjuntos`);
-  }
-
-  eliminarAdjunto(id: number): Observable<void> {
-    return this.http.delete<void>(`${environment.endpoints.adjuntos}/${id}`);
-  }
-
-  getArchivo(url: string): Observable<Blob> {
-    return this.http.get(url, { responseType: 'blob' });
   }
 }

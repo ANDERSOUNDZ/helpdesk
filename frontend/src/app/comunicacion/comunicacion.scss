@@ -71,36 +71,87 @@
   gap: 6px;
 }
 
-.fila-adjuntos {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-
-  .ayuda-adjuntos {
-    color: #777;
-    font-size: 0.78rem;
-  }
-}
-
-.chips-archivos {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
 .separador {
   margin: 12px 0;
+}
+
+.barra-bitacora {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.secciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  button {
+    border-radius: 18px;
+    color: #455a64;
+
+    mat-icon {
+      margin-right: 4px;
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  .seccion-activa {
+    background: #e8eaf6;
+    border-color: #3f51b5;
+    color: #1a237e;
+    font-weight: 600;
+  }
+
+  .contador {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    margin-left: 6px;
+    border-radius: 10px;
+    background: #eceff1;
+    color: #37474f;
+    font-size: 0.72rem;
+  }
 }
 
 .filtros-bitacora {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  justify-content: flex-end;
 
-  .filtro-ticket { flex: 1 1 220px; }
-  .filtro-busqueda { flex: 1 1 200px; }
+  .filtro-busqueda { flex: 1 1 200px; min-width: 180px; }
   .filtro-tamano { flex: 0 0 110px; }
+}
+
+.filtro-activo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px 6px 12px;
+  border: 1px solid #c5cae9;
+  border-radius: 6px;
+  background: #f3f4fb;
+  color: #1a237e;
+  font-size: 0.84rem;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  button {
+    margin-left: auto;
+  }
 }
 
 .lista-comentarios {
@@ -125,12 +176,31 @@
       font-size: 0.86rem;
       color: #1565c0;
 
+      .meta-izquierda {
+        min-width: 0;
+      }
+
       .autor {
         display: block;
         color: #607d8b;
         font-size: 0.78rem;
         margin-top: 2px;
       }
+
+      .estado-resuelto {
+        display: inline-block;
+        margin-top: 4px;
+        padding: 1px 8px;
+        border-radius: 10px;
+        background: #e8f5e9;
+        border: 1px solid #a5d6a7;
+        color: #2e7d32;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+
       .meta-derecha {
         display: flex;
         align-items: center;
@@ -149,29 +219,6 @@
       color: #263238;
       white-space: pre-wrap;
       overflow-wrap: anywhere;
-    }
-  }
-}
-
-.adjuntos-comentario {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 10px;
-
-  .adjunto {
-    font-size: 0.8rem;
-    text-transform: none;
-
-    span {
-      max-width: 180px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    small {
-      color: #78909c;
-      margin-left: 4px;
     }
   }
 }
@@ -215,23 +262,30 @@
   vertical-align: middle;
 }
 
-.filtros-notificaciones {
-  display: grid;
-  grid-template-columns: 1fr 0.8fr 0.9fr;
-  gap: 6px;
+.acciones-notificaciones {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 
-  @media (max-width: 600px) {
-    grid-template-columns: 1fr;
+  .ayuda-avisos {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #607d8b;
+    font-size: 0.76rem;
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
   }
 }
 
-.acciones-notificaciones {
-  display: flex;
-  justify-content: flex-end;
-}
-
 .lista-notificaciones {
-  max-height: 420px;
+  max-height: 560px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -246,6 +300,7 @@
     border: 1px solid #ffe082;
     cursor: pointer;
     transition: transform 0.12s ease, box-shadow 0.12s ease;
+    position: relative;
 
     &:hover {
       transform: translateY(-1px);
@@ -258,10 +313,6 @@
       opacity: 0.72;
     }
 
-    &.tipo-encuesta_satisfaccion {
-      background-color: #e8f5e9;
-      border-color: #a5d6a7;
-    }
     &.tipo-comentario_nuevo {
       background-color: #e3f2fd;
       border-color: #90caf9;
@@ -302,122 +353,15 @@
         }
       }
     }
-  }
-}
 
-.csat-kpis {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-
-  .csat-kpi {
-    background: #f3f6fb;
-    border-radius: 6px;
-    padding: 10px;
-    text-align: center;
-
-    strong {
-      display: block;
-      font-size: 1.5rem;
-      color: #1a237e;
-    }
-    span {
-      color: #607d8b;
-      font-size: 0.74rem;
-    }
-  }
-}
-
-.distribucion {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-
-  .fila-distribucion {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.8rem;
-    color: #546e7a;
-
-    .numero {
-      width: 12px;
-      text-align: right;
-    }
-    .barra {
-      flex: 1;
+    .punto-no-leido {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 8px;
       height: 8px;
-      background: #eceff1;
-      border-radius: 4px;
-      overflow: hidden;
-
-      .barra-relleno {
-        height: 100%;
-        background: linear-gradient(90deg, #f9a825, #2e7d32);
-        border-radius: 4px;
-      }
+      border-radius: 50%;
+      background: #e53935;
     }
-    .cantidad {
-      width: 24px;
-      text-align: right;
-    }
-  }
-}
-
-.panel-encuesta {
-  h4 {
-    margin: 0 0 10px;
-    color: #1a237e;
-    font-size: 0.95rem;
-  }
-  .pregunta {
-    color: #455a64;
-    font-size: 0.88rem;
-  }
-}
-
-.selector-estrellas {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  margin-bottom: 8px;
-
-  button {
-    color: #b0bec5;
-  }
-  mat-icon.activa,
-  button mat-icon.activa {
-    color: #f9a825;
-  }
-  strong {
-    margin-left: 8px;
-    color: #455a64;
-  }
-}
-
-.estrellas-lectura {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-
-  mat-icon {
-    color: #b0bec5;
-  }
-  mat-icon.activa {
-    color: #f9a825;
-  }
-  strong {
-    margin-left: 8px;
-    color: #455a64;
-  }
-}
-
-.encuesta-respondida {
-  p {
-    margin: 8px 0;
-    color: #37474f;
-  }
-  small {
-    color: #78909c;
   }
 }
