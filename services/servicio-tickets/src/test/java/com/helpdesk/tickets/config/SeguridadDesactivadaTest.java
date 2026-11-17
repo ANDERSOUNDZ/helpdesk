@@ -1,6 +1,8 @@
 package com.helpdesk.tickets.config;
 
 import com.helpdesk.tickets.controller.TicketController;
+import com.helpdesk.tickets.service.HistorialService;
+import com.helpdesk.tickets.service.HorasService;
 import com.helpdesk.tickets.service.TicketService;
 
 import java.util.List;
@@ -27,9 +29,16 @@ class SeguridadDesactivadaTest {
     @MockitoBean
     private TicketService ticketService;
 
+    @MockitoBean
+    private HistorialService historialService;
+
+    @MockitoBean
+    private HorasService horasService;
+
     @Test
     void conAuthEnabledApagadoTodoSigueAbiertoComoAntes() throws Exception {
         when(ticketService.obtenerTodos()).thenReturn(List.of());
+        when(ticketService.buscar(org.mockito.ArgumentMatchers.any())).thenReturn(List.of());
 
         mvc.perform(get("/tickets")).andExpect(status().isOk());
         mvc.perform(delete("/tickets/5")).andExpect(status().isNoContent());
