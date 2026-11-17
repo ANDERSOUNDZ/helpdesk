@@ -15,10 +15,11 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Subscription, interval } from 'rxjs';
 import { HelpdeskService } from '../services/helpdesk.service';
 import { AuthService } from '../auth/auth.service';
-import { Ticket, Usuario, Prioridad, EstadoTicket, Comentario } from '../models/helpdesk.model';
+import { Ticket, Usuario, Prioridad, EstadoTicket, Comentario, Categoria } from '../models/helpdesk.model';
 import { AsignarDialog } from './asignar-dialog/asignar-dialog';
 import { DetalleDialog } from './detalle-dialog/detalle-dialog';
 import { EditarTicketDialog } from './editar-ticket-dialog/editar-ticket-dialog';
+import { CategoriasDialog } from './categorias-dialog/categorias-dialog';
 
 /** La descripcion del ticket guarda "Solicitante: ... [Depto]. Detalle: ..." y la base admite 1000 caracteres. */
 const MAX_DETALLE = 800;
@@ -80,6 +81,7 @@ export class Tickets implements OnInit, OnDestroy {
 
   readonly tickets = signal<Ticket[]>([]);
   readonly usuarios = signal<Usuario[]>([]);
+  readonly categorias = signal<Categoria[]>([]);
   columnasTickets: string[] = ['id', 'titulo', 'prioridad', 'estado', 'tecnico', 'bitacora', 'acciones'];
   readonly opcionesPagina = [5, 10, 25];
   readonly maxDetalle = MAX_DETALLE;
@@ -92,6 +94,7 @@ export class Tickets implements OnInit, OnDestroy {
     solicitante: [this.nombreDeSesion(), [Validators.required, noVacio, Validators.minLength(3), Validators.maxLength(100)]],
     departamento: ['Operaciones', [Validators.required]],
     prioridad: ['MEDIA' as Prioridad, [Validators.required]],
+    categoria: [null as number | null],
     titulo: ['', [Validators.required, noVacio, Validators.minLength(5), Validators.maxLength(200)]],
     detalle: ['', [Validators.maxLength(MAX_DETALLE)]]
   });
@@ -100,6 +103,7 @@ export class Tickets implements OnInit, OnDestroy {
   readonly texto = signal('');
   readonly filtroEstado = signal<'' | EstadoTicket>('');
   readonly filtroPrioridad = signal<'' | Prioridad>('');
+  readonly filtroCategoria = signal<'' | number>('');
   readonly pagina = signal(0);
   readonly tamano = signal(10);
 
@@ -108,9 +112,11 @@ export class Tickets implements OnInit, OnDestroy {
     const buscado = this.texto().trim().toLowerCase();
     const estado = this.filtroEstado();
     const prioridad = this.filtroPrioridad();
+    const categoria = this.filtroCategoria();
     return this.tickets()
       .filter(t => !estado || t.estado === estado)
       .filter(t => !prioridad || t.prioridad === prioridad)
+      .filter(t => categoria === '' || t.categoriaId === categoria)
       .filter(t => !buscado
         || String(t.id ?? '').includes(buscado)
         || t.titulo.toLowerCase().includes(buscado)
@@ -148,6 +154,7 @@ export class Tickets implements OnInit, OnDestroy {
   cargarDatos(): void {
     this.cargarTickets();
     this.cargarUsuarios();
+    this.cargarCategorias();
   }
 
   /** Evita repintar la tabla cada 3 s cuando los datos no cambiaron (los botones no "parpadean" al hacer clic). */
@@ -197,11 +204,45 @@ export class Tickets implements OnInit, OnDestroy {
     this.pagina.set(0);
   }
 
+  cambiarCategoria(valor: '' | number): void {
+    this.filtroCategoria.set(valor ?? '');
+    this.pagina.set(0);
+  }
+
   limpiarFiltros(): void {
     this.texto.set('');
     this.filtroEstado.set('');
     this.filtroPrioridad.set('');
+    this.filtroCategoria.set('');
     this.pagina.set(0);
+  }
+
+  // --- CATEGORIAS ---
+  cargarCategorias(): void {
+    this.helpdeskService.getCategorias().subscribe({
+      next: (lista) => {
+        this.categorias.set(lista);
+        // Si hay categorias, hay que elegir una al registrar el incidente.
+        this.f.categoria.setValidators(lista.length ? [Validators.required] : []);
+        this.f.categoria.updateValueAndValidity({ emitEvent: false });
+      },
+      error: () => console.warn('Categorias no disponibles')
+    });
+  }
+
+  nombreCategoria(id?: number | null): string {
+    if (!id) return '';
+    return this.categorias().find(c => c.id === id)?.nombre ?? `Categoria #${id}`;
+  }
+
+  abrirModalCategorias(): void {
+    this.dialog.open(CategoriasDialog, { width: '720px' })
+      .afterClosed().subscribe((huboCambios: boolean) => {
+        if (huboCambios) {
+          this.cargarCategorias();
+          this.cargarTickets();
+        }
+      });
   }
 
   cambiarPagina(evento: PageEvent): void {
@@ -249,6 +290,7 @@ export class Tickets implements OnInit, OnDestroy {
       titulo: v.titulo.trim(),
       descripcion: descripcionCompleta,
       prioridad: v.prioridad,
+      categoriaId: v.categoria,
       solicitanteId: this.auth.usuario()?.id ?? 1
     };
 
@@ -274,6 +316,7 @@ export class Tickets implements OnInit, OnDestroy {
       solicitante: this.nombreDeSesion(),
       departamento: 'Operaciones',
       prioridad: 'MEDIA' as Prioridad,
+      categoria: null as number | null,
       titulo: '',
       detalle: ''
     };
@@ -323,7 +366,7 @@ export class Tickets implements OnInit, OnDestroy {
   abrirModalEditarTicket(ticket: Ticket): void {
     const dialogRef = this.dialog.open(EditarTicketDialog, {
       width: '480px',
-      data: ticket
+      data: { ticket, categorias: this.categorias() }
     });
 
     dialogRef.afterClosed().subscribe((datosActualizados: Partial<Ticket> | undefined) => {
