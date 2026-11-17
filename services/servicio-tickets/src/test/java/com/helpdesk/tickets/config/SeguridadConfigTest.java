@@ -4,6 +4,8 @@ import com.helpdesk.tickets.controller.TicketController;
 import com.helpdesk.tickets.model.Prioridad;
 import com.helpdesk.tickets.model.Ticket;
 import com.helpdesk.tickets.service.TicketService;
+import com.helpdesk.tickets.service.HistorialService;
+import com.helpdesk.tickets.service.HorasService;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 
 import java.nio.charset.StandardCharsets;
@@ -55,6 +57,12 @@ class SeguridadConfigTest {
     @MockitoBean
     private TicketService ticketService;
 
+    @MockitoBean
+    private HistorialService historialService;
+
+    @MockitoBean
+    private HorasService horasService;
+
     private RequestPostProcessor como(String rol) {
         return jwt().authorities(new SimpleGrantedAuthority("ROLE_" + rol));
     }
@@ -86,6 +94,7 @@ class SeguridadConfigTest {
 
     private void preparar() {
         when(ticketService.obtenerTodos()).thenReturn(List.of(ticket()));
+        when(ticketService.buscar(any())).thenReturn(List.of(ticket()));
         when(ticketService.obtenerPorId(anyLong())).thenReturn(ticket());
         when(ticketService.crear(any())).thenReturn(ticket());
         when(ticketService.asignar(anyLong(), anyLong())).thenReturn(ticket());
