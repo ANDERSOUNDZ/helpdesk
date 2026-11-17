@@ -144,7 +144,7 @@ export class UsuarioDialog {
       next: (guardado) => this.dialogRef.close(guardado),
       error: (err) => {
         this.guardando.set(false);
-        const mensaje: string = err?.error?.message ?? 'No se pudo guardar el usuario';
+        const mensaje: string = err?.error?.detail ?? err?.error?.message ?? 'No se pudo guardar el usuario';
         if (err?.status === 409 && /nombre de acceso/i.test(mensaje)) {
           this.f.username.setErrors({ ...(this.f.username.errors ?? {}), repetido: true });
           this.f.username.markAsTouched();

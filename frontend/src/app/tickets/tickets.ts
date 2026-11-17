@@ -206,12 +206,13 @@ export class Tickets implements OnInit, OnDestroy {
     return this.formulario.controls;
   }
 
-  private mensajeDeError(err: { status?: number; error?: { message?: string } }): string {
+  /** El servidor responde {"detail": ...} (ProblemDetail) o {"message": ...} segun la version; se aceptan ambos. */
+  private mensajeDeError(err: { status?: number; error?: { detail?: string; message?: string } }): string {
     switch (err?.status) {
       case 0: return 'No hay conexion con servicio-tickets';
       case 401: return 'Tu sesion vencio. Vuelve a iniciar sesion';
       case 403: return 'No tienes permiso para crear tickets';
-      default: return err?.error?.message ?? 'No se pudo registrar el incidente';
+      default: return err?.error?.detail ?? err?.error?.message ?? 'No se pudo registrar el incidente';
     }
   }
 

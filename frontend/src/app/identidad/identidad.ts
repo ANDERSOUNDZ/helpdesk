@@ -202,7 +202,7 @@ export class Identidad implements OnInit, OnDestroy {
           this.cargarUsuarios();
         },
         error: (err) =>
-          this.snackBar.open(err?.error?.message ?? 'Error al eliminar usuario', 'Cerrar', { duration: 4000 })
+          this.snackBar.open(err?.error?.detail ?? err?.error?.message ?? 'Error al eliminar usuario', 'Cerrar', { duration: 4000 })
       });
     });
   }
