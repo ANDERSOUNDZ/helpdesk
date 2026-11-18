@@ -24,17 +24,11 @@ public class ComunicacionService {
 
     private final ComentarioRepository comentarios;
     private final NotificacionRepository notificaciones;
-    private final EncuestaService encuestas;
-    private final AdjuntoService adjuntos;
 
     public ComunicacionService(ComentarioRepository comentarios,
-                               NotificacionRepository notificaciones,
-                               EncuestaService encuestas,
-                               AdjuntoService adjuntos) {
+                               NotificacionRepository notificaciones) {
         this.comentarios = comentarios;
         this.notificaciones = notificaciones;
-        this.encuestas = encuestas;
-        this.adjuntos = adjuntos;
     }
 
     public List<Comentario> obtenerComentarios(Long ticketId) {
@@ -43,9 +37,11 @@ public class ComunicacionService {
                 : comentarios.findByTicketIdOrderByIdAsc(ticketId);
     }
 
-    public Page<Comentario> obtenerComentariosPaginados(Long ticketId, String q, Pageable pageable) {
+    public Page<Comentario> obtenerComentariosPaginados(Long ticketId, List<Long> ticketIds,
+                                                        String q, Pageable pageable) {
         String busqueda = q == null ? "" : q.trim();
-        return comentarios.buscar(ticketId, busqueda, pageable);
+        List<Long> ids = (ticketIds == null || ticketIds.isEmpty()) ? null : ticketIds;
+        return comentarios.buscar(ticketId, ids, busqueda, pageable);
     }
 
     @Transactional
@@ -106,7 +102,6 @@ public class ComunicacionService {
         Comentario comentario = comentarios.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "No existe el comentario con id " + id));
-        adjuntos.eliminarPorComentario(id);
         comentarios.delete(comentario);
     }
 
@@ -164,25 +159,7 @@ public class ComunicacionService {
         notificacion.setMensaje("Tu ticket #" + evento.ticketId() + " cambio a " + estado);
         notificacion.setLeida(false);
         notificacion.setCreadaEn(Instant.now());
-        Notificacion guardada = notificaciones.save(notificacion);
-
-        if ("RESUELTO".equalsIgnoreCase(estado)) {
-            encuestas.crearSiNoExiste(evento.ticketId(), evento.solicitanteId())
-                    .ifPresent(encuesta -> {
-                        Notificacion encuestaNotificacion = new Notificacion();
-                        encuestaNotificacion.setUsuarioId(evento.solicitanteId());
-                        encuestaNotificacion.setTicketId(evento.ticketId());
-                        encuestaNotificacion.setReferenciaId(encuesta.getId());
-                        encuestaNotificacion.setTipo(TipoNotificacion.ENCUESTA_SATISFACCION);
-                        encuestaNotificacion.setMensaje("Como calificarias la atencion del ticket #"
-                                + evento.ticketId() + "? Del 1 al 5");
-                        encuestaNotificacion.setLeida(false);
-                        encuestaNotificacion.setCreadaEn(Instant.now());
-                        notificaciones.save(encuestaNotificacion);
-                    });
-        }
-
-        return guardada;
+        return notificaciones.save(notificacion);
     }
 
     private String normalizar(String valor, int maximo, String campo) {

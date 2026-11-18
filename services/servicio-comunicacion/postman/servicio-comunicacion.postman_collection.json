@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "2a8fd1cb-169a-4b8a-aefe-773c5d03f749",
     "name": "HelpDesk - Comunicación (flujo completo)",
-    "description": "Comentarios, notificaciones, encuestas CSAT, adjuntos y eventos del servicio de comunicación. Ejecutar la carpeta en orden con un Environment que defina baseUrl.",
+    "description": "Comentarios, notificaciones y eventos del servicio de comunicación. Ejecutar la carpeta en orden con un Environment que defina baseUrl.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -176,7 +176,7 @@
       ]
     },
     {
-      "name": "Eventos y encuestas CSAT",
+      "name": "Eventos",
       "item": [
         {
           "name": "POST Evento ticket RESUELTO",
@@ -201,149 +201,6 @@
               "raw": "{\n  \"ticketId\": {{ticketId}},\n  \"estadoNuevo\": \"RESUELTO\",\n  \"solicitanteId\": {{solicitanteId}}\n}"
             },
             "url": { "raw": "{{baseUrl}}/eventos/ticket-estado", "host": ["{{baseUrl}}"], "path": ["eventos", "ticket-estado"] }
-          }
-        },
-        {
-          "name": "GET Encuesta del ticket",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
-                  "pm.test('Ticket correcto', () => pm.expect(pm.response.json().ticketId).to.eql(Number(pm.collectionVariables.get('ticketId'))));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/encuestas/{{ticketId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["encuestas", "{{ticketId}}"]
-            }
-          }
-        },
-        {
-          "name": "POST Responder encuesta",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
-                  "pm.test('Respondida', () => pm.expect(pm.response.json().respondida).to.eql(true));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"puntuacion\": 5,\n  \"comentario\": \"Atención rápida y clara\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/encuestas/{{ticketId}}/respuesta",
-              "host": ["{{baseUrl}}"],
-              "path": ["encuestas", "{{ticketId}}", "respuesta"]
-            }
-          }
-        },
-        {
-          "name": "GET Resumen CSAT",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
-                  "pm.test('Tiene promedio', () => pm.expect(pm.response.json()).to.have.property('promedio'));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "url": { "raw": "{{baseUrl}}/encuestas/resumen", "host": ["{{baseUrl}}"], "path": ["encuestas", "resumen"] }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Adjuntos",
-      "item": [
-        {
-          "name": "POST Subir adjunto (seleccionar archivo)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
-                  "const body = pm.response.json();",
-                  "if (body[0]) pm.collectionVariables.set('adjuntoId', body[0].id);"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                {
-                  "key": "archivos",
-                  "type": "file",
-                  "src": "",
-                  "description": "Selecciona un PNG, JPG o PDF de máximo 5 MB"
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{baseUrl}}/comentarios/{{comentarioId}}/adjuntos",
-              "host": ["{{baseUrl}}"],
-              "path": ["comentarios", "{{comentarioId}}", "adjuntos"]
-            }
-          }
-        },
-        {
-          "name": "GET Listar adjuntos del comentario",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/comentarios/{{comentarioId}}/adjuntos",
-              "host": ["{{baseUrl}}"],
-              "path": ["comentarios", "{{comentarioId}}", "adjuntos"]
-            }
-          }
-        },
-        {
-          "name": "GET Vista previa adjunto",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/adjuntos/{{adjuntoId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["adjuntos", "{{adjuntoId}}"]
-            }
-          }
-        },
-        {
-          "name": "GET Descargar adjunto",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/adjuntos/{{adjuntoId}}/descargar",
-              "host": ["{{baseUrl}}"],
-              "path": ["adjuntos", "{{adjuntoId}}", "descargar"]
-            }
           }
         }
       ]

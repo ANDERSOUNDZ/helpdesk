@@ -2,7 +2,7 @@
   <div class="encabezado-seccion">
     <div>
       <h2>Canal de Comunicacion y Avisos</h2>
-      <p class="subtitulo">Bitacora, notificaciones, encuestas y adjuntos · <code>servicio-comunicacion :8084</code></p>
+      <p class="subtitulo">Bitacora de soporte y avisos en tiempo real · <code>servicio-comunicacion :8084</code></p>
     </div>
     <div class="acciones-encabezado">
       <mat-form-field appearance="outline" class="selector-usuario" *ngIf="!auth.logueado()">
@@ -13,7 +13,9 @@
           </mat-option>
         </mat-select>
       </mat-form-field>
-      <button mat-stroked-button (click)="cargarDatos()">Actualizar</button>
+      <button mat-stroked-button (click)="cargarDatos()">
+        <mat-icon>refresh</mat-icon> Actualizar
+      </button>
     </div>
   </div>
 
@@ -29,7 +31,7 @@
           <mat-form-field appearance="outline" class="campo-full">
             <mat-label>Ticket</mat-label>
             <mat-select [(ngModel)]="nuevoComentarioTicketId">
-              <mat-option *ngFor="let t of tickets" [value]="t.id">
+              <mat-option *ngFor="let t of ticketsActivos" [value]="t.id">
                 #{{ t.id }} · {{ t.titulo }}
               </mat-option>
             </mat-select>
@@ -41,26 +43,6 @@
                       placeholder="Describe el avance, la evidencia o la respuesta"></textarea>
           </mat-form-field>
 
-          <div class="fila-adjuntos">
-            <input #archivoInput type="file" hidden multiple
-                   accept=".png,.jpg,.jpeg,.pdf"
-                   (change)="seleccionarArchivos($event)">
-            <button mat-stroked-button type="button" (click)="archivoInput.click()">
-              <mat-icon>attach_file</mat-icon> Adjuntar
-            </button>
-            <span class="ayuda-adjuntos">PNG, JPG o PDF · max. 3 archivos de 5 MB</span>
-          </div>
-
-          <div class="chips-archivos" *ngIf="archivosSeleccionados.length > 0">
-            <mat-chip *ngFor="let a of archivosSeleccionados; let i = index"
-                      (removed)="quitarArchivo(i)">
-              {{ a.name }} ({{ formatearTamano(a.size) }})
-              <button matChipRemove type="button" aria-label="Quitar archivo">
-                <mat-icon>close</mat-icon>
-              </button>
-            </mat-chip>
-          </div>
-
           <button mat-flat-button color="primary" (click)="agregarComentario()"
                   [disabled]="enviandoComentario">
             {{ enviandoComentario ? 'Publicando...' : 'Publicar comentario' }}
@@ -69,71 +51,82 @@
 
         <mat-divider class="separador"></mat-divider>
 
-        <div class="filtros-bitacora">
-          <mat-form-field appearance="outline" class="filtro-ticket">
-            <mat-label>Filtrar por ticket</mat-label>
-            <mat-select [ngModel]="filtroTicketId"
-                        (ngModelChange)="onFiltroTicketChange($event)">
-              <mat-option [value]="null">Todos los tickets</mat-option>
-              <mat-option *ngFor="let t of tickets" [value]="t.id">
-                #{{ t.id }} · {{ t.titulo }}
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
+        <div class="barra-bitacora">
+          <div class="secciones" role="tablist" aria-label="Secciones de bitacora">
+            <button mat-stroked-button type="button"
+                    [class.seccion-activa]="seccion === 'EN_CURSO'"
+                    (click)="cambiarSeccion('EN_CURSO')">
+              <mat-icon>pending_actions</mat-icon>
+              En curso
+              <span class="contador">{{ ticketsActivos.length }}</span>
+            </button>
+            <button mat-stroked-button type="button"
+                    [class.seccion-activa]="seccion === 'RESUELTOS'"
+                    (click)="cambiarSeccion('RESUELTOS')">
+              <mat-icon>check_circle</mat-icon>
+              Resueltos
+              <span class="contador">{{ ticketsResueltos.length }}</span>
+            </button>
+          </div>
 
-          <mat-form-field appearance="outline" class="filtro-busqueda">
-            <mat-label>Buscar</mat-label>
-            <input matInput [ngModel]="busqueda"
-                   (ngModelChange)="onBusquedaChange($event)"
-                   placeholder="Texto, autor o asunto">
-            <mat-icon matSuffix>search</mat-icon>
-          </mat-form-field>
+          <div class="filtros-bitacora">
+            <mat-form-field appearance="outline" class="filtro-busqueda">
+              <mat-label>Buscar</mat-label>
+              <input matInput [ngModel]="busqueda"
+                     (ngModelChange)="onBusquedaChange($event)"
+                     placeholder="Texto, autor o asunto">
+              <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
 
-          <mat-form-field appearance="outline" class="filtro-tamano">
-            <mat-label>Por pagina</mat-label>
-            <mat-select [(ngModel)]="tamanoPagina" (ngModelChange)="onTamanoPaginaChange()">
-              <mat-option [value]="5">5</mat-option>
-              <mat-option [value]="10">10</mat-option>
-              <mat-option [value]="20">20</mat-option>
-            </mat-select>
-          </mat-form-field>
+            <mat-form-field appearance="outline" class="filtro-tamano">
+              <mat-label>Por pagina</mat-label>
+              <mat-select [(ngModel)]="tamanoPagina" (ngModelChange)="onTamanoPaginaChange()">
+                <mat-option [value]="5">5</mat-option>
+                <mat-option [value]="10">10</mat-option>
+                <mat-option [value]="20">20</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div class="filtro-activo" *ngIf="filtroTicketId">
+          <mat-icon>filter_alt</mat-icon>
+          <span>Mostrando solo el ticket #{{ filtroTicketId }} · {{ ticketSeleccionado?.titulo }}</span>
+          <button mat-icon-button type="button" (click)="limpiarFiltroTicket()"
+                  aria-label="Quitar filtro de ticket">
+            <mat-icon>close</mat-icon>
+          </button>
         </div>
 
         <div class="lista-comentarios">
           <div *ngFor="let c of comentarios; trackBy: trackByComentario" class="item-comentario">
             <div class="meta-comentario">
-              <div>
+              <div class="meta-izquierda">
                 <strong>Ticket #{{ c.ticketId }} · {{ getTituloTicket(c) }}</strong>
                 <span class="autor">Por {{ getNombreAutor(c) }}</span>
+                <span class="estado-resuelto" *ngIf="getEstadoTicket(c) === 'RESUELTO'">Resuelto</span>
               </div>
               <div class="meta-derecha">
                 <span class="fecha" *ngIf="c.creadoEn">{{ c.creadoEn | date:'short' }}</span>
-                <button mat-icon-button color="warn" (click)="eliminarComentario(c.id)"
+                <button *ngIf="auth.puede('ADMINISTRADOR')" mat-icon-button color="warn"
+                        (click)="eliminarComentario(c.id)"
                         aria-label="Eliminar comentario">
                   <mat-icon>delete_outline</mat-icon>
                 </button>
               </div>
             </div>
             <p class="texto-c">{{ c.texto }}</p>
-
-            <div class="adjuntos-comentario" *ngIf="adjuntosDe(c.id).length > 0">
-              <button mat-stroked-button class="adjunto" type="button"
-                      *ngFor="let a of adjuntosDe(c.id)"
-                      (click)="abrirAdjunto(a)">
-                <mat-icon>{{ esImagen(a) ? 'image' : 'picture_as_pdf' }}</mat-icon>
-                <span>{{ a.nombreOriginal }}</span>
-                <small>{{ formatearTamano(a.tamanoBytes) }}</small>
-              </button>
-              <button mat-button type="button"
-                      *ngFor="let a of adjuntosDe(c.id)"
-                      (click)="abrirAdjunto(a, true)">
-                <mat-icon>download</mat-icon>
-              </button>
-            </div>
           </div>
 
           <div *ngIf="comentarios.length === 0 && !cargandoComentarios" class="sin-datos">
-            No hay comentarios para los filtros seleccionados.
+            <ng-container *ngIf="filtroTicketId; else sinFiltro">
+              Este ticket aun no tiene comentarios.
+            </ng-container>
+            <ng-template #sinFiltro>
+              {{ seccion === 'RESUELTOS'
+                  ? 'No hay comentarios en la bitacora de tickets resueltos.'
+                  : 'No hay comentarios en la bitacora de tickets en curso.' }}
+            </ng-template>
           </div>
           <div *ngIf="cargandoComentarios" class="sin-datos">Cargando bitacora...</div>
         </div>
@@ -154,12 +147,12 @@
       </mat-card-content>
     </mat-card>
 
-    <!-- NOTIFICACIONES Y CSAT -->
+    <!-- AVISOS -->
     <div class="columna-derecha">
       <mat-card class="columna-card">
         <mat-card-header>
           <mat-card-title>
-            Bandeja de Alertas
+            Avisos
             <span class="badge-no-leidas" *ngIf="contador.noLeidas > 0">{{ contador.noLeidas }}</span>
           </mat-card-title>
           <mat-card-subtitle>
@@ -167,39 +160,14 @@
           </mat-card-subtitle>
         </mat-card-header>
         <mat-card-content>
-          <div class="filtros-notificaciones">
-            <mat-form-field appearance="outline">
-              <mat-label>Tipo</mat-label>
-              <mat-select [(ngModel)]="filtroNotifTipo" (ngModelChange)="cargarNotificaciones()">
-                <mat-option value="">Todos</mat-option>
-                <mat-option value="TICKET_ESTADO">Estado</mat-option>
-                <mat-option value="COMENTARIO_NUEVO">Comentario</mat-option>
-                <mat-option value="ENCUESTA_SATISFACCION">Encuesta</mat-option>
-              </mat-select>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Ticket</mat-label>
-              <mat-select [(ngModel)]="filtroNotifTicketId" (ngModelChange)="cargarNotificaciones()">
-                <mat-option [value]="null">Todos</mat-option>
-                <mat-option *ngFor="let t of tickets" [value]="t.id">#{{ t.id }}</mat-option>
-              </mat-select>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Estado</mat-label>
-              <mat-select [(ngModel)]="filtroNotifLeida" (ngModelChange)="cargarNotificaciones()">
-                <mat-option value="">Todas</mat-option>
-                <mat-option value="false">No leidas</mat-option>
-                <mat-option value="true">Leidas</mat-option>
-              </mat-select>
-            </mat-form-field>
-          </div>
-
           <div class="acciones-notificaciones">
+            <span class="ayuda-avisos">
+              <mat-icon>info</mat-icon>
+              Primero los no leidos. Haz clic para ir al ticket.
+            </span>
             <button mat-stroked-button (click)="marcarTodasLeidas()"
                     [disabled]="contador.noLeidas === 0">
-              <mat-icon>done_all</mat-icon> Marcar todas como leidas
+              <mat-icon>done_all</mat-icon> Marcar leidas
             </button>
           </div>
 
@@ -217,89 +185,12 @@
                   <span class="fecha" *ngIf="n.creadaEn">{{ n.creadaEn | date:'short' }}</span>
                 </div>
                 <p>{{ n.mensaje }}</p>
-                <small *ngIf="n.ticketId">Ticket: {{ getTituloPorTicket(n.ticketId) }}</small>
+                <small *ngIf="n.ticketId">Ticket #{{ n.ticketId }} · {{ getTituloPorTicket(n.ticketId) }}</small>
               </div>
+              <span class="punto-no-leido" *ngIf="!n.leida" aria-label="No leido"></span>
             </div>
             <div *ngIf="notificaciones.length === 0" class="sin-datos">
-              No tienes notificaciones para estos filtros.
-            </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card class="columna-card tarjeta-csat">
-        <mat-card-header>
-          <mat-card-title>Satisfaccion CSAT</mat-card-title>
-          <mat-card-subtitle>Encuestas enviadas cuando un ticket pasa a RESUELTO</mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="csat-kpis">
-            <div class="csat-kpi">
-              <strong>{{ resumenEncuestas.promedio | number:'1.1-2' }}</strong>
-              <span>Promedio / 5</span>
-            </div>
-            <div class="csat-kpi">
-              <strong>{{ resumenEncuestas.respondidas }}</strong>
-              <span>Respondidas</span>
-            </div>
-            <div class="csat-kpi">
-              <strong>{{ resumenEncuestas.pendientes }}</strong>
-              <span>Pendientes</span>
-            </div>
-          </div>
-
-          <div class="distribucion">
-            <div class="fila-distribucion" *ngFor="let p of estrellas">
-              <span class="numero">{{ p }}</span>
-              <div class="barra">
-                <div class="barra-relleno" [style.width.%]="porcentajeDistribucion(p)"></div>
-              </div>
-              <span class="cantidad">{{ resumenEncuestas.distribucion[p] ?? 0 }}</span>
-            </div>
-          </div>
-
-          <mat-divider class="separador"></mat-divider>
-
-          <div *ngIf="!filtroTicketId" class="sin-datos">
-            Selecciona un ticket en la bitacora para ver o responder su encuesta.
-          </div>
-
-          <div *ngIf="filtroTicketId && !encuestaSeleccionada" class="sin-datos">
-            El ticket seleccionado aun no tiene una encuesta.
-          </div>
-
-          <div *ngIf="encuestaSeleccionada" class="panel-encuesta">
-            <h4>Ticket #{{ encuestaSeleccionada.ticketId }} · {{ ticketParaEncuesta?.titulo }}</h4>
-
-            <div *ngIf="encuestaSeleccionada.respondida" class="encuesta-respondida">
-              <div class="estrellas-lectura">
-                <mat-icon *ngFor="let p of estrellas"
-                          [class.activa]="p <= (encuestaSeleccionada.puntuacion ?? 0)">star</mat-icon>
-                <strong>{{ encuestaSeleccionada.puntuacion }} / 5</strong>
-              </div>
-              <p *ngIf="encuestaSeleccionada.comentario">{{ encuestaSeleccionada.comentario }}</p>
-              <small>Respondida el {{ encuestaSeleccionada.respondidaEn | date:'short' }}</small>
-            </div>
-
-            <div *ngIf="puedeResponderEncuesta">
-              <p class="pregunta">¿Como calificarias la atencion recibida?</p>
-              <div class="selector-estrellas">
-                <button mat-icon-button type="button" *ngFor="let p of estrellas"
-                        (click)="encuestaPuntuacion = p"
-                        [attr.aria-label]="'Calificar con ' + p">
-                  <mat-icon [class.activa]="p <= encuestaPuntuacion">star</mat-icon>
-                </button>
-                <strong>{{ encuestaPuntuacion || '-' }} / 5</strong>
-              </div>
-              <mat-form-field appearance="outline" class="campo-full">
-                <mat-label>Comentario opcional</mat-label>
-                <textarea matInput [(ngModel)]="encuestaComentario"
-                          placeholder="Cuentanos como fue la atencion"></textarea>
-              </mat-form-field>
-              <button mat-flat-button color="primary" (click)="responderEncuesta()"
-                      [disabled]="enviandoEncuesta">
-                {{ enviandoEncuesta ? 'Enviando...' : 'Enviar encuesta' }}
-              </button>
+              No tienes avisos por ahora.
             </div>
           </div>
         </mat-card-content>

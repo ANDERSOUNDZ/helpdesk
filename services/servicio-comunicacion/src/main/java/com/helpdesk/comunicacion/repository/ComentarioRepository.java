@@ -19,6 +19,7 @@ public interface ComentarioRepository extends JpaRepository<Comentario, Long> {
     @Query("""
             SELECT c FROM Comentario c
             WHERE (:ticketId IS NULL OR c.ticketId = :ticketId)
+              AND (:ticketIds IS NULL OR c.ticketId IN :ticketIds)
               AND (
                     LOWER(c.texto) LIKE LOWER(CONCAT('%', :q, '%'))
                  OR LOWER(COALESCE(c.autorNombre, '')) LIKE LOWER(CONCAT('%', :q, '%'))
@@ -26,6 +27,7 @@ public interface ComentarioRepository extends JpaRepository<Comentario, Long> {
               )
             """)
     Page<Comentario> buscar(@Param("ticketId") Long ticketId,
+                            @Param("ticketIds") List<Long> ticketIds,
                             @Param("q") String q,
                             Pageable pageable);
 }

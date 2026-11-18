@@ -34,18 +34,8 @@
     "secure": false,
     "changeOrigin": true
   },
-  "/adjuntos": {
-    "target": "http://localhost:8084",
-    "secure": false,
-    "changeOrigin": true
-  },
   "/categorias": {
     "target": "http://localhost:8080",
-    "secure": false,
-    "changeOrigin": true
-  },
-  "/encuestas": {
-    "target": "http://localhost:8084",
     "secure": false,
     "changeOrigin": true
   }

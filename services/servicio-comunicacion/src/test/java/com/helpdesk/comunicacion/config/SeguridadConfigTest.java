@@ -1,10 +1,7 @@
 package com.helpdesk.comunicacion.config;
 
 import com.helpdesk.comunicacion.controller.ComunicacionController;
-import com.helpdesk.comunicacion.controller.ManejadorErrores;
-import com.helpdesk.comunicacion.service.AdjuntoService;
 import com.helpdesk.comunicacion.service.ComunicacionService;
-import com.helpdesk.comunicacion.service.EncuestaService;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 
 import java.nio.charset.StandardCharsets;
@@ -34,7 +31,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ComunicacionController.class)
-@Import({SeguridadConfig.class, ManejadorErrores.class})
+@Import(SeguridadConfig.class)
 @TestPropertySource(properties = {
         "app.auth.enabled=true",
         "app.jwt.secret=una-clave-de-prueba-de-al-menos-32-caracteres"
@@ -48,12 +45,6 @@ class SeguridadConfigTest {
 
     @MockitoBean
     private ComunicacionService comunicacionService;
-
-    @MockitoBean
-    private EncuestaService encuestaService;
-
-    @MockitoBean
-    private AdjuntoService adjuntoService;
 
     private RequestPostProcessor como(String rol) {
         return jwt().authorities(new SimpleGrantedAuthority("ROLE_" + rol));
@@ -79,7 +70,6 @@ class SeguridadConfigTest {
     void sinTokenNadaEsAccesibleSalvoLaSalud() throws Exception {
         mvc.perform(get("/comentarios")).andExpect(status().isUnauthorized());
         mvc.perform(get("/notificaciones")).andExpect(status().isUnauthorized());
-        mvc.perform(get("/encuestas/resumen")).andExpect(status().isUnauthorized());
         int salud = mvc.perform(get("/actuator/health")).andReturn().getResponse().getStatus();
         org.junit.jupiter.api.Assertions.assertNotEquals(401, salud);
     }
@@ -93,13 +83,11 @@ class SeguridadConfigTest {
     }
 
     @Test
-    void soloElAdministradorPuedeEliminarComentariosYAdjuntos() throws Exception {
+    void soloElAdministradorPuedeEliminarComentarios() throws Exception {
         for (String rol : List.of("SOLICITANTE", "TECNICO")) {
             mvc.perform(delete("/comentarios/1").with(como(rol))).andExpect(status().isForbidden());
-            mvc.perform(delete("/adjuntos/1").with(como(rol))).andExpect(status().isForbidden());
         }
         mvc.perform(delete("/comentarios/1").with(como("ADMINISTRADOR"))).andExpect(status().isNoContent());
-        mvc.perform(delete("/adjuntos/1").with(como("ADMINISTRADOR"))).andExpect(status().isNoContent());
     }
 
     @Test

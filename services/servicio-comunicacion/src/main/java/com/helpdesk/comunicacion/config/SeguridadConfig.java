@@ -48,7 +48,7 @@ public class SeguridadConfig {
 
         http.authorizeHttpRequests(reglas -> reglas
                         .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
-                        .requestMatchers(HttpMethod.DELETE, "/comentarios/*", "/adjuntos/*").hasRole("ADMINISTRADOR")
+                        .requestMatchers(HttpMethod.DELETE, "/comentarios/*").hasRole("ADMINISTRADOR")
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(recurso -> recurso.jwt(jwt -> jwt
                         .decoder(decodificador(secreto))
