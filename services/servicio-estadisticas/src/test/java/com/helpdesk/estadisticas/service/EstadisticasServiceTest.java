@@ -55,6 +55,13 @@ class EstadisticasServiceTest {
     }
 
     @Test
+    void unContadorNuncaQuedaNegativo() {
+        service.alCambiarEstado(new TicketEstadoCambiado("EN_PROGRESO", "RESUELTO"));
+
+        assertEquals(new ResumenTickets(0, 0, 1), service.obtenerResumen());
+    }
+
+    @Test
     void ignoraUnEstadoDesconocidoEnVezDeFallar() {
         service.alCambiarEstado(new TicketEstadoCambiado(null, "ARCHIVADO"));
 
