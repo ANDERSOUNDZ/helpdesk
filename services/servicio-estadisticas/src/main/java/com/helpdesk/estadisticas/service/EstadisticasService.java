@@ -63,7 +63,8 @@ public class EstadisticasService {
             return;
         }
         ContadorEstado contador = contadores.findById(estado).orElse(new ContadorEstado(estado, 0));
-        contador.setCantidad(contador.getCantidad() + cambio);
+        // Nunca negativo: si llega un cambio de estado cuyo origen no se conto (aviso previo perdido), se queda en 0.
+        contador.setCantidad(Math.max(0, contador.getCantidad() + cambio));
         contadores.save(contador);
     }
 }
