@@ -29,7 +29,7 @@
 
   .formulario-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 14px;
     margin-top: 12px;
 
@@ -214,4 +214,28 @@
     color: #666;
     font-size: 0.85rem;
   }
+}
+
+.solo-lectura {
+  color: #888;
+  font-size: 0.8rem;
+  font-style: italic;
+  white-space: nowrap;
+}
+
+.acciones-encabezado {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.etiqueta-categoria {
+  display: inline-block;
+  margin-top: 3px;
+  padding: 1px 8px;
+  border-radius: 10px;
+  background: #ede7f6;
+  color: #4527a0;
+  font-size: 0.74rem;
+  font-weight: 500;
 }

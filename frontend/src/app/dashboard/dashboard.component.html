@@ -5,183 +5,416 @@
       <p class="subtitulo-panel">Consolidado general de incidentes (servicio-estadisticas :8082) — Responsable: Miguel Anderson Chanchay</p>
     </div>
     <div class="acciones-panel">
-      <button mat-stroked-button (click)="cargarDatos()">Actualizar</button>
+      <button mat-stroked-button (click)="actualizar()">Actualizar</button>
       <button mat-stroked-button color="warn" *ngIf="auth.puede('ADMINISTRADOR')" (click)="resetearEstadisticas()" title="Reiniciar contadores">Reiniciar</button>
     </div>
   </div>
 
-  <!-- 4 TARJETAS KPI LIMPIAS -->
-  <div class="kpi-grid">
-    <mat-card class="kpi-card card-total">
+  @if (cargado() && !ticketsDisponibles() && !tickets().length) {
+    <mat-card class="aviso-sin-datos">
+      <mat-card-content>No se pudo consultar servicio-tickets: los indicadores no estan disponibles por ahora.</mat-card-content>
+    </mat-card>
+  }
+
+  <!-- 1. RESUMEN OPERATIVO (KPIs) -->
+  <section class="seccion">
+    <h3 class="seccion-titulo">Resumen operativo</h3>
+    <div class="kpi-grid">
+      <mat-card class="kpi-card card-total">
+        <mat-card-header>
+          <mat-card-subtitle>TOTAL DE CASOS</mat-card-subtitle>
+          <mat-card-title class="kpi-num">{{ kpis().total }}</mat-card-title>
+        </mat-card-header>
+        <mat-card-content><span class="kpi-desc">Incidentes registrados</span></mat-card-content>
+      </mat-card>
+
+      <mat-card class="kpi-card card-abierto">
+        <mat-card-header>
+          <mat-card-subtitle>ABIERTOS</mat-card-subtitle>
+          <mat-card-title class="kpi-num color-abierto">{{ kpis().abiertos }}</mat-card-title>
+        </mat-card-header>
+        <mat-card-content><span class="kpi-desc">Pendientes de asignacion</span></mat-card-content>
+      </mat-card>
+
+      <mat-card class="kpi-card card-progreso">
+        <mat-card-header>
+          <mat-card-subtitle>EN PROGRESO</mat-card-subtitle>
+          <mat-card-title class="kpi-num color-progreso">{{ kpis().enProgreso }}</mat-card-title>
+        </mat-card-header>
+        <mat-card-content><span class="kpi-desc">En atencion tecnica</span></mat-card-content>
+      </mat-card>
+
+      <mat-card class="kpi-card card-resuelto">
+        <mat-card-header>
+          <mat-card-subtitle>RESUELTOS</mat-card-subtitle>
+          <mat-card-title class="kpi-num color-resuelto">{{ kpis().resueltos }}</mat-card-title>
+        </mat-card-header>
+        <mat-card-content><span class="kpi-desc">Finalizados con exito</span></mat-card-content>
+      </mat-card>
+
+      <mat-card class="kpi-card card-sin-asignar">
+        <mat-card-header>
+          <mat-card-subtitle>SIN ASIGNAR</mat-card-subtitle>
+          <mat-card-title class="kpi-num color-alerta">{{ kpis().sinAsignar }}</mat-card-title>
+        </mat-card-header>
+        <mat-card-content><span class="kpi-desc">Esperando tecnico</span></mat-card-content>
+      </mat-card>
+
+      <mat-card class="kpi-card card-vencidos">
+        <mat-card-header>
+          <mat-card-subtitle>VENCIDOS (SLA)</mat-card-subtitle>
+          <mat-card-title class="kpi-num color-critico">{{ kpis().vencidos }}</mat-card-title>
+        </mat-card-header>
+        <mat-card-content><span class="kpi-desc">Pasaron su fecha limite</span></mat-card-content>
+      </mat-card>
+
+      <mat-card class="kpi-card card-sla">
+        <mat-card-header>
+          <mat-card-subtitle>CUMPLIMIENTO SLA</mat-card-subtitle>
+          <mat-card-title class="kpi-num color-resuelto">
+            {{ kpis().cumplimientoSla === null ? '—' : (kpis().cumplimientoSla | number:'1.0-0') + '%' }}
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <span class="kpi-desc">{{ kpis().conLimite ? 'Sobre ' + kpis().conLimite + ' casos con plazo' : 'Aun no hay casos con plazo' }}</span>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="kpi-card card-tiempo">
+        <mat-card-header>
+          <mat-card-subtitle>TIEMPO MEDIO DE RESOLUCION</mat-card-subtitle>
+          <mat-card-title class="kpi-num color-progreso">
+            {{ kpis().tiempoMedioHoras === null ? '—' : (kpis().tiempoMedioHoras | number:'1.0-1') + ' h' }}
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <span class="kpi-desc">{{ kpis().medibles ? 'Sobre ' + kpis().medibles + ' resueltos con fechas' : 'Sin resueltos con fechas aun' }}</span>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </section>
+
+  <!-- 2. DISTRIBUCION DE INCIDENTES -->
+  <section class="seccion">
+    <h3 class="seccion-titulo">Distribucion de incidentes</h3>
+    <div class="grid-3">
+      <mat-card class="panel">
+        <mat-card-header>
+          <mat-card-title>Por estado</mat-card-title>
+          <mat-card-subtitle>Carga de trabajo actual</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          @for (b of porEstado(); track b.etiqueta) {
+            <div class="fila-barra">
+              <div class="fila-barra-texto">
+                <span>{{ b.etiqueta }}</span>
+                <span><strong>{{ b.cantidad }}</strong> · {{ b.pct | number:'1.0-0' }}%</span>
+              </div>
+              <div class="barra-pista"><div class="barra-relleno" [ngClass]="b.clase" [style.width.%]="b.ancho"></div></div>
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="panel">
+        <mat-card-header>
+          <mat-card-title>Por prioridad</mat-card-title>
+          <mat-card-subtitle>Urgencia de los casos</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          @for (b of porPrioridad(); track b.etiqueta) {
+            <div class="fila-barra">
+              <div class="fila-barra-texto">
+                <span>{{ b.etiqueta }}</span>
+                <span><strong>{{ b.cantidad }}</strong> · {{ b.pct | number:'1.0-0' }}%</span>
+              </div>
+              <div class="barra-pista"><div class="barra-relleno" [ngClass]="b.clase" [style.width.%]="b.ancho"></div></div>
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="panel">
+        <mat-card-header>
+          <mat-card-title>Por categoria</mat-card-title>
+          <mat-card-subtitle>Tipo de falla reportada</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          @for (b of porCategoria(); track b.etiqueta) {
+            <div class="fila-barra">
+              <div class="fila-barra-texto">
+                <span>{{ b.etiqueta }}</span>
+                <span><strong>{{ b.cantidad }}</strong> · {{ b.pct | number:'1.0-0' }}%</span>
+              </div>
+              <div class="barra-pista"><div class="barra-relleno" [ngClass]="b.clase" [style.width.%]="b.ancho"></div></div>
+            </div>
+          } @empty {
+            <p class="sin-datos">Sin datos</p>
+          }
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </section>
+
+  <!-- 3. SATISFACCION DEL CLIENTE Y TENDENCIA -->
+  <section class="seccion">
+    <h3 class="seccion-titulo">Satisfaccion del cliente y evolucion</h3>
+    <div class="grid-2">
+      <mat-card class="panel panel-csat">
+        <mat-card-header>
+          <mat-card-title>Satisfaccion del cliente (CSAT)</mat-card-title>
+          <mat-card-subtitle>Encuestas que se envian al resolver un ticket (servicio-comunicacion)</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          @if (csat(); as c) {
+            <div class="csat-cabecera">
+              <div class="csat-promedio">
+                <span class="csat-numero">{{ c.promedio | number:'1.1-1' }}</span>
+                <span class="csat-sobre">/ 5</span>
+              </div>
+              <div class="csat-datos">
+                <div><strong>{{ c.respondidas }}</strong> respondidas</div>
+                <div><strong>{{ c.pendientes }}</strong> pendientes</div>
+                <div class="csat-tasa">
+                  Tasa de respuesta: {{ c.tasaRespuesta === null ? '—' : (c.tasaRespuesta | number:'1.0-0') + '%' }}
+                </div>
+              </div>
+            </div>
+            @for (i of c.items; track i.nota) {
+              <div class="fila-barra">
+                <div class="fila-barra-texto">
+                  <span>{{ i.nota }} {{ i.nota === 1 ? 'estrella' : 'estrellas' }}</span>
+                  <span><strong>{{ i.cantidad }}</strong></span>
+                </div>
+                <div class="barra-pista"><div class="barra-relleno barra-csat" [style.width.%]="i.ancho"></div></div>
+              </div>
+            }
+            @if (!c.respondidas) {
+              <p class="sin-datos">Aun no hay encuestas respondidas.</p>
+            }
+          } @else {
+            <p class="sin-datos">Sin datos: servicio-comunicacion no respondio.</p>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="panel panel-tendencia">
+        <mat-card-header>
+          <mat-card-title>Tendencia de los ultimos 14 dias</mat-card-title>
+          <mat-card-subtitle>Incidentes creados frente a resueltos por dia</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="leyenda">
+            <span><i class="punto punto-creado"></i>Creados ({{ tendencia().totalCreados }})</span>
+            <span><i class="punto punto-resuelto"></i>Resueltos ({{ tendencia().totalResueltos }})</span>
+          </div>
+          <div class="columnas">
+            @for (d of tendencia().serie; track d.etiqueta) {
+              <div class="columna-dia" [title]="d.etiqueta + ': ' + d.creados + ' creados, ' + d.resueltos + ' resueltos'">
+                <div class="columna-barras">
+                  <div class="col-barra col-creado" [style.height.%]="d.altoCreados"></div>
+                  <div class="col-barra col-resuelto" [style.height.%]="d.altoResueltos"></div>
+                </div>
+                <span class="columna-etiqueta">{{ d.etiqueta }}</span>
+              </div>
+            }
+          </div>
+          @if (tendencia().sinFecha) {
+            <p class="nota">{{ tendencia().sinFecha }} casos antiguos no tienen fecha de creacion y no entran en la tendencia.</p>
+          }
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </section>
+
+  <!-- 4. PRODUCTIVIDAD DEL EQUIPO -->
+  <section class="seccion">
+    <h3 class="seccion-titulo">Productividad del equipo</h3>
+    <mat-card class="panel">
       <mat-card-header>
-        <mat-card-subtitle>TOTAL DE CASOS</mat-card-subtitle>
-        <mat-card-title class="kpi-num">{{ resumen.total }}</mat-card-title>
+        <mat-card-title>Carga por tecnico</mat-card-title>
+        <mat-card-subtitle>Casos asignados, en atencion y resueltos por cada especialista</mat-card-subtitle>
       </mat-card-header>
       <mat-card-content>
-        <span class="kpi-desc">Incidentes registrados</span>
+        <div class="tabla-scroll">
+          <table mat-table [dataSource]="cargaTecnicos()" class="tabla-reporte-mat tabla-carga">
+            <ng-container matColumnDef="tecnico">
+              <th mat-header-cell *matHeaderCellDef> Tecnico </th>
+              <td mat-cell *matCellDef="let f"><strong>{{ f.nombre }}</strong></td>
+            </ng-container>
+            <ng-container matColumnDef="asignados">
+              <th mat-header-cell *matHeaderCellDef style="width: 130px;"> Asignados </th>
+              <td mat-cell *matCellDef="let f">{{ f.asignados }}</td>
+            </ng-container>
+            <ng-container matColumnDef="enProgreso">
+              <th mat-header-cell *matHeaderCellDef style="width: 130px;"> En progreso </th>
+              <td mat-cell *matCellDef="let f"><span class="badge-estado estado-en_progreso">{{ f.enProgreso }}</span></td>
+            </ng-container>
+            <ng-container matColumnDef="resueltos">
+              <th mat-header-cell *matHeaderCellDef style="width: 130px;"> Resueltos </th>
+              <td mat-cell *matCellDef="let f"><span class="badge-estado estado-resuelto">{{ f.resueltos }}</span></td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="columnasCarga"></tr>
+            <tr mat-row *matRowDef="let row; columns: columnasCarga;"></tr>
+            <tr class="mat-row" *matNoDataRow>
+              <td class="mat-cell sin-reporte" colspan="4">Aun no hay casos asignados a tecnicos.</td>
+            </tr>
+          </table>
+        </div>
       </mat-card-content>
     </mat-card>
+  </section>
 
-    <mat-card class="kpi-card card-abierto">
+  <!-- 5. TABLA DE REPORTES Y AUDITORIA DE INCIDENTES -->
+  <section class="seccion">
+    <h3 class="seccion-titulo">Tabla de reportes</h3>
+    <mat-card class="tarjeta-reportes">
       <mat-card-header>
-        <mat-card-subtitle>ABIERTOS</mat-card-subtitle>
-        <mat-card-title class="kpi-num color-abierto">{{ resumen.abiertos }}</mat-card-title>
+        <mat-card-title>Tabla de Reportes de Incidentes</mat-card-title>
+        <mat-card-subtitle>Listado consolidado para informe directivo y auditoria</mat-card-subtitle>
       </mat-card-header>
       <mat-card-content>
-        <span class="kpi-desc">Pendientes de asignacion</span>
+        <div class="filtros-reporte">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="filtro-texto">
+            <mat-label>Buscar por numero, asunto o detalle</mat-label>
+            <input matInput [ngModel]="texto()" (ngModelChange)="cambiarTexto($event)" autocomplete="off">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="filtro-campo">
+            <mat-label>Estado</mat-label>
+            <mat-select [ngModel]="filtroEstado()" (ngModelChange)="cambiarEstado($event)">
+              <mat-option value="">Todos</mat-option>
+              <mat-option value="ABIERTO">Abiertos</mat-option>
+              <mat-option value="EN_PROGRESO">En Progreso</mat-option>
+              <mat-option value="RESUELTO">Resueltos</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="filtro-campo">
+            <mat-label>Prioridad</mat-label>
+            <mat-select [ngModel]="filtroPrioridad()" (ngModelChange)="cambiarPrioridad($event)">
+              <mat-option value="">Todas</mat-option>
+              <mat-option value="BAJA">Baja</mat-option>
+              <mat-option value="MEDIA">Media</mat-option>
+              <mat-option value="ALTA">Alta</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="filtro-campo">
+            <mat-label>Tecnico</mat-label>
+            <mat-select [ngModel]="filtroTecnico()" (ngModelChange)="cambiarTecnico($event)">
+              <mat-option value="">Todos</mat-option>
+              @for (u of tecnicosParaFiltro(); track u.id) {
+                <mat-option [value]="u.id">{{ u.nombre }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="filtro-campo">
+            <mat-label>Categoria</mat-label>
+            <mat-select [ngModel]="filtroCategoria()" (ngModelChange)="cambiarCategoria($event)">
+              <mat-option value="">Todas</mat-option>
+              @for (c of categoriasParaFiltro(); track c.id) {
+                <mat-option [value]="c.id">{{ c.nombre }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-checkbox [checked]="soloVencidos()" (change)="cambiarVencidos($event.checked)">Solo vencidos</mat-checkbox>
+
+          <button mat-button (click)="limpiarFiltros()" [disabled]="!hayFiltros()">Limpiar filtros</button>
+          <button mat-stroked-button color="primary" (click)="exportarCsv()" [disabled]="exportando()"
+                  *ngIf="auth.puede('ADMINISTRADOR')" title="Descarga los casos con los filtros aplicados">
+            {{ exportando() ? 'Exportando...' : 'Exportar CSV' }}
+          </button>
+          <span class="contador-filtrados">
+            Mostrando <strong>{{ visibles().length }}</strong> de {{ filtrados().length }} casos (total {{ tickets().length }})
+          </span>
+        </div>
+
+        <div class="tabla-scroll">
+          <table mat-table [dataSource]="visibles()" [trackBy]="trackPorId" class="tabla-reporte-mat">
+
+            <ng-container matColumnDef="id">
+              <th mat-header-cell *matHeaderCellDef style="width: 70px;"> # ID </th>
+              <td mat-cell *matCellDef="let t"> <strong>#{{ t.id }}</strong> </td>
+            </ng-container>
+
+            <ng-container matColumnDef="titulo">
+              <th mat-header-cell *matHeaderCellDef> Asunto de la Falla </th>
+              <td mat-cell *matCellDef="let t">
+                <div class="reporte-titulo">{{ t.titulo }}</div>
+                <small class="reporte-sub">{{ t.descripcion || 'Sin detalle adicional' }}</small>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="solicitante">
+              <th mat-header-cell *matHeaderCellDef style="width: 160px;"> Solicitante / Area </th>
+              <td mat-cell *matCellDef="let t"><strong>{{ extraerSolicitante(t) }}</strong></td>
+            </ng-container>
+
+            <ng-container matColumnDef="categoria">
+              <th mat-header-cell *matHeaderCellDef style="width: 130px;"> Categoria </th>
+              <td mat-cell *matCellDef="let t">{{ nombreCategoria(t.categoriaId) }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="prioridad">
+              <th mat-header-cell *matHeaderCellDef style="width: 100px;"> Prioridad </th>
+              <td mat-cell *matCellDef="let t">
+                <mat-chip [highlighted]="t.prioridad === 'ALTA'">{{ t.prioridad }}</mat-chip>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="estado">
+              <th mat-header-cell *matHeaderCellDef style="width: 120px;"> Estado </th>
+              <td mat-cell *matCellDef="let t">
+                <span [class]="'badge-estado estado-' + t.estado?.toLowerCase()">{{ t.estado }}</span>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="tecnico">
+              <th mat-header-cell *matHeaderCellDef style="width: 150px;"> Tecnico a Cargo </th>
+              <td mat-cell *matCellDef="let t"><span>{{ getNombreUsuario(t.tecnicoId) }}</span></td>
+            </ng-container>
+
+            <ng-container matColumnDef="creado">
+              <th mat-header-cell *matHeaderCellDef style="width: 120px;"> Creado </th>
+              <td mat-cell *matCellDef="let t">{{ t.creadoEn ? (t.creadoEn | date:'dd/MM/yyyy HH:mm') : '—' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="sla">
+              <th mat-header-cell *matHeaderCellDef style="width: 110px;"> SLA </th>
+              <td mat-cell *matCellDef="let t">
+                @switch (estadoSla(t)) {
+                  @case ('vencido') { <span class="badge-sla sla-vencido">Vencido</span> }
+                  @case ('plazo') { <span class="badge-sla sla-plazo">En plazo</span> }
+                  @case ('resuelto') { <span class="badge-sla sla-resuelto">Cerrado</span> }
+                  @default { <span>—</span> }
+                }
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="columnasReporte"></tr>
+            <tr mat-row *matRowDef="let row; columns: columnasReporte;"></tr>
+
+            <tr class="mat-row" *matNoDataRow>
+              <td class="mat-cell sin-reporte" [attr.colspan]="columnasReporte.length">
+                {{ tickets().length ? 'No hay incidentes que coincidan con los filtros seleccionados.' : 'No hay incidentes registrados.' }}
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <mat-paginator
+          [length]="filtrados().length"
+          [pageSize]="tamano()"
+          [pageIndex]="paginaActual()"
+          [pageSizeOptions]="opcionesPagina"
+          (page)="cambiarPagina($event)"
+          showFirstLastButtons
+          aria-label="Paginacion del reporte de incidentes">
+        </mat-paginator>
       </mat-card-content>
     </mat-card>
-
-    <mat-card class="kpi-card card-progreso">
-      <mat-card-header>
-        <mat-card-subtitle>EN PROGRESO</mat-card-subtitle>
-        <mat-card-title class="kpi-num color-progreso">{{ resumen.enProgreso }}</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <span class="kpi-desc">En atencion tecnica</span>
-      </mat-card-content>
-    </mat-card>
-
-    <mat-card class="kpi-card card-resuelto">
-      <mat-card-header>
-        <mat-card-subtitle>RESUELTOS</mat-card-subtitle>
-        <mat-card-title class="kpi-num color-resuelto">{{ resumen.resueltos }}</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <span class="kpi-desc">Finalizados con exito</span>
-      </mat-card-content>
-    </mat-card>
-  </div>
-
-  <!-- TABLA 1: DESGLOSE PORCENTUAL POR ESTADO -->
-  <mat-card class="tarjeta-resumen-estados">
-    <mat-card-header>
-      <mat-card-title>Desglose por Estado Operativo</mat-card-title>
-      <mat-card-subtitle>Distribucion porcentual de la carga de trabajo</mat-card-subtitle>
-    </mat-card-header>
-    <mat-card-content>
-      <div class="tabla-scroll">
-        <table class="tabla-metricas">
-          <thead>
-            <tr>
-              <th>Estado</th>
-              <th>Cantidad</th>
-              <th>Porcentaje del Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><mat-chip class="chip-abierto">ABIERTO</mat-chip></td>
-              <td><strong>{{ resumen.abiertos }}</strong></td>
-              <td>{{ resumen.total > 0 ? ((resumen.abiertos / resumen.total) * 100 | number:'1.0-1') : 0 }}%</td>
-            </tr>
-            <tr>
-              <td><mat-chip class="chip-progreso">EN_PROGRESO</mat-chip></td>
-              <td><strong>{{ resumen.enProgreso }}</strong></td>
-              <td>{{ resumen.total > 0 ? ((resumen.enProgreso / resumen.total) * 100 | number:'1.0-1') : 0 }}%</td>
-            </tr>
-            <tr>
-              <td><mat-chip class="chip-resuelto">RESUELTO</mat-chip></td>
-              <td><strong>{{ resumen.resueltos }}</strong></td>
-              <td>{{ resumen.total > 0 ? ((resumen.resueltos / resumen.total) * 100 | number:'1.0-1') : 0 }}%</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </mat-card-content>
-  </mat-card>
-
-  <!-- TABLA 2: TABLA DE REPORTES Y AUDITORÍA DE INCIDENTES -->
-  <mat-card class="tarjeta-reportes">
-    <mat-card-header>
-      <mat-card-title>Tabla de Reportes de Incidentes</mat-card-title>
-      <mat-card-subtitle>Listado consolidado para informe directivo y auditoria</mat-card-subtitle>
-    </mat-card-header>
-    <mat-card-content>
-      <!-- Filtros rápidos para el reporte -->
-      <div class="filtros-reporte">
-        <mat-form-field appearance="outline" class="filtro-campo">
-          <mat-label>Filtrar por Estado</mat-label>
-          <mat-select [(ngModel)]="filtroEstado">
-            <mat-option value="TODOS">Todos los Estados</mat-option>
-            <mat-option value="ABIERTO">Abiertos</mat-option>
-            <mat-option value="EN_PROGRESO">En Progreso</mat-option>
-            <mat-option value="RESUELTO">Resueltos</mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="filtro-campo">
-          <mat-label>Filtrar por Prioridad</mat-label>
-          <mat-select [(ngModel)]="filtroPrioridad">
-            <mat-option value="TODAS">Todas las Prioridades</mat-option>
-            <mat-option value="BAJA">Baja</mat-option>
-            <mat-option value="MEDIA">Media</mat-option>
-            <mat-option value="ALTA">Alta</mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <span class="contador-filtrados">
-          Mostrando <strong>{{ ticketsFiltrados.length }}</strong> de {{ todosLosTickets.length }} casos
-        </span>
-      </div>
-
-      <!-- Tabla de Reporte Material -->
-      <div class="tabla-scroll">
-        <table mat-table [dataSource]="ticketsFiltrados" class="tabla-reporte-mat">
-
-          <ng-container matColumnDef="id">
-            <th mat-header-cell *matHeaderCellDef style="width: 70px;"> # ID </th>
-            <td mat-cell *matCellDef="let t"> <strong>#{{ t.id }}</strong> </td>
-          </ng-container>
-
-          <ng-container matColumnDef="titulo">
-            <th mat-header-cell *matHeaderCellDef> Asunto de la Falla </th>
-            <td mat-cell *matCellDef="let t">
-              <div class="reporte-titulo">{{ t.titulo }}</div>
-              <small class="reporte-sub">{{ t.descripcion || 'Sin detalle adicional' }}</small>
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="solicitante">
-            <th mat-header-cell *matHeaderCellDef style="width: 170px;"> Solicitante / Area </th>
-            <td mat-cell *matCellDef="let t">
-              <strong>{{ extraerSolicitante(t) }}</strong>
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="prioridad">
-            <th mat-header-cell *matHeaderCellDef style="width: 100px;"> Prioridad </th>
-            <td mat-cell *matCellDef="let t">
-              <mat-chip [highlighted]="t.prioridad === 'ALTA'">{{ t.prioridad }}</mat-chip>
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="estado">
-            <th mat-header-cell *matHeaderCellDef style="width: 120px;"> Estado </th>
-            <td mat-cell *matCellDef="let t">
-              <span [class]="'badge-estado estado-' + t.estado?.toLowerCase()">
-                {{ t.estado }}
-              </span>
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="tecnico">
-            <th mat-header-cell *matHeaderCellDef style="width: 160px;"> Tecnico a Cargo </th>
-            <td mat-cell *matCellDef="let t">
-              <span>{{ getNombreTecnico(t.tecnicoId) }}</span>
-            </td>
-          </ng-container>
-
-          <tr mat-header-row *matHeaderRowDef="columnasReporte"></tr>
-          <tr mat-row *matRowDef="let row; columns: columnasReporte;"></tr>
-
-          <tr class="mat-row" *matNoDataRow>
-            <td class="mat-cell sin-reporte" colspan="5">
-              No hay incidentes que coincidan con los filtros seleccionados.
-            </td>
-          </tr>
-        </table>
-      </div>
-    </mat-card-content>
-  </mat-card>
+  </section>
 </div>

@@ -1,13 +1,16 @@
 package com.helpdesk.tickets.service;
 
+import com.helpdesk.tickets.config.AccesoTickets;
 import com.helpdesk.tickets.dto.ResumenHoras;
 import com.helpdesk.tickets.dto.SolicitudHoras;
 import com.helpdesk.tickets.model.RegistroHoras;
+import com.helpdesk.tickets.model.Ticket;
 import com.helpdesk.tickets.repository.RegistroHorasRepository;
 import com.helpdesk.tickets.repository.TicketRepository;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,11 +31,13 @@ class HorasServiceTest {
     private final RegistroHorasRepository horas = mock(RegistroHorasRepository.class);
     private final TicketRepository tickets = mock(TicketRepository.class);
     private final HistorialService historial = mock(HistorialService.class);
-    private final HorasService service = new HorasService(horas, tickets, historial);
+    private final HorasService service = new HorasService(horas, tickets, historial, new AccesoTickets());
 
     @BeforeEach
     void preparar() {
-        when(tickets.existsById(1L)).thenReturn(true);
+        Ticket existente = new Ticket();
+        existente.setId(1L);
+        when(tickets.findById(1L)).thenReturn(Optional.of(existente));
         when(horas.save(any(RegistroHoras.class))).thenAnswer(llamada -> {
             RegistroHoras registro = llamada.getArgument(0);
             registro.setId(5L);

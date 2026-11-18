@@ -4,7 +4,10 @@
       <h2>Mesa de Incidentes y Tickets</h2>
       <p class="subtitulo">Gestion del ciclo de vida atendida por <code>servicio-tickets :8080</code> — Responsable: Ariel Martin Guerrero Sandoval</p>
     </div>
-    <button mat-stroked-button (click)="cargarDatos()">Actualizar</button>
+    <div class="acciones-encabezado">
+      <button mat-stroked-button *ngIf="auth.puede('ADMINISTRADOR')" (click)="abrirModalCategorias()">Categorias</button>
+      <button mat-stroked-button (click)="cargarDatos()">Actualizar</button>
+    </div>
   </div>
 
   <!-- Formulario para Crear Ticket: lo ven solicitantes y administradores (el tecnico no crea tickets) -->
@@ -34,6 +37,16 @@
             </mat-select>
             @if (f.departamento.hasError('required')) {
               <mat-error>Elige un departamento</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Categoria</mat-label>
+            <mat-select formControlName="categoria" [required]="categorias().length > 0">
+              <mat-option *ngFor="let c of categorias()" [value]="c.id">{{ c.nombre }}</mat-option>
+            </mat-select>
+            @if (f.categoria.hasError('required')) {
+              <mat-error>Elige una categoria</mat-error>
             }
           </mat-form-field>
 
@@ -105,7 +118,15 @@
           </mat-select>
         </mat-form-field>
 
-        <button mat-button (click)="limpiarFiltros()" [disabled]="!texto() && !filtroEstado() && !filtroPrioridad()">Limpiar filtros</button>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="filtro-select">
+          <mat-label>Categoria</mat-label>
+          <mat-select [ngModel]="filtroCategoria()" (ngModelChange)="cambiarCategoria($event)">
+            <mat-option value="">Todas</mat-option>
+            <mat-option *ngFor="let c of categorias()" [value]="c.id">{{ c.nombre }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-button (click)="limpiarFiltros()" [disabled]="!texto() && !filtroEstado() && !filtroPrioridad() && filtroCategoria() === ''">Limpiar filtros</button>
         <span class="contador-filtros">Mostrando {{ visibles().length }} de {{ filtrados().length }}</span>
       </div>
 
@@ -121,6 +142,7 @@
             <th mat-header-cell *matHeaderCellDef class="col-asunto"> Asunto & Solicitante </th>
             <td mat-cell *matCellDef="let t" class="col-asunto">
               <div class="titulo-ticket">{{ t.titulo }}</div>
+              <span class="etiqueta-categoria" *ngIf="t.categoriaId">{{ nombreCategoria(t.categoriaId) }}</span>
               <small *ngIf="t.descripcion" class="desc-ticket" [title]="t.descripcion">{{ t.descripcion }}</small>
             </td>
           </ng-container>
@@ -164,11 +186,14 @@
                 <!-- Fase 1: Abierto -> Abrir Modal para Asignar Tecnico -->
                 <button mat-stroked-button color="primary" class="btn-accion" *ngIf="t.estado === 'ABIERTO' && auth.puede('TECNICO', 'ADMINISTRADOR')" (click)="abrirModalAsignar(t)">Asignar</button>
 
-                <!-- Fase 2: En Progreso -> Tecnico termina tarea y marca como Resuelto -->
-                <button mat-flat-button color="accent" class="btn-accion" *ngIf="t.estado === 'EN_PROGRESO' && auth.puede('TECNICO', 'ADMINISTRADOR')" (click)="resolverTicket(t)">Finalizar</button>
+                <!-- Fase 2: En Progreso -> solo el tecnico que lo tiene (o el administrador) lo finaliza -->
+                <button mat-flat-button color="accent" class="btn-accion" *ngIf="t.estado === 'EN_PROGRESO' && puedeAtender(t) && auth.puede('TECNICO', 'ADMINISTRADOR')" (click)="resolverTicket(t)">Finalizar</button>
 
-                <!-- Fase 3: Resuelto -> el solicitante puede Reabrir si la falla persiste -->
-                <button mat-stroked-button color="warn" class="btn-accion" *ngIf="t.estado === 'RESUELTO'" (click)="reabrirTicket(t)" title="La falla persiste en el mismo tema">Reabrir</button>
+                <!-- Un ticket tomado por otro tecnico: solo lectura -->
+                <span class="solo-lectura" *ngIf="esSoloLectura(t)" [title]="'Lo atiende ' + getNombreTecnico(t.tecnicoId)">Solo lectura</span>
+
+                <!-- Fase 3: Resuelto -> el solicitante (o el administrador) puede Reabrir si la falla persiste -->
+                <button mat-stroked-button color="warn" class="btn-accion" *ngIf="t.estado === 'RESUELTO' && auth.puede('SOLICITANTE', 'ADMINISTRADOR')" (click)="reabrirTicket(t)" title="La falla persiste en el mismo tema">Reabrir</button>
 
                 <button mat-stroked-button color="primary" class="btn-accion" *ngIf="auth.puede('ADMINISTRADOR')" (click)="abrirModalEditarTicket(t)" title="Editar ticket en modal">Editar</button>
 
