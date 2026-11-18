@@ -287,7 +287,7 @@ coordinacion del equipo.
 | `servicio-tickets` | Nucleo: crear, asignar, resolver, reabrir, editar y eliminar tickets; prioridad y estados (falta: categoria e historial de cambios) | 8080 | Operativo, con permisos por rol | Ariel Martin Guerrero Sandoval |
 | `servicio-estadisticas` | Contadores por estado (falta: categoria, prioridad, tiempo promedio, carga de tecnicos) | 8082 | Operativo, con permisos por rol | Miguel Anderson Chanchay |
 | `servicio-identidad` | Usuarios, roles y login (emite el JWT) | 8083 | Operativo | Anthony Marcel Orozco Junia |
-| `servicio-comunicacion` | Comentarios con adjuntos, notificaciones y encuestas de satisfaccion (CSAT) | 8084 | Operativo, con permisos por rol | Gabriel Emilio Ponce Salazar |
+| `servicio-comunicacion` | Bitacora de comentarios y notificaciones de tickets | 8084 | Operativo, con permisos por rol | Gabriel Emilio Ponce Salazar |
 | `eureka-server` | Infraestructura: descubrimiento de servicios | 8081 | Operativo | Miguel Anderson Chanchay |
 | `config-server` | Infraestructura: configuracion centralizada | 8888 | Operativo | Miguel Anderson Chanchay |
 
@@ -329,8 +329,6 @@ Entidades minimas, una clase por concepto (en la carpeta `model/` de cada servic
 | tickets | `Ticket` | `id`, `titulo`, `descripcion`, `prioridad`, `estado`, `solicitanteId`, `tecnicoId` |
 | comunicacion | `Comentario` | `id`, `ticketId`, `autorId`, `texto` |
 | comunicacion | `Notificacion` | `id`, `usuarioId`, `mensaje`, `leida` |
-| comunicacion | `Adjunto` | `id`, `comentarioId`, `nombreOriginal`, `contentType`, `tamanoBytes` (png, jpg o pdf; hasta 3 por comentario y 5 MB) |
-| comunicacion | `EncuestaSatisfaccion` | `ticketId`, `solicitanteId`, `puntuacion` (1 a 5), `comentario`; se crea al resolver un ticket |
 | estadisticas | `ResumenTickets` | `abiertos`, `enProgreso`, `resueltos` (se calcula, no se guarda) |
 
 Estados del ticket: `ABIERTO` -> `EN_PROGRESO` (al asignarlo) -> `RESUELTO`.
@@ -564,7 +562,7 @@ Con el servicio levantado (cualquiera de las opciones anteriores), estos son los
 | | | `GET /notificaciones?usuarioId=3&leida=false` | Avisos de un usuario |
 | | | `PUT /notificaciones/{id}/leida` | Marca un aviso como leido |
 | | | `POST /eventos/ticket-estado` | Recibe el evento y crea el aviso |
-| | | Adjuntos, encuestas (CSAT), contador de avisos y busqueda paginada de comentarios | Ver [`services/servicio-comunicacion/README.md`](services/servicio-comunicacion/README.md) |
+| | | Contador de avisos, busqueda paginada y bitacora separada por estado | Ver [`services/servicio-comunicacion/README.md`](services/servicio-comunicacion/README.md) |
 | estadisticas | 8082 | `GET /resumen` | Abiertos / en progreso / resueltos |
 | | | `POST /eventos/ticket-estado` | Recibe el evento y actualiza los contadores |
 

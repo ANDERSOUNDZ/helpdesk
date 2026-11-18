@@ -1,7 +1,16 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, catchError, map, of } from 'rxjs';
-import { ResumenEncuestas, Ticket } from '../models/helpdesk.model';
+import { Ticket } from '../models/helpdesk.model';
+
+/** Resumen de las encuestas de satisfaccion (servicio-comunicacion). Definido aqui porque el modelo compartido ya no lo incluye. */
+export interface ResumenEncuestas {
+  totalEncuestas: number;
+  respondidas: number;
+  pendientes: number;
+  promedio: number;
+  distribucion: Record<number, number>;
+}
 
 /** Ticket con los campos de fechas y SLA que expone servicio-tickets (los viejos pueden traerlos en null). */
 export interface TicketMetrica extends Ticket {

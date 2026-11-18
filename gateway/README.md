@@ -21,7 +21,7 @@ Cuando inicies el desarrollo de este módulo con el asistente, aquí está el pu
    - Registrar el gateway en **Eureka** (`http://localhost:8081/eureka/`) y enrutar **por nombre de servicio**, sin escribir puertos:
      - `/api/tickets/**` → `lb://servicio-tickets` (`/tickets/**`)
      - `/api/usuarios/**` y `/api/auth/**` → `lb://servicio-identidad` (`/usuarios/**` y `/auth/**`)
-     - `/api/comentarios/**`, `/api/notificaciones/**`, `/api/adjuntos/**`, `/api/encuestas/**` → `lb://servicio-comunicacion`
+     - `/api/comentarios/**` y `/api/notificaciones/**` → `lb://servicio-comunicacion`
      - `/api/estadisticas/**` y `/api/resumen` → `lb://servicio-estadisticas`
    - Con el login encendido, los 4 servicios ya validan el token por su cuenta; el gateway debe **reenviar** el encabezado `Authorization` sin tocarlo (validarlo también en el gateway es opcional).
 3. **CORS Global:**

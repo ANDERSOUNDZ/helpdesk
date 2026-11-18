@@ -15,8 +15,8 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { Subscription, catchError, forkJoin, interval, of } from 'rxjs';
 import { HelpdeskService } from '../services/helpdesk.service';
 import { AuthService } from '../auth/auth.service';
-import { ResumenEncuestas, Usuario } from '../models/helpdesk.model';
-import { CategoriaMetrica, MetricasService, TicketMetrica } from './metricas.service';
+import { Usuario } from '../models/helpdesk.model';
+import { CategoriaMetrica, MetricasService, ResumenEncuestas, TicketMetrica } from './metricas.service';
 
 interface Barra {
   etiqueta: string;

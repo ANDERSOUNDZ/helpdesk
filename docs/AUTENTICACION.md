@@ -49,12 +49,12 @@ Para volver al modo de siempre: `AUTH_ENABLED=false` en el `.env` y `docker comp
 | Accion | SOLICITANTE | TECNICO | ADMINISTRADOR |
 |---|:---:|:---:|:---:|
 | Ver, crear y reabrir tickets | si | si | si |
-| Comentar, ver notificaciones y responder la encuesta | si | si | si |
+| Comentar y ver notificaciones | si | si | si |
 | Finalizar (resolver) un ticket | no | si | si |
 | Asignar un tecnico, editar o eliminar un ticket | no | no | si |
 | Ver el resumen y las estadisticas | no | si | si |
 | Ajustar o resetear estadisticas | no | no | si |
-| Eliminar comentarios y adjuntos | no | no | si |
+| Eliminar comentarios | no | no | si |
 | Ver la lista de usuarios | si | si | si |
 | Crear, editar o eliminar usuarios | no | no | si |
 
@@ -111,7 +111,7 @@ iniciar sesion**. Al editar se puede cambiar el rol o poner una clave nueva (vac
 | `403` en una accion | Tu rol no tiene ese permiso (tabla de arriba) | Pide a un administrador que cambie tu rol |
 | No hay administrador y no puedo entrar | No se definio `ADMIN_USUARIO` y `ADMIN_CLAVE` al arrancar | Defínelos en el `.env` y reinicia identidad; el administrador se crea si no existe |
 | Los usuarios de antes no pueden entrar | Existian sin usuario ni clave | Un administrador les asigna credenciales en la pestaña de identidad |
-| Un adjunto no abre con la autenticacion encendida | Un enlace directo no envia el token | La app ya los pide con `HttpClient`; no abras `/adjuntos/...` pegando la URL en el navegador |
+| Una notificacion no abre con la autenticacion encendida | La peticion se hizo sin el encabezado `Authorization` | Usa la app o el token Bearer en Postman |
 
 ## Limites actuales (a proposito)
 

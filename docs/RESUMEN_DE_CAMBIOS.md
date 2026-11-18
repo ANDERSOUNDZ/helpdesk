@@ -7,7 +7,7 @@
 
 ## En una frase
 
-Partimos de un sistema donde Gabriel acababa de terminar su parte (comentarios, adjuntos y encuestas) y lo convertimos en un sistema **ordenado, protegido con usuarios y contraseñas, con roles, y mejor organizado para que el equipo no se pise entre sí**.
+Partimos de un sistema donde Gabriel acababa de terminar su parte (comentarios y notificaciones) y lo convertimos en un sistema **ordenado, protegido con usuarios y contraseñas, con roles, y mejor organizado para que el equipo no se pise entre sí**.
 
 ## Los números
 
@@ -36,11 +36,10 @@ Partimos de un sistema donde Gabriel acababa de terminar su parte (comentarios, 
 ### 1. El trabajo de Gabriel: comunicación completa
 **Qué es:** la parte del sistema donde las personas se hablan sobre un problema.
 
-- **Comentarios con archivos:** ahora se puede adjuntar una foto o un PDF a un comentario (hasta 3 archivos de 5 MB).
+- **Comentarios:** la bitácora guarda el aviso, el autor, la fecha y el ticket asociado.
 - **Avisos:** cuando pasa algo en un ticket (cambia de estado, alguien comenta), la persona recibe un aviso. Hay un contador de avisos sin leer y un botón "marcar todos como leídos".
-- **Encuesta de satisfacción:** cuando se resuelve un problema, se le pide a quien lo reportó que califique la atención del 1 al 5. Se puede ver el promedio.
 
-**Por qué importa:** el soporte técnico no es solo arreglar; también es comunicarse y medir si el usuario quedó contento.
+**Por qué importa:** el soporte técnico no es solo arreglar; también es comunicarse y dejar claro qué pasó con cada ticket.
 
 ### 2. Reglas para que nadie se pise con el trabajo de otro
 **El problema:** el trabajo de Gabriel traía cambios en partes que no eran suyas. No chocó con nada, pero estuvo cerca.
@@ -105,14 +104,13 @@ Tomamos como modelo el proyecto de ejemplo *smart-parking*.
 | **Avisos automáticos entre partes** | Hoy, cuando un ticket cambia de estado, el aviso a comunicación y estadísticas se envía **a mano**. Falta que sea automático. |
 | **Puerta de entrada única (Gateway)** | Falta una sola "puerta" por donde pase todo el tráfico. |
 | **Cada solicitante ve solo sus tickets** | El sistema valida el rol, pero todavía no comprueba que un solicitante vea únicamente los suyos. |
-| **Tarjeta de satisfacción en el panel** | El promedio de las encuestas aún no aparece en las estadísticas. |
 | **Pruebas automáticas al subir cambios** | GitHub todavía no ejecuta las 83 pruebas solo; hoy se corren a mano. |
 | **Control de versiones de la base de datos** | Los cambios en la base se aplican al arrancar; falta llevar un historial ordenado. |
 
 ---
 
 ## Mini guion para exponer (2 minutos)
-1. *"Recibimos la parte de comunicación de Gabriel, con comentarios, adjuntos y encuestas de satisfacción."*
+1. *"Recibimos la parte de comunicación de Gabriel, con comentarios y avisos."*
 2. *"Notamos que el trabajo de un compañero podía mezclarse con el de otro, así que pusimos un vigilante automático: cada quien solo cambia su zona."*
 3. *"Agregamos una guía de servicios y un chequeo de salud, como en el proyecto de ejemplo."*
 4. *"Y lo más visible: un login con tres roles. El solicitante reporta, el técnico atiende y el administrador supervisa; cada uno ve solo lo que le toca."*

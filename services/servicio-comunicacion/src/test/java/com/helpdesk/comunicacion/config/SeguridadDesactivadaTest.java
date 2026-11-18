@@ -1,10 +1,7 @@
 package com.helpdesk.comunicacion.config;
 
 import com.helpdesk.comunicacion.controller.ComunicacionController;
-import com.helpdesk.comunicacion.controller.ManejadorErrores;
-import com.helpdesk.comunicacion.service.AdjuntoService;
 import com.helpdesk.comunicacion.service.ComunicacionService;
-import com.helpdesk.comunicacion.service.EncuestaService;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +15,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ComunicacionController.class)
-@Import({SeguridadConfig.class, ManejadorErrores.class})
+@Import(SeguridadConfig.class)
 class SeguridadDesactivadaTest {
 
     @Autowired
@@ -26,12 +23,6 @@ class SeguridadDesactivadaTest {
 
     @MockitoBean
     private ComunicacionService comunicacionService;
-
-    @MockitoBean
-    private EncuestaService encuestaService;
-
-    @MockitoBean
-    private AdjuntoService adjuntoService;
 
     @Test
     void conAuthEnabledApagadoTodoSigueAbiertoComoAntes() throws Exception {

@@ -1,35 +1,39 @@
-﻿# Servicio de Comunicación (HelpDesk)
+﻿# Servicio de Comunicacion (HelpDesk)
 
 > **Desarrollador responsable:** Gabriel Emilio Ponce Salazar
-> **Rama:** `feat/comunicacion`
+> **Rama:** `feat/comunicacion-rediseno`
 > **Puerto:** `8084`
 > **Base de datos:** `comunicacion_db` (PostgreSQL)
 
-Microservicio responsable de la bitácora de soporte, las notificaciones, las encuestas de satisfacción y los adjuntos de los comentarios.
+Microservicio responsable de la bitacora de soporte y las notificaciones de los tickets.
 
 ## Funcionalidades implementadas
 
-- Comentarios con fecha de creación, autor y título del ticket.
-- Notificaciones con tipo, ticket asociado, fecha, contador de no leídas y lectura masiva.
-- Filtro por ticket, búsqueda por texto/autor/asunto y paginación de la bitácora.
-- Encuesta CSAT de 1 a 5 cuando un ticket pasa a `RESUELTO`.
-- Resumen de satisfacción para la pestaña de comunicación y el dashboard.
-- Adjuntos PNG, JPG y PDF por comentario, con vista previa y descarga.
-- Notificación automática al destinatario cuando se crea un comentario.
-- Se conserva el contrato anterior de `GET /comentarios` y `GET /notificaciones` para no romper el diálogo de tickets.
+- Comentarios con fecha de creacion, autor y titulo del ticket.
+- Notificaciones con tipo, ticket asociado, fecha, contador de no leidas y lectura masiva.
+- Busqueda por texto/autor/asunto y paginacion de la bitacora.
+- Separacion de la bitacora en tickets **en curso** y **resueltos** desde el frontend.
+- Notificacion automatica al destinatario cuando se crea un comentario.
+- Se conserva el contrato anterior de `GET /comentarios` y `GET /notificaciones` para no romper el dialogo de tickets.
 
 ## Endpoints
 
 ### Comentarios
 
-| Método | Ruta | Descripción |
+| Metodo | Ruta | Descripcion |
 |---|---|---|
 | `GET` | `/comentarios?ticketId=` | Lista compatible con el frontend anterior. Devuelve un array. |
-| `GET` | `/comentarios/paginados?ticketId=&q=&page=0&size=10&sort=creadoEn,desc` | Búsqueda y paginación. Devuelve una página de Spring. |
-| `POST` | `/comentarios` | Crea un comentario y, si recibe `destinatarioId`, genera una notificación. |
-| `DELETE` | `/comentarios/{id}` | Elimina el comentario y sus adjuntos. |
+| `GET` | `/comentarios/paginados?ticketId=&ticketIds=&q=&page=0&size=10&sort=creadoEn,desc` | Busqueda y paginacion. Devuelve una pagina de Spring. |
+| `POST` | `/comentarios` | Crea un comentario y, si recibe `destinatarioId`, genera una notificacion. |
+| `DELETE` | `/comentarios/{id}` | Elimina el comentario. |
 
-Ejemplo de creación:
+`ticketIds` permite limitar la bitacora a un conjunto de tickets. El frontend lo usa para mostrar solo los comentarios de tickets en curso o solo los de tickets resueltos. Ejemplo:
+
+```http
+GET /comentarios/paginados?ticketIds=7,8,9&page=0&size=10
+```
+
+Ejemplo de creacion:
 
 ```json
 {
@@ -37,7 +41,7 @@ Ejemplo de creación:
   "autorId": 2,
   "autorNombre": "Ana Torres",
   "ticketTitulo": "No imprime la factura",
-  "texto": "Revisé el controlador de impresión.",
+  "texto": "Revise el controlador de impresion.",
   "destinatarioId": 3
 }
 ```
@@ -46,54 +50,22 @@ Ejemplo de creación:
 
 ### Notificaciones
 
-| Método | Ruta | Descripción |
+| Metodo | Ruta | Descripcion |
 |---|---|---|
 | `GET` | `/notificaciones?usuarioId=&leida=&tipo=&ticketId=` | Lista filtrada. |
 | `GET` | `/notificaciones/contador?usuarioId=` | Devuelve `total` y `noLeidas`. |
-| `PUT` | `/notificaciones/leidas?usuarioId=` | Marca todas las no leídas del usuario. Devuelve `204`. |
-| `PUT` | `/notificaciones/{id}/leida` | Marca una notificación como leída. |
+| `PUT` | `/notificaciones/leidas?usuarioId=` | Marca todas las no leidas del usuario. Devuelve `204`. |
+| `PUT` | `/notificaciones/{id}/leida` | Marca una notificacion como leida. |
 
-Tipos: `TICKET_ESTADO`, `COMENTARIO_NUEVO`, `ENCUESTA_SATISFACCION`, `SISTEMA`.
+Tipos: `TICKET_ESTADO`, `COMENTARIO_NUEVO`, `SISTEMA`.
 
-### Encuestas CSAT
+### Eventos
 
-| Método | Ruta | Descripción |
+| Metodo | Ruta | Descripcion |
 |---|---|---|
-| `GET` | `/encuestas/{ticketId}` | Consulta la encuesta del ticket. |
-| `POST` | `/encuestas/{ticketId}/respuesta` | Guarda una puntuación de 1 a 5. |
-| `GET` | `/encuestas/resumen` | Promedio, respondidas, pendientes y distribución. |
+| `POST` | `/eventos/ticket-estado` | Recibe el cambio de estado y crea un aviso para el solicitante. |
 
-El evento `POST /eventos/ticket-estado` con `estadoNuevo = "RESUELTO"` crea la encuesta y la notificación CSAT una sola vez por ticket.
-
-### Adjuntos
-
-| Método | Ruta | Descripción |
-|---|---|---|
-| `POST` | `/comentarios/{id}/adjuntos` | Multipart con el campo `archivos`. Hasta 3 archivos de 5 MB. |
-| `GET` | `/comentarios/{id}/adjuntos` | Metadata de adjuntos del comentario. |
-| `GET` | `/adjuntos/{id}` | Vista previa inline. |
-| `GET` | `/adjuntos/{id}/descargar` | Descarga con el nombre original. |
-| `DELETE` | `/adjuntos/{id}` | Elimina metadata y archivo. |
-
-Tipos permitidos: `image/png`, `image/jpeg`, `application/pdf`.
-
-## Configuración de adjuntos
-
-```properties
-app.adjuntos.directorio=${ADJUNTOS_DIR:./datos/adjuntos}
-app.adjuntos.max-tamano-bytes=${ADJUNTOS_MAX_BYTES:5242880}
-app.adjuntos.max-archivos=${ADJUNTOS_MAX_ARCHIVOS:3}
-app.adjuntos.tipos-permitidos=${ADJUNTOS_TIPOS:image/png,image/jpeg,application/pdf}
-
-spring.servlet.multipart.max-file-size=5MB
-spring.servlet.multipart.max-request-size=20MB
-```
-
-En Docker, el servicio de comunicación usa el volumen `adjuntos` montado en `/app/adjuntos`.
-
-## Flujo CSAT
-
-1. `servicio-tickets` (o el frontend, mientras no exista el evento automático) envía:
+Ejemplo:
 
 ```json
 {
@@ -103,27 +75,24 @@ En Docker, el servicio de comunicación usa el volumen `adjuntos` montado en `/a
 }
 ```
 
-a `POST /eventos/ticket-estado`.
-2. Se crea una notificación de estado.
-3. Se crea una encuesta pendiente y una notificación `ENCUESTA_SATISFACCION`.
-4. El solicitante responde desde la pestaña de comunicación.
-5. El resumen aparece en la pestaña de comunicación y en el dashboard.
+## Notificaciones automaticas al comentar
 
-## Notificaciones automáticas al comentar
+El backend no puede deducir el destinatario porque no consulta `servicio-tickets`. El frontend de comunicacion y el dialogo de tickets envian `destinatarioId`:
 
-El backend no puede deducir el destinatario porque no consulta `servicio-tickets`. El frontend de comunicación y el diálogo de tickets envían `destinatarioId`:
+- Si comenta el tecnico, se notifica al solicitante.
+- Si comenta el solicitante, se notifica al tecnico asignado.
+- Si el destinatario coincide con el autor, no se genera notificacion.
 
-- Si comenta el técnico, se notifica al solicitante.
-- Si comenta el solicitante, se notifica al técnico asignado.
-- Si el destinatario coincide con el autor, no se genera notificación.
+## Integracion pendiente
 
-## Integración pendiente
+- `servicio-tickets` todavia no emite el evento al resolver por si solo. Mientras tanto, el frontend de tickets lo envia despues de resolver.
+- No hay autenticacion real. Los IDs de autor y destinatario se confian desde el cliente; es una simulacion para la demo.
 
-- `servicio-tickets` todavía no emite el evento al resolver por sí solo. Mientras tanto, el frontend de tickets lo envía después de resolver.
-- No hay autenticación real. Los IDs de autor y destinatario se confían desde el cliente; es una simulación para la demo.
-- El dashboard principal consume `/encuestas/resumen`; el dueño del dashboard puede extender la visualización.
+## Datos anteriores
 
-## Ejecución
+Las encuestas de satisfaccion y los adjuntos se retiraron del servicio. Las tablas antiguas no se borran automaticamente para no destruir datos existentes, pero el codigo ya no las consulta. Al arrancar se eliminan los avisos historicos de tipo `ENCUESTA_SATISFACCION` para que no queden valores de enum obsoletos.
+
+## Ejecucion
 
 ```bash
 cd services/servicio-comunicacion
@@ -137,7 +106,7 @@ cd services/servicio-comunicacion
 .\mvnw.cmd spring-boot:run
 ```
 
-Con Docker desde la raíz:
+Con Docker desde la raiz:
 
 ```bash
 docker compose up -d --build servicio-comunicacion
@@ -152,37 +121,33 @@ cd services/servicio-comunicacion
 
 Pruebas incluidas:
 
-- Creación de comentarios y notificaciones.
-- Filtros y paginación.
+- Creacion de comentarios y notificaciones.
+- Filtros por ticket y por lista de tickets.
+- Busqueda y paginacion.
 - Contador y lectura masiva.
-- Evento `RESUELTO`, encuesta y resumen CSAT.
-- Validación de adjuntos, almacenamiento y descarga.
+- Evento de cambio de estado.
 
 ## Postman
 
-La colección está en:
+La coleccion esta en:
 
 `services/servicio-comunicacion/postman/servicio-comunicacion.postman_collection.json`
 
-Carpetas: Comentarios, Notificaciones, Encuestas, Adjuntos y Eventos.
-
+Carpetas: Comentarios, Notificaciones y Eventos.
 
 ---
 
-## Autenticación y permisos por rol
+## Autenticacion y permisos por rol
 
-Valida el token (JWT) que emite `servicio-identidad`, **sin llamarlo**. Está **apagada por defecto** (`AUTH_ENABLED=false`):
-con el interruptor apagado todo funciona como antes y no hace falta ningún token. Se enciende con variables de entorno:
-`AUTH_ENABLED=true` y `JWT_SECRET` (la **misma clave** que usa identidad, mínimo 32 caracteres; nunca en el repositorio, que es público).
+Valida el token (JWT) que emite `servicio-identidad`, **sin llamarlo**. Esta **apagada por defecto** (`AUTH_ENABLED=false`):
+con el interruptor apagado todo funciona como antes y no hace falta ningun token. Se enciende con variables de entorno:
+`AUTH_ENABLED=true` y `JWT_SECRET` (la **misma clave** que usa identidad, minimo 32 caracteres; nunca en el repositorio, que es publico).
 
-| Endpoint | Quién puede |
+| Endpoint | Quien puede |
 |---|---|
-| Comentarios, adjuntos, notificaciones, encuestas y `POST /eventos/ticket-estado` | cualquier usuario autenticado |
-| `DELETE /comentarios/{id}`, `DELETE /adjuntos/{id}` | `ADMINISTRADOR` |
-| `GET /actuator/health` | público |
+| Comentarios, notificaciones y `POST /eventos/ticket-estado` | cualquier usuario autenticado |
+| `DELETE /comentarios/{id}` | `ADMINISTRADOR` |
+| `GET /actuator/health` | publico |
 
-Sin token o con un token inválido, vencido o de otro emisor responde `401`; con un rol sin permiso, `403`.
-La regla está en `config/SeguridadConfig.java` y se prueba en `SeguridadConfigTest`.
-
-Nota para el frontend: con la autenticación encendida, descargar un adjunto con un enlace directo (`<a href>` o `<img src>`)
-no envía el token y recibe `401`; hay que pedirlo con `HttpClient` (con el interceptor) y abrirlo como `blob`.
+Sin token o con un token invalido, vencido o de otro emisor responde `401`; con un rol sin permiso, `403`.
+La regla esta en `config/SeguridadConfig.java` y se prueba en `SeguridadConfigTest`.
